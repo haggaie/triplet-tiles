@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Triplet Tiles</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <h1 class="game-title">Triplet Tiles</h1>
+          <div class="level-info">
+            <span id="level-label">Level 1</span>
+            <button id="restart-button" class="btn btn-ghost">Restart</button>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="score-info">
+            <span>Score</span>
+            <span id="score-value">0</span>
+          </div>
+          <div class="powerups">
+            <button id="undo-button" class="btn btn-small" title="Undo last move">
+              Undo (<span id="undo-count">0</span>)
+            </button>
+            <button id="shuffle-button" class="btn btn-small" title="Shuffle tray tiles">
+              Shuffle (<span id="shuffle-count">0</span>)
+            </button>
+            <button id="remove-type-button" class="btn btn-small" title="Remove all of one tile type">
+              Remove Type (<span id="remove-type-count">0</span>)
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <section class="board-wrapper">
+          <div id="board" class="board"></div>
+        </section>
+        <section class="tray-wrapper">
+          <div class="tray-label">Tray (max 7 tiles)</div>
+          <div id="tray" class="tray"></div>
+        </section>
+      </main>
+
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-content">
+          <h2 id="overlay-title">Level Complete</h2>
+          <p id="overlay-message"></p>
+          <div class="overlay-actions">
+            <button id="overlay-primary" class="btn">Next Level</button>
+            <button id="overlay-secondary" class="btn btn-ghost">Retry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+  </html>
+
