@@ -461,7 +461,7 @@ function renderBoard() {
 
   tilesToRender.forEach(tile => {
     const el = document.createElement('div');
-    el.className = 'tile tile-pop-in';
+    el.className = 'tile';
     if (tappableIds.has(tile.id)) {
       el.classList.add('tappable');
     } else {

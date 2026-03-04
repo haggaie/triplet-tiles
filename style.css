@@ -338,11 +338,9 @@ body {
 
 @keyframes tilePopIn {
   from {
-    transform: translateY(10px) scale(0.9);
     opacity: 0;
   }
   to {
-    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
