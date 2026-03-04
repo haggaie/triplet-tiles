@@ -278,7 +278,10 @@ function startLevel(index) {
 
 function isTileCovered(tile) {
   return state.boardTiles.some(
-    other => !other.removed && other.x === tile.x && other.y === tile.y && other.z > tile.z
+    other => !other.removed && other.z > tile.z && (
+      -1 <= other.x - tile.x && other.x - tile.x <= 0 &&
+      0 <= other.y - tile.y && other.y - tile.y <= 1
+    )
   );
 }
 
@@ -450,7 +453,8 @@ function renderBoard() {
   const size = level.gridSize;
   const boardRect = ui.board.getBoundingClientRect();
   const cellSize = boardRect.width / (size + 2);
-  const zOffset = cellSize * 0.15;
+  const yPixelOffset = cellSize * 0.5;
+  const xPixelOffset = cellSize * 0.5;
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
 

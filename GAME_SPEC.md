@@ -11,7 +11,8 @@
 
 - **Board layout**
   - **Structure**: 2.5D/stacked layout of tiles in multiple layers, similar to mahjong.
-  - **Tile access rules**: A tile is tappable if it is not fully covered by another tile and is visually reachable.
+  - **Visual layering**: Tiles on higher layers are rendered slightly offset (diagonally and in depth) so they partially overlap the tiles below them while still leaving most of the lower tile’s shape visible when it is not logically covered.
+  - **Tile access rules**: A tile is tappable if it is not partially covered by another tile and is visually reachable; tiles may still be partially overlapped by neighboring tiles in higher layers as part of the 2.5D effect.
   - **Level variants**:
     - Flat boards (single layer) for early levels.
     - Multi-layer boards with overlapping columns.
