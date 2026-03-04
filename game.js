@@ -474,11 +474,13 @@ function renderBoard() {
     el.textContent = getTileVisual(tile.type);
     el.style.width = `${cellSize}px`;
     el.style.height = `${cellSize}px`;
-    const left = (tile.x + 0.5) * cellSize;
-    const top = (tile.y + 0.5) * cellSize;
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-    el.style.transform = `translate(-50%, -50%) translateY(${-tile.z * zOffset}px)`;
+    const baseLeft = (tile.x + 0.5) * cellSize;
+    const baseTop = (tile.y + 0.5) * cellSize;
+    const layeredLeft = baseLeft + tile.z * xPixelOffset;
+    const layeredTop = baseTop - tile.z * yPixelOffset;
+    el.style.left = `${layeredLeft}px`;
+    el.style.top = `${layeredTop}px`;
+    el.style.transform = 'translate(-50%, -50%)';
     el.style.zIndex = String(10 + tile.z);
     el.addEventListener('click', () => handleBoardTileClick(tile.id));
     ui.board.appendChild(el);
@@ -504,6 +506,47 @@ function renderTray() {
     slot.appendChild(inner);
     ui.tray.appendChild(slot);
   }
+}
+
+// Test hooks for automated E2E tests (Playwright)
+// Exposed on window to allow tests to control and inspect game state.
+if (typeof window !== 'undefined') {
+  window.__tripletTestHooks = {
+    startLevel,
+    getState() {
+      return state;
+    },
+    getTappableTiles,
+    clickTileById(tileId) {
+      handleBoardTileClick(tileId);
+    },
+    resetAllProgress() {
+      try {
+        Object.values(STORAGE_KEYS).forEach(key => {
+          window.localStorage.removeItem(key);
+        });
+      } catch {
+        // ignore storage errors in tests
+      }
+      state.stats = { ...defaultStats };
+      state.powerups = { ...defaultPowerups };
+      state.currentLevelIndex = 0;
+      startLevel(0);
+    },
+    setTrayTilesForTest(trayTiles) {
+      state.trayTiles = trayTiles.map((tile, index) => ({
+        id: tile.id || `test_${index}`,
+        type: tile.type
+      }));
+      renderTray();
+      renderHud();
+    },
+    setPowerupsForTest(partialPowerups) {
+      state.powerups = { ...state.powerups, ...partialPowerups };
+      renderHud();
+      savePowerups();
+    }
+  };
 }
 
 function main() {
