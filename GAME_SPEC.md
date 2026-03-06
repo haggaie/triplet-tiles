@@ -12,11 +12,11 @@
 - **Board layout**
   - **Structure**: 2.5D/stacked layout of tiles in multiple layers, similar to mahjong.
   - **Visual layering**: Tiles on higher layers are rendered slightly offset (diagonally and in depth) so they partially overlap the tiles below them while still leaving most of the lower tile’s shape visible when it is not logically covered.
-  - **Tile access rules**: A tile is tappable if it is not partially covered by another tile and is visually reachable; tiles may still be partially overlapped by neighboring tiles in higher layers as part of the 2.5D effect.
-  - **Level variants**:
-    - Flat boards (single layer) for early levels.
-    - Multi-layer boards with overlapping columns.
-    - Special shapes (hearts, spirals, letters, animals) used for thematic variety.
+  - **Tile access rules**: A tile is tappable if no tile in a higher layer overlaps (“covers”) it. Due to the diagonal layer offset, coverage is not only “same (x,y)”; higher-layer tiles can cover tiles slightly down-right of them depending on the chosen overlap footprint.
+  - **Level variants (all levels are multi-layer)**:
+    - Every level uses 2+ layers from Level 1 onward; early levels use shallow stacks and light overlap so many tiles remain tappable.
+    - Later levels increase overlap density and stack depth to create more dependencies (“unlocking”).
+    - Layout silhouettes (“shapes”) like hearts, spirals, letters, animals are used for thematic variety and for tuning difficulty via shape complexity.
 - **Tray (holding area)**
   - **Capacity**: 7 slots visible at bottom of the screen.
   - **Behavior**:
@@ -42,12 +42,72 @@
   - Optional star rating (1–3) based on score or completion speed.
   - Optional world map (scrollable) for visual progression.
 - **Difficulty curve**
-  - Early levels: Small boards, 3–4 tile types, mostly single layer.
+  - Early levels: Small boards, 3–4 tile types, **always multi-layer** (typically 2 layers) with low overlap density and many tappable tiles at any time.
   - Midgame: More tile types (6–10), deeper stacks, more blocking tiles.
   - Late game: Complex shapes, partial blocking, and reliance on power-ups/advanced tactics.
 - **Session length**
   - Target 60–180 seconds per level.
   - Quick fail/retry loops to encourage “one more try” behavior.
+
+### 3.1 Level Design: Shapes, Solvability, Difficulty, and Generation
+
+- **Board “shape” (layout silhouette)**
+  - **Definition**: The visible 2D silhouette formed by the union of all tile footprints (across layers) and how that silhouette is distributed (single cluster vs multiple islands, holes, narrow corridors).
+  - **Design knob — number of shapes**:
+    - A single level should read as **one primary shape** (clear silhouette). Avoid mixing multiple competing silhouettes in one level unless intentionally difficult.
+    - Across a level pack/world, vary the number of distinct silhouettes gradually (repeat a shape with small variations before introducing a brand-new one).
+  - **Shape complexity heuristics (higher = harder)**:
+    - More **disconnected islands**, more **holes/voids**, more **thin bridges**, and higher **concavity** generally reduce the number of available moves and increase forced sequences.
+
+- **Tile set and counts**
+  - Total tile count must be a multiple of 3.
+  - Each tile type count must be a multiple of 3 (unless/when wild tiles are introduced).
+  - Early levels prefer fewer types and more repeats (creates more “safe” merges and reduces tray clogging).
+
+- **Solvability (what it means)**
+  - A level is **solvable** if there exists a sequence of valid taps that:
+    - Only taps tiles that are currently tappable (not covered),
+    - Never exceeds tray capacity (7),
+    - Clears all tiles (board empty and tray empty).
+  - **Important**: “Solvable” is about existence of at least one successful path; easier levels intentionally have *many* such paths.
+
+- **Difficulty (what it means)**
+  - **Easier levels**:
+    - High average number of tappable tiles (large branching factor),
+    - Many alternative routes to complete triplets,
+    - High “tray slack” (player rarely reaches 6–7 tiles in tray),
+    - Low chance of irreversible mistakes.
+  - **Harder levels**:
+    - Low branching factor and more forced move sequences,
+    - More dependency chains (unlocking tiles requires clearing specific covers),
+    - Higher chance of entering “tray deadlock” states (many distinct singles in tray),
+    - Fewer alternative paths; mistakes more often require restart or power-up use.
+
+- **Can we generate levels algorithmically? Yes.**
+  - **Approach A — constructive (guaranteed-solvable) generator**
+    - Generate a **tray-feasible pick sequence** of length \(N\) (where \(N\) is total tiles), with tile types assigned in triples and with the constraint that the tray never exceeds 7 during the simulated sequence.
+    - Build the board **in reverse pick order** (last-picked placed first), placing each earlier-picked tile so it is not covered by any later-picked tile. Earlier-picked tiles may be placed above later-picked ones, creating the intended unlocking dependencies.
+    - Tune difficulty by controlling:
+      - Layer count and max depth,
+      - Overlap density / dependency depth,
+      - Tile type count and distribution,
+      - Shape complexity (islands/holes/bridges).
+  - **Approach B — generate-then-validate**
+    - Randomly generate candidate layouts under constraints (shape + layers + counts),
+    - Then run an automated solver to reject unsolvable or out-of-band difficulty levels.
+
+- **Can we evaluate solvability and difficulty algorithmically? Yes.**
+  - **Solvability check (automated solver)**
+    - Model a state as: remaining board (including which tiles are removed/unlocked) + tray multiset/sequence.
+    - A move is: pick any currently tappable tile, add it to tray, auto-remove any triplets, lose if tray would exceed 7.
+    - For small/medium levels, use **search with memoization** (DFS/BFS/A\*), pruning symmetric states (e.g., tray order-insensitive representation if matches are order-independent).
+    - For larger levels, use **beam search** or **MCTS rollouts** to estimate solvability quickly, then run an exact search only on promising candidates.
+  - **Difficulty scoring (practical metrics)**
+    - **Branching factor curve**: average and minimum number of tappable tiles across the best path; lower tends to be harder.
+    - **Forced-move ratio**: fraction of steps where there is only 1 “safe” move (or very few moves that don’t quickly lead to loss).
+    - **Tray slack**: minimum \(7 - \text{traySize}\) reached along the best path; lower slack (tray often near full) is harder.
+    - **Dead-end susceptibility**: from the start state, run many random/heuristic-guided playthroughs and measure the % that fail; higher failure rate indicates a level with fewer viable paths.
+    - **Search effort proxy**: number of nodes expanded by the solver to find a solution; more expansions often correlates with fewer alternative paths (harder).
 
 ### 4. Tile & Object Design
 
@@ -133,7 +193,7 @@
 ### 11. Roadmap & Phasing
 
 - **Phase 1 – MVP (Core Loop)**
-  - Implement tray mechanics, simple boards, base tiles, win/loss, and basic scoring.
+  - Implement tray mechanics, simple multi-layer boards, base tiles, win/loss, and basic scoring.
 - **Phase 2 – Content & Polish**
   - Add themed tiles, improved animations, sound design, and 100+ handcrafted levels.
 
