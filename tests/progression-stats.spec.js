@@ -106,7 +106,7 @@ test.describe('Triplet Tiles - Progression & Stats', () => {
     await page.reload();
     await page.waitForSelector('#board .tile');
 
-    await expect(page.locator('#level-label')).toHaveText('Level 3: Park Spiral');
+    await expect(page.locator('#level-label')).toHaveText(/Level 3:/);
   });
 });
 

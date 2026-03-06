@@ -13,7 +13,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   test('loads Level 1 with empty tray and score 0', async ({ page }) => {
     await resetToLevel1(page);
 
-    await expect(page.locator('#level-label')).toHaveText('Level 1: Gentle Grove');
+    await expect(page.locator('#level-label')).toHaveText(/Level 1:/);
     await expect(page.locator('#score-value')).toHaveText('0');
     await expect(page.locator('.tray-slot .tray-tile')).toHaveCount(0);
   });
@@ -21,9 +21,25 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   test('matching three identical tiles clears them from tray and awards score', async ({ page }) => {
     await resetToLevel1(page);
 
-    // Click three tappable leaf tiles (🍃) in Level 1.
-    for (let i = 0; i < 3; i += 1) {
-      await page.locator('.tile.tappable', { hasText: '🍃' }).first().click();
+    // Find any tile type with at least 3 tappable tiles, then click 3 of them.
+    const idsToClick = await page.evaluate(() => {
+      const hooks = window.__tripletTestHooks;
+      const tappables = hooks.getTappableTiles();
+      const byType = {};
+      for (const t of tappables) {
+        if (!byType[t.type]) byType[t.type] = [];
+        byType[t.type].push(t.id);
+      }
+      const entry = Object.entries(byType).find(([, ids]) => ids.length >= 3);
+      if (!entry) return [];
+      return entry[1].slice(0, 3);
+    });
+    expect(idsToClick.length).toBe(3);
+
+    for (const id of idsToClick) {
+      await page.evaluate(tileId => {
+        window.__tripletTestHooks.clickTileById(tileId);
+      }, id);
     }
 
     // After matching 3 tiles, tray should be empty and score should be 30.
@@ -66,22 +82,29 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   test('tiles become tappable only after covering tiles are removed (layering)', async ({ page }) => {
     await resetToLevel1(page);
 
-    // Jump to Level 2, which has layered tiles.
-    await page.evaluate(() => {
-      window.__tripletTestHooks.startLevel(1);
-    });
-    await page.waitForSelector('#board .tile');
-
-    // Use hooks to find a tile pair at the same (x, y) with z=0 (below) and z=1 (above).
-    const { belowId, aboveId } = await page.evaluate(() => {
+    // Find a covering pair (above covers below) using the runtime coverage footprint.
+    const pair = await page.evaluate(() => {
       const hooks = window.__tripletTestHooks;
-      const state = hooks.getState();
-      const tiles = state.boardTiles;
-      const above = tiles.find(t => t.z === 1);
-      if (!above) return { belowId: null, aboveId: null };
-      const below = tiles.find(t => t.x === above.x && t.y === above.y && t.z === 0);
-      return { belowId: below && below.id, aboveId: above.id };
+      const maxLevelsToTry = 10;
+      for (let levelIndex = 0; levelIndex < maxLevelsToTry; levelIndex += 1) {
+        hooks.startLevel(levelIndex);
+        const tiles = hooks.getState().boardTiles;
+        // Coverage footprint from game.js:
+        // other covers tile if other.z > tile.z and -1<=dx<=0 and 0<=dy<=1
+        for (const below of tiles) {
+          for (const above of tiles) {
+            if (above.z <= below.z) continue;
+            const dx = above.x - below.x;
+            const dy = above.y - below.y;
+            if (dx >= -1 && dx <= 0 && dy >= 0 && dy <= 1) {
+              return { belowId: below.id, aboveId: above.id };
+            }
+          }
+        }
+      }
+      return { belowId: null, aboveId: null };
     });
+    const { belowId, aboveId } = pair;
 
     expect(aboveId).toBeTruthy();
     expect(belowId).toBeTruthy();

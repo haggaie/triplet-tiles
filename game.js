@@ -7,15 +7,15 @@ const TILE_TYPES = [
   { id: 'mushroom', emoji: '🍄' }
 ];
 
-const LEVELS = [
+const FALLBACK_LEVELS = [
   {
     id: 1,
-    name: 'Gentle Grove',
-    gridSize: 5,
+    name: 'Gentle Grove (Fallback)',
+    gridSize: 6,
     layout: [
-      { type: 'leaf', x: 1, y: 1, z: 0 },
-      { type: 'leaf', x: 2, y: 1, z: 0 },
-      { type: 'leaf', x: 3, y: 1, z: 0 },
+      { type: 'leaf', x: 1, y: 1, z: 1 },
+      { type: 'leaf', x: 2, y: 1, z: 1 },
+      { type: 'leaf', x: 3, y: 1, z: 1 },
       { type: 'flower', x: 1, y: 2, z: 0 },
       { type: 'flower', x: 2, y: 2, z: 0 },
       { type: 'flower', x: 3, y: 2, z: 0 },
@@ -23,49 +23,13 @@ const LEVELS = [
       { type: 'clover', x: 2, y: 3, z: 0 },
       { type: 'clover', x: 3, y: 3, z: 0 }
     ]
-  },
-  {
-    id: 2,
-    name: 'Layered Meadow',
-    gridSize: 6,
-    layout: [
-      { type: 'leaf', x: 1, y: 1, z: 0 },
-      { type: 'leaf', x: 2, y: 1, z: 0 },
-      { type: 'leaf', x: 3, y: 1, z: 0 },
-      { type: 'flower', x: 2, y: 2, z: 0 },
-      { type: 'flower', x: 3, y: 2, z: 0 },
-      { type: 'flower', x: 4, y: 2, z: 0 },
-      { type: 'clover', x: 1, y: 3, z: 0 },
-      { type: 'clover', x: 2, y: 3, z: 0 },
-      { type: 'clover', x: 3, y: 3, z: 0 },
-      { type: 'star', x: 2, y: 2, z: 1 },
-      { type: 'star', x: 3, y: 2, z: 1 },
-      { type: 'star', x: 2, y: 3, z: 1 }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Park Spiral',
-    gridSize: 7,
-    layout: [
-      { type: 'leaf', x: 1, y: 1, z: 0 },
-      { type: 'leaf', x: 2, y: 1, z: 0 },
-      { type: 'leaf', x: 3, y: 1, z: 0 },
-      { type: 'flower', x: 4, y: 1, z: 0 },
-      { type: 'flower', x: 5, y: 1, z: 0 },
-      { type: 'flower', x: 5, y: 2, z: 0 },
-      { type: 'clover', x: 5, y: 3, z: 0 },
-      { type: 'clover', x: 5, y: 4, z: 0 },
-      { type: 'clover', x: 4, y: 4, z: 0 },
-      { type: 'star', x: 3, y: 4, z: 0 },
-      { type: 'star', x: 2, y: 4, z: 0 },
-      { type: 'star', x: 2, y: 3, z: 0 },
-      { type: 'acorn', x: 3, y: 2, z: 1 },
-      { type: 'acorn', x: 3, y: 3, z: 1 },
-      { type: 'acorn', x: 4, y: 2, z: 1 }
-    ]
   }
 ];
+
+const LEVELS =
+  typeof window !== 'undefined' && Array.isArray(window.__TRIPLET_GENERATED_LEVELS__)
+    ? window.__TRIPLET_GENERATED_LEVELS__
+    : FALLBACK_LEVELS;
 
 const STORAGE_KEYS = {
   PROGRESSION: 'triplet_tiles_progression',
