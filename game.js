@@ -253,6 +253,18 @@ function getTappableTiles() {
   return state.boardTiles.filter(tile => !tile.removed && !isTileCovered(tile));
 }
 
+/** Returns the tray slot index where a new tile of this type would be inserted (by shape grouping). */
+function getTrayInsertIndex(type) {
+  let insertIndex = state.trayTiles.length;
+  for (let i = state.trayTiles.length - 1; i >= 0; i -= 1) {
+    if (state.trayTiles[i].type === type) {
+      insertIndex = i + 1;
+      break;
+    }
+  }
+  return insertIndex;
+}
+
 function insertTrayTileByShape(trayTiles, newTile) {
   const type = newTile.type;
   let insertIndex = trayTiles.length;
@@ -279,13 +291,22 @@ function handleBoardTileClick(tileId) {
 
   takeSnapshot();
 
-  tile.removed = true;
-  insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
-  renderBoard();
-  handleMatchingInTray();
-  renderTray();
-  renderHud();
-  checkWinCondition();
+  const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
+  const insertIndex = getTrayInsertIndex(tile.type);
+
+  startTrayMakeRoomAnimation(insertIndex);
+
+  animateTileToTray(tile, tileEl, insertIndex, () => {
+    clearTrayMakeRoomAnimation();
+    tile.removed = true;
+    insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
+    renderBoard(true);
+    renderTray();
+    handleMatchingInTrayAnimated(() => {
+      renderHud();
+      checkWinCondition();
+    });
+  });
 }
 
 function handleMatchingInTray() {
@@ -318,6 +339,251 @@ function handleMatchingInTray() {
     state.stats.tilesClearedTotal += tilesMatched;
     saveStats();
   });
+}
+
+/** Returns types that currently have 3+ in tray (for animation). */
+function getMatchingTypesInTray() {
+  const counts = {};
+  state.trayTiles.forEach(t => {
+    counts[t.type] = (counts[t.type] || 0) + 1;
+  });
+  return Object.keys(counts).filter(type => counts[type] >= 3);
+}
+
+const FLY_DURATION_MS = 450;
+const TRAY_SHIFT_DURATION_MS = 320;
+const COMBINE_DURATION_MS = 600;
+const TRAY_COMPACT_DURATION_MS = 320;
+
+function startTrayCompactAnimation(removedSlotIndices) {
+  if (!ui.tray || !ui.tray.children.length || removedSlotIndices.length === 0) return;
+  const firstRemoved = Math.min(...removedSlotIndices);
+  const lastRemoved = Math.max(...removedSlotIndices);
+  const count = removedSlotIndices.length;
+
+  const firstSlot = ui.tray.children[0];
+  const firstRect = firstSlot.getBoundingClientRect();
+  let gapPx = 0;
+  if (ui.tray.children[1]) {
+    const secondRect = ui.tray.children[1].getBoundingClientRect();
+    gapPx = secondRect.left - (firstRect.left + firstRect.width);
+  }
+  const shiftPerSlot = firstRect.width + Math.max(0, gapPx);
+  const shiftLeft = -(count * shiftPerSlot);
+  ui.tray.style.setProperty('--tray-shift-left', `${shiftLeft}px`);
+  ui.tray.classList.add('tray-compacting');
+
+  let z = 18;
+  for (let i = lastRemoved + 1; i < ui.tray.children.length; i += 1) {
+    const slot = ui.tray.children[i];
+    if (slot.querySelector('.tray-tile')) {
+      slot.classList.add('tray-slot-shift-left');
+      slot.style.zIndex = String(z);
+      z += 1;
+    }
+  }
+}
+
+function clearTrayCompactAnimation() {
+  if (!ui.tray) return;
+  ui.tray.classList.remove('tray-compacting');
+  ui.tray.style.removeProperty('--tray-shift-left');
+  for (let i = 0; i < ui.tray.children.length; i += 1) {
+    const slot = ui.tray.children[i];
+    slot.classList.remove('tray-slot-shift-left');
+    slot.style.removeProperty('z-index');
+  }
+}
+
+function startTrayMakeRoomAnimation(insertIndex) {
+  if (!ui.tray || !ui.tray.children.length) return;
+  const firstSlot = ui.tray.children[0];
+  const firstRect = firstSlot.getBoundingClientRect();
+  let gapPx = 0;
+  if (ui.tray.children[1]) {
+    const secondRect = ui.tray.children[1].getBoundingClientRect();
+    gapPx = secondRect.left - (firstRect.left + firstRect.width);
+  }
+  const shiftX = firstRect.width + Math.max(0, gapPx);
+  ui.tray.style.setProperty('--tray-shift-x', `${shiftX}px`);
+  ui.tray.classList.add('tray-making-room');
+  let z = 10;
+  for (let i = insertIndex; i < ui.tray.children.length; i += 1) {
+    const slot = ui.tray.children[i];
+    if (slot.querySelector('.tray-tile')) {
+      slot.classList.add('tray-slot-shift-right');
+      slot.style.zIndex = String(z);
+      z -= 1;
+    }
+  }
+}
+
+function clearTrayMakeRoomAnimation() {
+  if (!ui.tray) return;
+  ui.tray.classList.remove('tray-making-room');
+  ui.tray.style.removeProperty('--tray-shift-x');
+  for (let i = 0; i < ui.tray.children.length; i += 1) {
+    const slot = ui.tray.children[i];
+    slot.classList.remove('tray-slot-shift-right');
+    slot.style.removeProperty('z-index');
+  }
+}
+
+function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
+  const boardRect = ui.board.getBoundingClientRect();
+  const level = LEVELS[state.currentLevelIndex];
+  const size = level.gridSize;
+  const cellSize = boardRect.width / (size + 2);
+  const yPixelOffset = cellSize * 0.5;
+  const xPixelOffset = cellSize * 0.5;
+
+  const baseLeft = (tile.x + 0.5) * cellSize;
+  const baseTop = (tile.y + 0.5) * cellSize;
+  const layeredLeft = baseLeft + tile.z * xPixelOffset;
+  const layeredTop = baseTop - tile.z * yPixelOffset;
+
+  const tileCenterX = boardRect.left + layeredLeft;
+  const tileCenterY = boardRect.top + layeredTop;
+
+  const slotEl = ui.tray.children[insertIndex];
+  const slotRect = slotEl ? slotEl.getBoundingClientRect() : null;
+  const targetX = slotRect ? slotRect.left + slotRect.width / 2 : boardRect.left + boardRect.width / 2;
+  const targetY = slotRect ? slotRect.top + slotRect.height / 2 : boardRect.bottom + 40;
+
+  const fly = document.createElement('div');
+  fly.className = 'tile tile-flying';
+  fly.textContent = getTileVisual(tile.type);
+  fly.style.cssText = `
+    position: fixed;
+    left: ${tileCenterX}px;
+    top: ${tileCenterY}px;
+    width: ${cellSize}px;
+    height: ${cellSize}px;
+    margin-left: -${cellSize / 2}px;
+    margin-top: -${cellSize / 2}px;
+    z-index: 100;
+    pointer-events: none;
+  `;
+  document.body.appendChild(fly);
+
+  if (tileEl) tileEl.style.visibility = 'hidden';
+
+  fly.animate(
+    [
+      { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+      { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(0.75)`, opacity: 1 }
+    ],
+    { duration: FLY_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+  ).finished.then(() => {
+    fly.remove();
+    if (tileEl && tileEl.isConnected) tileEl.style.visibility = '';
+    onComplete();
+  });
+}
+
+function animateMatchCombine(type, onComplete) {
+  const trayTiles = Array.from(ui.tray.querySelectorAll('.tray-tile'));
+  const byType = trayTiles.filter(el => el.dataset.type === type);
+  const toAnimate = byType.slice(0, 3);
+  if (toAnimate.length < 3) {
+    onComplete([]);
+    return;
+  }
+
+  const getSlotIndex = (el) => {
+    const slot = el.closest('.tray-slot');
+    return slot ? Array.from(ui.tray.children).indexOf(slot) : -1;
+  };
+  const removedSlotIndices = toAnimate.map(getSlotIndex).sort((a, b) => a - b);
+
+  const centerEl = toAnimate[1];
+  const centerRect = centerEl.getBoundingClientRect();
+  const targetX = centerRect.left + centerRect.width / 2;
+  const targetY = centerRect.top + centerRect.height / 2;
+
+  const startPositions = toAnimate.map((el, i) => {
+    const r = el.getBoundingClientRect();
+    return {
+      el,
+      startX: r.left + r.width / 2,
+      startY: r.top + r.height / 2,
+      zIndex: i === 1 ? 103 : 102
+    };
+  });
+
+  startPositions.forEach(({ el, zIndex }) => {
+    el.classList.add('tile-combining');
+    el.style.zIndex = String(zIndex);
+  });
+
+  const combinePromises = startPositions.map(({ el, startX, startY }) => {
+    el.style.position = 'fixed';
+    el.style.left = `${startX}px`;
+    el.style.top = `${startY}px`;
+    el.style.marginLeft = '-21px';
+    el.style.marginTop = '-21px';
+    return el.animate(
+      [
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(1.2)`, opacity: 1 },
+        { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(0)`, opacity: 0 }
+      ],
+      { duration: COMBINE_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+    ).finished;
+  });
+
+  Promise.all(combinePromises).then(() => {
+    toAnimate.forEach(el => el.remove());
+    onComplete(removedSlotIndices);
+  });
+}
+
+function handleMatchingInTrayAnimated(onComplete) {
+  const matchingTypes = getMatchingTypesInTray();
+  if (matchingTypes.length === 0) {
+    onComplete();
+    return;
+  }
+
+  function removeNextType() {
+    if (matchingTypes.length === 0) {
+      onComplete();
+      return;
+    }
+    const type = matchingTypes.shift();
+    animateMatchCombine(type, (removedSlotIndices) => {
+      if (removedSlotIndices.length > 0) {
+        startTrayCompactAnimation(removedSlotIndices);
+        setTimeout(() => {
+          clearTrayCompactAnimation();
+          applyMatchRemovalAndContinue(type, removeNextType);
+        }, TRAY_COMPACT_DURATION_MS);
+      } else {
+        applyMatchRemovalAndContinue(type, removeNextType);
+      }
+    });
+  }
+
+  function applyMatchRemovalAndContinue(type, next) {
+    let removedCount = 0;
+    const newTray = [];
+    for (let i = 0; i < state.trayTiles.length; i += 1) {
+      const t = state.trayTiles[i];
+      if (t.type === type && removedCount < 3) {
+        removedCount += 1;
+      } else {
+        newTray.push(t);
+      }
+    }
+    state.trayTiles = newTray;
+    state.score += 10 * 3;
+    state.stats.tilesClearedTotal += 3;
+    saveStats();
+    renderTray();
+    next();
+  }
+
+  removeNextType();
 }
 
 function checkWinCondition() {
@@ -423,7 +689,16 @@ function renderHud() {
   ui.removeTypeButton.disabled = state.powerups.removeType <= 0 || state.isLevelOver;
 }
 
-function renderBoard() {
+function renderBoard(withSettleAnimation = false) {
+  if (withSettleAnimation) {
+    ui.board.classList.add('board-settle');
+    const removeSettle = () => {
+      ui.board.classList.remove('board-settle');
+      ui.board.removeEventListener('transitionend', removeSettle);
+    };
+    ui.board.addEventListener('transitionend', removeSettle);
+  }
+
   ui.board.innerHTML = '';
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
@@ -442,6 +717,10 @@ function renderBoard() {
   tilesToRender.forEach(tile => {
     const el = document.createElement('div');
     el.className = 'tile';
+    el.dataset.tileId = tile.id;
+    if (withSettleAnimation) {
+      el.classList.add('tile-settle-in');
+    }
     if (tappableIds.has(tile.id)) {
       el.classList.add('tappable');
     } else {
