@@ -247,6 +247,21 @@ npx playwright test
 
 ### 5. Extending the system
 
+#### 5.1 Why levels don’t resemble the template shape — and trade-offs of forcing fill
+
+The generator only **constrains** tiles to lie inside the template silhouette; it does **not** try to “draw” the shape. For each tile it chooses a cell with `choice(rng, canUse)` (or overlap-biased `canStack`), so positions are effectively random within the allowed set. Result: the bounding region matches the template, but the fill is scattered and stacked by chance, so hearts, diamonds, spirals, and letters are often not visually recognizable.
+
+**If we force the generator to fill the desired template** (e.g. assign tiles in a deterministic “fill order” so the bottom layer traces the shape, then stack on top), the trade-offs are:
+
+| Aspect | Trade-off |
+|--------|-----------|
+| **Solvability / reject rate** | The tray-feasible **sequence** is built without knowing positions. When we fix positions (fill order), we fix the **coverage graph** (which tile covers which). That geometry may be better or worse for solvability; typically some layouts become unsolvable, so **more candidates get rejected** by the solver. You may need to generate more candidates per batch or relax other constraints. |
+| **Difficulty spread** | Forced fill tends to use the silhouette more evenly (e.g. full bottom layer). That can change branching and tray pressure, so difficulty distribution can shift; some batches may need re-tuning (e.g. overlap, layers, or counts). |
+| **Implementation** | Each template needs a **fill order**: a deterministic ordering of its cells (e.g. row-by-row, spiral path, stroke order for letters). Templates that already produce a path (e.g. spiral) can reuse it; others need a defined order (e.g. sort by `(y, x)` for a consistent fill). The generator would then assign the i-th tile in the sequence to the i-th cell in that order (layer by layer) instead of picking at random. |
+| **Tile count vs template size** | For “bottom layer = full shape” we need at least `templateCells.length` tiles in the first layer. So total tile count and layer counts must be compatible with the template size (e.g. if the silhouette has 50 cells and we have 2 layers, we need at least 50 tiles; the rest go to layer 1). |
+
+**Summary:** Forcing fill improves **recognizability** of shapes (hearts, letters, etc.) but can **increase reject rate** and shift **difficulty**; it’s a trade-off between aesthetics and pipeline yield, and can be implemented by adding a fill-order per template and a “fill mode” in the generator that uses it instead of random placement.
+
 - **Add new templates**: extend `getTemplateCells` in `templates.js` with new shapes (e.g. animals, letters, themed silhouettes) and new `templateId`s.
 - **Tune difficulty curve**:
   - Adjust:
