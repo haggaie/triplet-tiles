@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "node tools/generate-levels.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"
   },
