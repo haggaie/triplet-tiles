@@ -478,7 +478,9 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
   const tileRect = tileEl ? tileEl.getBoundingClientRect() : null;
   const flySize = tileRect ? tileRect.width : cellSize;
   const sampleTrayTile = document.querySelector('.tray-tile');
-  const trayTileSize = sampleTrayTile ? sampleTrayTile.getBoundingClientRect().width : 42;
+  const trayTileSize = sampleTrayTile
+    ? sampleTrayTile.getBoundingClientRect().width
+    : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tile-size')) || flySize;
 
   const fly = document.createElement('div');
   fly.className = 'tile tile-flying';
@@ -549,11 +551,12 @@ function animateMatchCombine(type, onComplete) {
   });
 
   const combinePromises = startPositions.map(({ el, startX, startY }) => {
+    const half = el.getBoundingClientRect().width / 2;
     el.style.position = 'fixed';
     el.style.left = `${startX}px`;
     el.style.top = `${startY}px`;
-    el.style.marginLeft = '-21px';
-    el.style.marginTop = '-21px';
+    el.style.marginLeft = `-${half}px`;
+    el.style.marginTop = `-${half}px`;
     return el.animate(
       [
         { transform: 'translate(0, 0) scale(1)', opacity: 1 },
@@ -758,6 +761,7 @@ function renderBoard(withSettleAnimation = false) {
   const size = level.gridSize;
   const boardRect = ui.board.getBoundingClientRect();
   const cellSize = boardRect.width / (size + 2);
+  document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
   const yPixelOffset = cellSize * 0.5;
   const xPixelOffset = cellSize * 0.5;
 
@@ -795,8 +799,8 @@ function renderBoard(withSettleAnimation = false) {
       el.classList.remove('tappable');
     }
     el.textContent = getTileVisual(tile.type);
-    el.style.width = `${cellSize}px`;
-    el.style.height = `${cellSize}px`;
+    el.style.width = '';
+    el.style.height = '';
     const baseLeft = (tile.x + 0.5) * cellSize;
     const baseTop = (tile.y + 0.5) * cellSize;
     const layeredLeft = baseLeft + tile.z * xPixelOffset;

@@ -11,6 +11,8 @@
   --tile-size: 64px;
   /* Same roundness for board and tray tiles (18/64 ≈ 28.125%) */
   --tile-radius: 28.125%;
+  /* Icon size: same on board and tray when tile size matches */
+  --tile-icon-size: 1.6rem;
 }
 
 *,
@@ -185,7 +187,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: var(--tile-icon-size);
   cursor: pointer;
   background: radial-gradient(circle at top, #f9fafb, #d1d5db);
   color: #111827;
@@ -231,7 +233,7 @@ body {
 }
 
 .tray-wrapper {
-  width: min(480px, 100vw);
+  width: min(520px, 100vw);
   background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4));
   border-radius: 999px;
   padding: 0.6rem 1rem 0.8rem;
@@ -286,7 +288,7 @@ body {
   position: relative;
   z-index: 0;
   border-radius: 999px;
-  height: 52px;
+  height: calc(var(--tile-size) + 12px);
   background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.5), var(--tray-slot-ring-color));
   box-shadow: var(--tray-slot-highlight);
   overflow: visible;
@@ -305,13 +307,13 @@ body {
 }
 
 .tray-tile {
-  width: 42px;
-  height: 42px;
+  width: var(--tile-size);
+  height: var(--tile-size);
   border-radius: var(--tile-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: var(--tile-icon-size);
   background: radial-gradient(circle at top, #f9fafb, #d1d5db);
   color: #111827;
   box-shadow:
