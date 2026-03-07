@@ -35,35 +35,35 @@ module.exports = {
     includeSolverStats: false
   },
   levels: [
-    // Early, easy: 2 layers, light overlap, few types, many alternative paths.
+    // Early ramp: short levels that require balancing tray vs opening tiles (medium overlap, moderate size).
     {
-      templateId: 'heart',
-      templateParams: { radius: 4, thickness: 2 },
+      templateId: 'diamond',
+      templateParams: { radius: 4 },
       gridSize: 11,
-      count: 40,
+      count: 25,
       tileTypes: ['leaf', 'flower', 'clover', 'star'],
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 30,
+        totalTriplets: 15,
         weights: { leaf: 4, flower: 4, clover: 3, star: 2 }
       },
       layering: {
         minZ: 0,
         maxZ: 2,
-        overlap: 'light',
+        overlap: 'medium',
         maxStackPerCell: 3
       }
     },
-    // Mid: more types and deeper stacks.
+    // Mid: more types, tighter tray pressure, fewer “obvious” moves.
     {
-      templateId: 'spiral',
-      templateParams: { radius: 5, thickness: 1 },
-      gridSize: 13,
-      count: 40,
+      templateId: 'heart',
+      templateParams: { radius: 4, thickness: 2 },
+      gridSize: 11,
+      count: 25,
       tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn'],
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 36,
+        totalTriplets: 21,
         weights: { leaf: 4, flower: 4, clover: 4, star: 3, acorn: 3 }
       },
       layering: {
@@ -73,16 +73,35 @@ module.exports = {
         maxStackPerCell: 3
       }
     },
-    // Late: more types, heavier overlap.
+    // Hard: heavy overlap, more layers — must plan to avoid tray overflow.
+    {
+      templateId: 'spiral',
+      templateParams: { radius: 5, thickness: 1 },
+      gridSize: 13,
+      count: 25,
+      tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom'],
+      distribution: {
+        mode: 'weightedTriplets',
+        totalTriplets: 24,
+        weights: { leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3 }
+      },
+      layering: {
+        minZ: 0,
+        maxZ: 3,
+        overlap: 'heavy',
+        maxStackPerCell: 4
+      }
+    },
+    // Late: largest shapes, most pressure.
     {
       templateId: 'letter',
       templateParams: { letter: 'S', radius: 6, thickness: 2 },
       gridSize: 15,
-      count: 40,
+      count: 25,
       tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom'],
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 42,
+        totalTriplets: 30,
         weights: { leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3 }
       },
       layering: {
