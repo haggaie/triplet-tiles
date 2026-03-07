@@ -253,6 +253,18 @@ function getTappableTiles() {
   return state.boardTiles.filter(tile => !tile.removed && !isTileCovered(tile));
 }
 
+function insertTrayTileByShape(trayTiles, newTile) {
+  const type = newTile.type;
+  let insertIndex = trayTiles.length;
+  for (let i = trayTiles.length - 1; i >= 0; i -= 1) {
+    if (trayTiles[i].type === type) {
+      insertIndex = i + 1;
+      break;
+    }
+  }
+  trayTiles.splice(insertIndex, 0, newTile);
+}
+
 function handleBoardTileClick(tileId) {
   if (state.isLevelOver) return;
 
@@ -268,7 +280,7 @@ function handleBoardTileClick(tileId) {
   takeSnapshot();
 
   tile.removed = true;
-  state.trayTiles.push({ id: tile.id, type: tile.type });
+  insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
   renderBoard();
   handleMatchingInTray();
   renderTray();
