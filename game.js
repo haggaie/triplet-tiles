@@ -86,6 +86,13 @@ const state = {
   lastSnapshot: null
 };
 
+/** Used by E2E tests: promise resolved when the current move's animations (fly + any match-3) have finished. */
+let _actionCompletePromise = null;
+let _actionCompleteResolve = null;
+
+/** When true, tile fly/combine/compact animations are skipped (used only by tests that play a full level). */
+let skipAnimationsForTests = false;
+
 const ui = {};
 
 function initDomRefs() {
@@ -294,18 +301,36 @@ function handleBoardTileClick(tileId) {
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
   const insertIndex = getTrayInsertIndex(tile.type);
 
-  startTrayMakeRoomAnimation(insertIndex);
-
-  animateTileToTray(tile, tileEl, insertIndex, () => {
-    clearTrayMakeRoomAnimation();
+  function applyMove() {
     tile.removed = true;
     insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
-    renderBoard(true);
+    renderBoard(!skipAnimationsForTests);
     renderTray();
     handleMatchingInTrayAnimated(() => {
       renderHud();
       checkWinCondition();
+      if (_actionCompleteResolve) {
+        _actionCompleteResolve();
+        _actionCompleteResolve = null;
+        _actionCompletePromise = null;
+      }
     });
+  }
+
+  if (skipAnimationsForTests) {
+    applyMove();
+    return;
+  }
+
+  if (typeof window !== 'undefined' && window.__tripletTestHooks) {
+    _actionCompletePromise = new Promise(r => { _actionCompleteResolve = r; });
+  }
+
+  startTrayMakeRoomAnimation(insertIndex);
+
+  animateTileToTray(tile, tileEl, insertIndex, () => {
+    clearTrayMakeRoomAnimation();
+    applyMove();
   });
 }
 
@@ -545,6 +570,28 @@ function handleMatchingInTrayAnimated(onComplete) {
     return;
   }
 
+  if (skipAnimationsForTests) {
+    matchingTypes.forEach(type => {
+      let removedCount = 0;
+      const newTray = [];
+      for (let i = 0; i < state.trayTiles.length; i += 1) {
+        const t = state.trayTiles[i];
+        if (t.type === type && removedCount < 3) {
+          removedCount += 1;
+        } else {
+          newTray.push(t);
+        }
+      }
+      state.trayTiles = newTray;
+      state.score += 10 * 3;
+      state.stats.tilesClearedTotal += 3;
+      saveStats();
+    });
+    renderTray();
+    onComplete();
+    return;
+  }
+
   function removeNextType() {
     if (matchingTypes.length === 0) {
       onComplete();
@@ -774,6 +821,13 @@ if (typeof window !== 'undefined') {
     getTappableTiles,
     clickTileById(tileId) {
       handleBoardTileClick(tileId);
+    },
+    /** Returns a promise that resolves when the current move's animations (fly + any match-3) have finished. */
+    waitForActionComplete() {
+      return _actionCompletePromise || Promise.resolve();
+    },
+    setSkipAnimations(skip) {
+      skipAnimationsForTests = !!skip;
     },
     resetAllProgress() {
       try {

@@ -9,6 +9,7 @@ async function resetToLevel1(page) {
   await page.waitForSelector('#board .tile');
 }
 
+/** Plays Level 1 until the board is cleared and win overlay appears. Requires setSkipAnimations(true) to be set first. */
 async function playLevelToWin(page) {
   await page.evaluate(() => {
     const hooks = window.__tripletTestHooks;
@@ -28,6 +29,7 @@ async function playLevelToWin(page) {
 test.describe('Triplet Tiles - Progression & Stats', () => {
   test('winning a level updates stats, progression, and shows win overlay', async ({ page }) => {
     await resetToLevel1(page);
+    await page.evaluate(() => window.__tripletTestHooks.setSkipAnimations(true));
 
     await playLevelToWin(page);
 
@@ -52,6 +54,7 @@ test.describe('Triplet Tiles - Progression & Stats', () => {
 
   test('losing a level resets currentWinStreak but not bestWinStreak', async ({ page }) => {
     await resetToLevel1(page);
+    await page.evaluate(() => window.__tripletTestHooks.setSkipAnimations(true));
 
     // First, win a level to establish a non-zero streak.
     await playLevelToWin(page);

@@ -20,6 +20,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
 
     // Make a move: click any tappable tile.
     await page.locator('#board .tile.tappable').first().click();
+    await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
 
     // Tray should now contain 1 tile.
     await expect(page.locator('.tray-slot .tray-tile')).toHaveCount(1);
@@ -95,6 +96,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
         hooks.clickTileById(leafTile.id);
       }
     });
+    await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
 
     // Count how many leaf tiles remain on the board before removal.
     const beforeLeafCount = await page.evaluate(() => {

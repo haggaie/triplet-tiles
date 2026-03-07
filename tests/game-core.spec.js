@@ -40,6 +40,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
       await page.evaluate(tileId => {
         window.__tripletTestHooks.clickTileById(tileId);
       }, id);
+      await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
     }
 
     // After matching 3 tiles, tray should be empty and score should be 30.
@@ -127,6 +128,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     await page.evaluate(id => {
       window.__tripletTestHooks.clickTileById(id);
     }, aboveId);
+    await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
 
     // After removing the above tile, the below tile should now be tappable.
     const laterTappableIds = await page.evaluate(() => {
