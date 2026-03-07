@@ -89,6 +89,11 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Dead-end susceptibility (fraction of runs that fail).
     - Combines metrics into a single `difficultyScore` in roughly \[0,1\):
       - Higher means harder (more forced moves, tighter tray, more dead ends, more search effort).
+  - **Focus on strategic thinking**: The score is designed so that harder levels are those that require *strategic play* — balancing opening new tiles vs matching what’s already in the tray — not just “spot a visible 3-set and tap it.” Key signals:
+    - **Tray pressure** (min slack): levels where the tray often gets full force the player to clear matches before opening more tiles.
+    - **Forced moves**: levels where only one move looks “safe” (complete a triplet, extend a pair, or avoid filling the tray) reward planning and punish random or greedy tapping.
+    - **Dead-end susceptibility**: levels where greedy/random play often loses reward looking ahead and managing the tray.
+    - Branching (avg/min tappable) and search effort matter too, but the weights are tuned so tray pressure and forced choices dominate, ensuring the curve favors strategic difficulty over sheer size or variety.
 
 - **CLI & output**: `tools/generate-levels.js`
   - Steps:

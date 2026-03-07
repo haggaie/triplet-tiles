@@ -231,14 +231,15 @@ function scoreLevel(level, options = {}) {
   const deadEndHard = clamp01(failureRate);
   const effortHard = clamp01(Math.log10(1 + exact.stats.nodesExpanded) / 6); // ~1 at 1e6
 
-  // Weighted sum: tuned so tray pressure and dead-end risk dominate at high difficulty.
+  // Weighted sum: tuned so strategic factors (tray pressure, forced choices, dead-end risk)
+  // dominate — harder levels should require balancing opening tiles vs matching in tray.
   const difficultyScore =
-    avgChoiceHard * 0.18 +
-    minChoiceHard * 0.12 +
-    forcedHard * 0.20 +
-    slackHard * 0.22 +
+    avgChoiceHard * 0.14 +
+    minChoiceHard * 0.10 +
+    forcedHard * 0.24 +
+    slackHard * 0.26 +
     deadEndHard * 0.18 +
-    effortHard * 0.10;
+    effortHard * 0.08;
 
   return {
     solvable: true,
