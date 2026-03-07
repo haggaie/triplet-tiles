@@ -113,6 +113,17 @@ function initDomRefs() {
   ui.overlayMessage = document.getElementById('overlay-message');
   ui.overlayPrimary = document.getElementById('overlay-primary');
   ui.overlaySecondary = document.getElementById('overlay-secondary');
+
+  ui.levelSelectButton = document.getElementById('level-select-button');
+  ui.levelSelectOverlay = document.getElementById('level-select-overlay');
+  ui.levelSelectClose = document.getElementById('level-select-close');
+  ui.levelSelectCarousel = document.getElementById('level-select-carousel');
+  ui.levelSelectPrev = document.getElementById('level-select-prev');
+  ui.levelSelectNext = document.getElementById('level-select-next');
+  ui.levelSelectEasy = document.getElementById('level-select-easy');
+  ui.levelSelectMedium = document.getElementById('level-select-medium');
+  ui.levelSelectHard = document.getElementById('level-select-hard');
+  ui.levelSelectHint = document.getElementById('level-select-hint');
 }
 
 function bindEvents() {
@@ -159,6 +170,35 @@ function bindEvents() {
       highlightTraySelectableTypes();
     }
   });
+
+  if (ui.levelSelectButton) {
+    ui.levelSelectButton.addEventListener('click', () => {
+      showLevelSelect();
+    });
+  }
+  if (ui.levelSelectClose) {
+    ui.levelSelectClose.addEventListener('click', () => hideLevelSelect());
+  }
+  if (ui.levelSelectOverlay) {
+    ui.levelSelectOverlay.addEventListener('click', (e) => {
+      if (e.target === ui.levelSelectOverlay) hideLevelSelect();
+    });
+  }
+  if (ui.levelSelectPrev) {
+    ui.levelSelectPrev.addEventListener('click', () => levelSelectCarouselPrev());
+  }
+  if (ui.levelSelectNext) {
+    ui.levelSelectNext.addEventListener('click', () => levelSelectCarouselNext());
+  }
+  if (ui.levelSelectEasy) {
+    ui.levelSelectEasy.addEventListener('click', () => levelSelectGoToDifficulty('easy'));
+  }
+  if (ui.levelSelectMedium) {
+    ui.levelSelectMedium.addEventListener('click', () => levelSelectGoToDifficulty('medium'));
+  }
+  if (ui.levelSelectHard) {
+    ui.levelSelectHard.addEventListener('click', () => levelSelectGoToDifficulty('hard'));
+  }
 }
 
 function takeSnapshot() {
@@ -680,6 +720,213 @@ function triggerLoss(reason) {
 
 function hideOverlay() {
   ui.overlay.classList.add('hidden');
+}
+
+// --- Level selection carousel ---
+const LEVEL_SELECT_CARD_WIDTH = 88;
+const LEVEL_SELECT_GAP = 12;
+
+function getLevelSelectVisibleCount() {
+  if (!ui.levelSelectCarousel) return 4;
+  const w = ui.levelSelectCarousel.clientWidth;
+  if (w <= 0) return 4;
+  const perCard = LEVEL_SELECT_CARD_WIDTH + LEVEL_SELECT_GAP;
+  const count = Math.floor(w / perCard);
+  return Math.max(3, Math.min(4, count));
+}
+
+let levelSelectCarouselIndex = 0;
+
+function getDifficultyBands() {
+  const n = LEVELS.length;
+  if (n === 0) return { easy: [0, 0], medium: [0, 0], hard: [0, 0] };
+  const third = Math.max(1, Math.floor(n / 3));
+  return {
+    easy: [0, third],
+    medium: [third, 2 * third],
+    hard: [2 * third, n]
+  };
+}
+
+function getDifficultyForIndex(index) {
+  const bands = getDifficultyBands();
+  if (index < bands.easy[1]) return 'easy';
+  if (index < bands.medium[1]) return 'medium';
+  return 'hard';
+}
+
+function getFirstIndexForDifficulty(difficulty) {
+  const bands = getDifficultyBands()[difficulty];
+  return bands ? bands[0] : 0;
+}
+
+function renderMiniLevel(wrapEl, level, levelIndex) {
+  if (!wrapEl || !level) return;
+  const size = level.gridSize;
+  const padding = 2;
+  const total = size + padding;
+  const miniSize = 80;
+  const cellSize = miniSize / total;
+  const yPixelOffset = cellSize * 0.5;
+  const xPixelOffset = cellSize * 0.5;
+
+  const tiles = (level.layout || [])
+    .slice()
+    .sort((a, b) => (a.z - b.z));
+
+  wrapEl.innerHTML = '';
+  wrapEl.className = 'level-select-mini-wrap';
+  wrapEl.dataset.levelIndex = String(levelIndex);
+
+  const board = document.createElement('div');
+  board.className = 'level-select-mini-board';
+  board.style.width = `${miniSize}px`;
+  board.style.height = `${miniSize}px`;
+
+  tiles.forEach((tile) => {
+    const el = document.createElement('div');
+    el.className = 'level-select-mini-tile';
+    el.textContent = getTileVisual(tile.type);
+    const baseLeft = (tile.x + 0.5) * cellSize;
+    const baseTop = (tile.y + 0.5) * cellSize;
+    const layeredLeft = baseLeft + (tile.z || 0) * xPixelOffset;
+    const layeredTop = baseTop - (tile.z || 0) * yPixelOffset;
+    el.style.width = `${Math.max(6, cellSize * 0.7)}px`;
+    el.style.height = `${Math.max(6, cellSize * 0.7)}px`;
+    el.style.left = `${layeredLeft}px`;
+    el.style.top = `${layeredTop}px`;
+    el.style.fontSize = `${Math.max(8, cellSize * 0.5)}px`;
+    el.style.zIndex = String(10 + (tile.z || 0));
+    board.appendChild(el);
+  });
+  wrapEl.appendChild(board);
+}
+
+function buildLevelSelectCarousel(enterDirection = null) {
+  if (!ui.levelSelectCarousel) return;
+  const visibleCount = getLevelSelectVisibleCount();
+  ui.levelSelectCarousel.classList.remove('carousel-exit-next', 'carousel-exit-prev');
+  ui.levelSelectCarousel.innerHTML = '';
+  const start = Math.max(0, levelSelectCarouselIndex);
+  const end = Math.min(LEVELS.length, start + visibleCount);
+
+  for (let i = start; i < end; i += 1) {
+    const level = LEVELS[i];
+    const card = document.createElement('div');
+    card.className = 'level-select-card';
+    card.dataset.levelIndex = String(i);
+    if (i === state.currentLevelIndex) card.classList.add('level-select-card-current');
+    if (enterDirection === 'next') card.classList.add('carousel-enter-from-right');
+    if (enterDirection === 'prev') card.classList.add('carousel-enter-from-left');
+
+    const mini = document.createElement('div');
+    mini.className = 'level-select-mini-wrap';
+    renderMiniLevel(mini, level, i);
+    card.appendChild(mini);
+
+    const label = document.createElement('span');
+    label.className = 'level-select-card-label';
+    label.textContent = `${level.id}: ${level.name}`;
+    card.appendChild(label);
+
+    const diff = document.createElement('span');
+    diff.className = 'level-select-card-difficulty';
+    diff.textContent = getDifficultyForIndex(i);
+    card.appendChild(diff);
+
+    card.addEventListener('click', () => {
+      startLevel(i);
+      hideLevelSelect();
+    });
+    ui.levelSelectCarousel.appendChild(card);
+  }
+
+  if (enterDirection) {
+    requestAnimationFrame(() => {
+      const cards = ui.levelSelectCarousel.querySelectorAll('.level-select-card');
+      cards.forEach((c) => c.classList.remove('carousel-enter-from-right', 'carousel-enter-from-left'));
+    });
+  }
+
+  if (ui.levelSelectPrev) ui.levelSelectPrev.disabled = levelSelectCarouselIndex <= 0;
+  if (ui.levelSelectNext) ui.levelSelectNext.disabled = levelSelectCarouselIndex >= Math.max(0, LEVELS.length - visibleCount);
+}
+
+const CAROUSEL_ANIMATION_MS = 280;
+
+function levelSelectCarouselPrev() {
+  if (levelSelectCarouselIndex <= 0) return;
+  const carousel = ui.levelSelectCarousel;
+  carousel.classList.add('carousel-exit-prev');
+
+  let done = false;
+  const onDone = () => {
+    if (done) return;
+    done = true;
+    carousel.removeEventListener('transitionend', onTransitionEnd);
+    carousel.classList.remove('carousel-exit-prev');
+    levelSelectCarouselIndex = Math.max(0, levelSelectCarouselIndex - 1);
+    buildLevelSelectCarousel('prev');
+  };
+
+  const onTransitionEnd = (e) => {
+    if (e.target.classList.contains('level-select-card') && e.propertyName === 'transform') {
+      onDone();
+    }
+  };
+  carousel.addEventListener('transitionend', onTransitionEnd);
+  setTimeout(onDone, CAROUSEL_ANIMATION_MS + 50);
+}
+
+function levelSelectCarouselNext() {
+  const visibleCount = getLevelSelectVisibleCount();
+  const maxIndex = Math.max(0, LEVELS.length - visibleCount);
+  if (levelSelectCarouselIndex >= maxIndex) return;
+
+  const carousel = ui.levelSelectCarousel;
+  carousel.classList.add('carousel-exit-next');
+
+  let done = false;
+  const onDone = () => {
+    if (done) return;
+    done = true;
+    carousel.removeEventListener('transitionend', onTransitionEnd);
+    carousel.classList.remove('carousel-exit-next');
+    levelSelectCarouselIndex = Math.min(maxIndex, levelSelectCarouselIndex + 1);
+    buildLevelSelectCarousel('next');
+  };
+
+  const onTransitionEnd = (e) => {
+    if (e.target.classList.contains('level-select-card') && e.propertyName === 'transform') {
+      onDone();
+    }
+  };
+  carousel.addEventListener('transitionend', onTransitionEnd);
+  setTimeout(onDone, CAROUSEL_ANIMATION_MS + 50);
+}
+
+function levelSelectGoToDifficulty(difficulty) {
+  const visibleCount = getLevelSelectVisibleCount();
+  const idx = getFirstIndexForDifficulty(difficulty);
+  levelSelectCarouselIndex = Math.min(idx, Math.max(0, LEVELS.length - visibleCount));
+  buildLevelSelectCarousel();
+}
+
+function showLevelSelect() {
+  if (!ui.levelSelectOverlay) return;
+  ui.levelSelectOverlay.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    const visibleCount = getLevelSelectVisibleCount();
+    levelSelectCarouselIndex = Math.min(
+      state.currentLevelIndex,
+      Math.max(0, LEVELS.length - visibleCount)
+    );
+    buildLevelSelectCarousel();
+  });
+}
+
+function hideLevelSelect() {
+  if (ui.levelSelectOverlay) ui.levelSelectOverlay.classList.add('hidden');
 }
 
 function shuffleTrayOptimally() {

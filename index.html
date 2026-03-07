@@ -13,6 +13,7 @@
           <h1 class="game-title">Triplet Tiles</h1>
           <div class="level-info">
             <span id="level-label">Level 1</span>
+            <button id="level-select-button" class="btn btn-ghost" title="Choose level">Levels</button>
             <button id="restart-button" class="btn btn-ghost">Restart</button>
           </div>
         </div>
@@ -53,6 +54,26 @@
             <button id="overlay-primary" class="btn">Next Level</button>
             <button id="overlay-secondary" class="btn btn-ghost">Retry</button>
           </div>
+        </div>
+      </div>
+
+      <div id="level-select-overlay" class="level-select-overlay hidden">
+        <div class="level-select-panel">
+          <div class="level-select-header">
+            <h2>Choose Level</h2>
+            <button id="level-select-close" class="btn btn-ghost" aria-label="Close">✕</button>
+          </div>
+          <div class="level-select-difficulty">
+            <button id="level-select-easy" class="btn btn-ghost">Easy</button>
+            <button id="level-select-medium" class="btn btn-ghost">Medium</button>
+            <button id="level-select-hard" class="btn btn-ghost">Hard</button>
+          </div>
+          <div class="level-select-carousel-wrap">
+            <button id="level-select-prev" class="carousel-nav carousel-prev" aria-label="Previous">‹</button>
+            <div id="level-select-carousel" class="level-select-carousel"></div>
+            <button id="level-select-next" class="carousel-nav carousel-next" aria-label="Next">›</button>
+          </div>
+          <p id="level-select-hint" class="level-select-hint">Click a level to play</p>
         </div>
       </div>
     </div>
