@@ -83,6 +83,12 @@ test.describe('Triplet Tiles - Power-ups', () => {
   });
 
   test('remove tile type removes that type from both tray and board and decrements charges', async ({ page }) => {
+    // Use a level that has tappable leaves (Level 1 has leaves covered by flowers). Start at level index 2.
+    await page.evaluate(() => {
+      window.__tripletTestHooks.startLevel(2);
+    });
+    await page.waitForSelector('#board .tile');
+
     // Give ourselves one remove-type charge.
     await page.evaluate(() => {
       window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });

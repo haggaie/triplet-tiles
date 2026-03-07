@@ -7,9 +7,43 @@ const TILE_TYPES = [
   { id: 'mushroom', emoji: '🍄' }
 ];
 
-const FALLBACK_LEVELS = [
+/** Two fixed tutorial levels: short and simple, always first so players learn mechanics before harder levels. */
+const TUTORIAL_LEVELS = [
   {
     id: 1,
+    name: 'First Steps',
+    gridSize: 6,
+    layout: [
+      { type: 'flower', x: 1, y: 2, z: 1 },
+      { type: 'flower', x: 2, y: 2, z: 1 },
+      { type: 'flower', x: 3, y: 2, z: 1 },
+      { type: 'leaf', x: 1, y: 1, z: 0 },
+      { type: 'leaf', x: 2, y: 1, z: 0 },
+      { type: 'leaf', x: 3, y: 1, z: 0 }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Getting the Hang of It',
+    gridSize: 6,
+    layout: [
+      { type: 'leaf', x: 1, y: 1, z: 0 },
+      { type: 'leaf', x: 2, y: 1, z: 0 },
+      { type: 'leaf', x: 3, y: 1, z: 0 },
+      { type: 'flower', x: 1, y: 2, z: 0 },
+      { type: 'flower', x: 2, y: 2, z: 0 },
+      { type: 'flower', x: 3, y: 2, z: 0 },
+      { type: 'flower', x: 1, y: 2, z: 1 },
+      { type: 'flower', x: 2, y: 2, z: 1 },
+      { type: 'flower', x: 3, y: 2, z: 1 }
+    ]
+  }
+];
+
+const FALLBACK_LEVELS = [
+  ...TUTORIAL_LEVELS,
+  {
+    id: 3,
     name: 'Gentle Grove (Fallback)',
     gridSize: 6,
     layout: [
@@ -26,10 +60,20 @@ const FALLBACK_LEVELS = [
   }
 ];
 
-const LEVELS =
-  typeof window !== 'undefined' && Array.isArray(window.__TRIPLET_GENERATED_LEVELS__)
+function buildLevelsArray() {
+  const generated = typeof window !== 'undefined' && Array.isArray(window.__TRIPLET_GENERATED_LEVELS__)
     ? window.__TRIPLET_GENERATED_LEVELS__
-    : FALLBACK_LEVELS;
+    : null;
+  if (!generated || generated.length === 0) return FALLBACK_LEVELS;
+  const renumbered = generated.map((level, i) => ({
+    ...level,
+    id: i + 3,
+    name: level.name.replace(/\s+\d+$/, '') + ` ${i + 3}`
+  }));
+  return [...TUTORIAL_LEVELS, ...renumbered];
+}
+
+const LEVELS = typeof window !== 'undefined' ? buildLevelsArray() : FALLBACK_LEVELS;
 
 const STORAGE_KEYS = {
   PROGRESSION: 'triplet_tiles_progression',
