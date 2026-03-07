@@ -747,7 +747,6 @@ function renderBoard(withSettleAnimation = false) {
     ui.board.addEventListener('transitionend', removeSettle);
   }
 
-  ui.board.innerHTML = '';
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
   const boardRect = ui.board.getBoundingClientRect();
@@ -762,17 +761,31 @@ function renderBoard(withSettleAnimation = false) {
     .slice()
     .sort((a, b) => a.z - b.z);
 
-  tilesToRender.forEach(tile => {
-    const el = document.createElement('div');
-    el.className = 'tile';
-    el.dataset.tileId = tile.id;
-    if (withSettleAnimation) {
-      el.classList.add('tile-settle-in');
+  const existingById = new Map();
+  for (const child of ui.board.children) {
+    const id = child.dataset.tileId;
+    if (id) existingById.set(id, child);
+  }
+
+  const orderedElements = [];
+  for (const tile of tilesToRender) {
+    let el = existingById.get(tile.id);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'tile';
+      el.dataset.tileId = tile.id;
+      el.addEventListener('click', () => handleBoardTileClick(tile.id));
+    } else {
+      existingById.delete(tile.id);
     }
+
+    el.classList.toggle('tile-settle-in', withSettleAnimation);
     if (tappableIds.has(tile.id)) {
       el.classList.add('tappable');
+      el.classList.remove('blocked');
     } else {
       el.classList.add('blocked');
+      el.classList.remove('tappable');
     }
     el.textContent = getTileVisual(tile.type);
     el.style.width = `${cellSize}px`;
@@ -785,9 +798,13 @@ function renderBoard(withSettleAnimation = false) {
     el.style.top = `${layeredTop}px`;
     el.style.transform = 'translate(-50%, -50%)';
     el.style.zIndex = String(10 + tile.z);
-    el.addEventListener('click', () => handleBoardTileClick(tile.id));
-    ui.board.appendChild(el);
-  });
+    orderedElements.push(el);
+  }
+
+  for (const el of existingById.values()) el.remove();
+  for (const el of orderedElements) {
+    if (el.parentNode !== ui.board) ui.board.appendChild(el);
+  }
 }
 
 function renderTray(forceRebuild = false) {
@@ -800,13 +817,22 @@ function renderTray(forceRebuild = false) {
       const inner = slot.querySelector('.tray-slot-inner');
       if (!inner) continue;
       const tile = state.trayTiles[i];
-      inner.innerHTML = '';
+      const existingTileEl = inner.querySelector('.tray-tile');
       if (tile) {
-        const tileEl = document.createElement('div');
-        tileEl.className = 'tray-tile';
-        tileEl.textContent = getTileVisual(tile.type);
-        tileEl.dataset.type = tile.type;
-        inner.appendChild(tileEl);
+        if (existingTileEl) {
+          if (existingTileEl.dataset.type !== tile.type) {
+            existingTileEl.dataset.type = tile.type;
+            existingTileEl.textContent = getTileVisual(tile.type);
+          }
+        } else {
+          const tileEl = document.createElement('div');
+          tileEl.className = 'tray-tile';
+          tileEl.textContent = getTileVisual(tile.type);
+          tileEl.dataset.type = tile.type;
+          inner.appendChild(tileEl);
+        }
+      } else if (existingTileEl) {
+        existingTileEl.remove();
       }
     }
     return;
