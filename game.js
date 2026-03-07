@@ -625,7 +625,7 @@ function handleMatchingInTrayAnimated(onComplete) {
     state.score += 10 * 3;
     state.stats.tilesClearedTotal += 3;
     saveStats();
-    renderTray();
+    renderTray(true);
     // Clear compacting state in same turn to avoid a separate repaint/blink
     clearTrayCompactAnimation();
     next();
@@ -790,8 +790,28 @@ function renderBoard(withSettleAnimation = false) {
   });
 }
 
-function renderTray() {
+function renderTray(forceRebuild = false) {
   const maxSlots = 7;
+
+  const canReuse = !forceRebuild && ui.tray.children.length === maxSlots;
+  if (canReuse) {
+    for (let i = 0; i < maxSlots; i += 1) {
+      const slot = ui.tray.children[i];
+      const inner = slot.querySelector('.tray-slot-inner');
+      if (!inner) continue;
+      const tile = state.trayTiles[i];
+      inner.innerHTML = '';
+      if (tile) {
+        const tileEl = document.createElement('div');
+        tileEl.className = 'tray-tile';
+        tileEl.textContent = getTileVisual(tile.type);
+        tileEl.dataset.type = tile.type;
+        inner.appendChild(tileEl);
+      }
+    }
+    return;
+  }
+
   let html = '';
   for (let i = 0; i < maxSlots; i += 1) {
     const tile = state.trayTiles[i];
