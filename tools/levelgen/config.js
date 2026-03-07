@@ -49,9 +49,9 @@ module.exports = {
       },
       layering: {
         minZ: 0,
-        maxZ: 1,
+        maxZ: 2,
         overlap: 'light',
-        maxStackPerCell: 2
+        maxStackPerCell: 3
       }
     },
     // Mid: more types and deeper stacks.

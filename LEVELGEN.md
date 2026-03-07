@@ -8,6 +8,7 @@ This document describes how the Triplet Tiles level generator and solver work, h
 
 - **Goal**: Produce many multi-layer levels that:
   - Respect the game’s tile and coverage rules.
+  - **Use at most one tile per (x, y, z) position** — no two tiles may share the same cell and layer.
   - Are provably solvable by an automated solver.
   - Are roughly ordered from easiest to hardest using spec-aligned difficulty metrics.
 - **Key pieces**:
@@ -39,7 +40,8 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `layering`:
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).
       - `overlap`: `'light' | 'medium' | 'heavy'` (bias towards reusing stacks).
-      - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)`; auto-raised if needed so the silhouette can hold all tiles.
+      - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)` (one per z); auto-raised if needed so the silhouette can hold all tiles.
+    - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
 
 - **Templates**: `tools/levelgen/templates.js`
   - `getTemplateCells(templateId, templateParams, gridSize)` returns an array of allowed `{ x, y }` cells that define the 2D silhouette.
@@ -58,6 +60,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Converts the sequence into a multi-layer layout over the template silhouette:
         - Tiles are assigned to layers between `minZ` and `maxZ`.
         - Overlap density is controlled via `overlap` + `maxStackPerCell`.
+        - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
     - Returns `{ levels, meta: { seed } }`.
 

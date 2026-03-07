@@ -203,6 +203,8 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     stackCap = Math.min(6, neededCap);
   }
   const stackCount = new Map(); // "x,y" -> count
+  const usedPositions = new Set(); // "x,y,z" -> at most one tile per position
+  const posKey = (cx, cy, cz) => `${cx},${cy},${cz}`;
 
   const bias = overlapBias(overlap);
 
@@ -213,10 +215,12 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     const z = maxLayer - layerIdx;
 
     // Choose a cell from the template. With overlap bias, prefer reusing cells already stacked.
+    // Only allow (x,y,z) that is not yet used — at most one tile per position.
     const canStack = [];
     const canUse = [];
     for (const c of templateCells) {
       const k = `${c.x},${c.y}`;
+      if (usedPositions.has(posKey(c.x, c.y, z))) continue;
       const used = stackCount.get(k) || 0;
       if (used < stackCap) {
         canUse.push(c);
@@ -224,7 +228,10 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
       }
     }
     if (canUse.length === 0) {
-      throw new Error('template has no usable cells under stack cap');
+      throw new Error(
+        `no free (x,y,z) slot at z=${z} (template cells=${templateCells.length}, stackCap=${stackCap}); ` +
+        'ensure (templateCells * layers) >= tile count or increase maxZ/minZ'
+      );
     }
 
     let cell;
@@ -236,15 +243,24 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
 
     const k = `${cell.x},${cell.y}`;
     stackCount.set(k, (stackCount.get(k) || 0) + 1);
+    usedPositions.add(posKey(cell.x, cell.y, z));
     layout.push({ type, x: cell.x, y: cell.y, z });
   }
 
   // Ensure at least 2 layers are used (multi-layer) by force-placing a couple tiles at z>minZ if needed.
+  // Only move a tile to maxLayer if that (x,y,maxLayer) slot is free to preserve one-tile-per-position.
   const usedZ = new Set(layout.map(t => t.z));
   if (usedZ.size < 2 && maxLayer > minLayer) {
-    // Move a small number of early tiles to the top layer.
-    for (let i = 0; i < Math.min(3, layout.length); i += 1) {
-      layout[i].z = maxLayer;
+    let moved = 0;
+    for (let i = 0; i < layout.length && moved < 3; i += 1) {
+      const t = layout[i];
+      if (t.z === maxLayer) continue;
+      const key = posKey(t.x, t.y, maxLayer);
+      if (usedPositions.has(key)) continue;
+      usedPositions.delete(posKey(t.x, t.y, t.z));
+      usedPositions.add(key);
+      t.z = maxLayer;
+      moved += 1;
     }
   }
 

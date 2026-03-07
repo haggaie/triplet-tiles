@@ -43,6 +43,18 @@ test.describe('Generated levels', () => {
     expect(zSet.size).toBeGreaterThanOrEqual(2);
   });
 
+  test('every level has at most one tile per (x,y,z) position', async () => {
+    const levels = loadGeneratedLevels();
+    for (const lvl of levels) {
+      const positions = new Set();
+      for (const t of lvl.layout) {
+        const key = `${t.x},${t.y},${t.z}`;
+        expect(positions.has(key)).toBeFalsy();
+        positions.add(key);
+      }
+    }
+  });
+
   test('a sample of generated levels are solver-solvable', async () => {
     const levels = loadGeneratedLevels();
     const sample = [0, 1, 2, 10, 25, 50, levels.length - 1].filter(i => i >= 0 && i < levels.length);
