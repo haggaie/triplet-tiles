@@ -602,7 +602,6 @@ function handleMatchingInTrayAnimated(onComplete) {
       if (removedSlotIndices.length > 0) {
         startTrayCompactAnimation(removedSlotIndices);
         setTimeout(() => {
-          clearTrayCompactAnimation();
           applyMatchRemovalAndContinue(type, removeNextType);
         }, TRAY_COMPACT_DURATION_MS);
       } else {
@@ -627,6 +626,8 @@ function handleMatchingInTrayAnimated(onComplete) {
     state.stats.tilesClearedTotal += 3;
     saveStats();
     renderTray();
+    // Clear compacting state in same turn to avoid a separate repaint/blink
+    clearTrayCompactAnimation();
     next();
   }
 
@@ -790,24 +791,16 @@ function renderBoard(withSettleAnimation = false) {
 }
 
 function renderTray() {
-  ui.tray.innerHTML = '';
   const maxSlots = 7;
+  let html = '';
   for (let i = 0; i < maxSlots; i += 1) {
-    const slot = document.createElement('div');
-    slot.className = 'tray-slot';
-    const inner = document.createElement('div');
-    inner.className = 'tray-slot-inner';
     const tile = state.trayTiles[i];
-    if (tile) {
-      const tileEl = document.createElement('div');
-      tileEl.className = 'tray-tile';
-      tileEl.textContent = getTileVisual(tile.type);
-      tileEl.dataset.type = tile.type;
-      inner.appendChild(tileEl);
-    }
-    slot.appendChild(inner);
-    ui.tray.appendChild(slot);
+    const tileContent = tile
+      ? `<div class="tray-tile" data-type="${tile.type}">${getTileVisual(tile.type)}</div>`
+      : '';
+    html += `<div class="tray-slot"><div class="tray-slot-inner">${tileContent}</div></div>`;
   }
+  ui.tray.innerHTML = html;
 }
 
 // Test hooks for automated E2E tests (Playwright)
