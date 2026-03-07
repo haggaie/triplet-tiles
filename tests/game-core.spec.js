@@ -83,20 +83,27 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     await resetToLevel1(page);
 
     // Find a covering pair (above covers below) using the runtime coverage footprint.
+    // Require that above is the ONLY tile covering below, so after removal below becomes tappable.
     const pair = await page.evaluate(() => {
       const hooks = window.__tripletTestHooks;
+      const covers = (other, tile) => {
+        if (other.z <= tile.z) return false;
+        const dx = other.x - tile.x;
+        const dy = other.y - tile.y;
+        return dx >= -1 && dx <= 0 && dy >= 0 && dy <= 1;
+      };
       const maxLevelsToTry = 10;
       for (let levelIndex = 0; levelIndex < maxLevelsToTry; levelIndex += 1) {
         hooks.startLevel(levelIndex);
         const tiles = hooks.getState().boardTiles;
-        // Coverage footprint from game.js:
-        // other covers tile if other.z > tile.z and -1<=dx<=0 and 0<=dy<=1
         for (const below of tiles) {
           for (const above of tiles) {
-            if (above.z <= below.z) continue;
-            const dx = above.x - below.x;
-            const dy = above.y - below.y;
-            if (dx >= -1 && dx <= 0 && dy >= 0 && dy <= 1) {
+            if (!covers(above, below)) continue;
+            // Only accept if no other tile covers below (so removing above uncovers below).
+            const otherCoverer = tiles.find(
+              o => o.id !== above.id && covers(o, below)
+            );
+            if (!otherCoverer) {
               return { belowId: below.id, aboveId: above.id };
             }
           }
