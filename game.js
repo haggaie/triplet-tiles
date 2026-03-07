@@ -475,6 +475,11 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
   const targetX = slotRect ? slotRect.left + slotRect.width / 2 : boardRect.left + boardRect.width / 2;
   const targetY = slotRect ? slotRect.top + slotRect.height / 2 : boardRect.bottom + 40;
 
+  const tileRect = tileEl ? tileEl.getBoundingClientRect() : null;
+  const flySize = tileRect ? tileRect.width : cellSize;
+  const sampleTrayTile = document.querySelector('.tray-tile');
+  const trayTileSize = sampleTrayTile ? sampleTrayTile.getBoundingClientRect().width : 42;
+
   const fly = document.createElement('div');
   fly.className = 'tile tile-flying';
   fly.textContent = getTileVisual(tile.type);
@@ -482,10 +487,10 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
     position: fixed;
     left: ${tileCenterX}px;
     top: ${tileCenterY}px;
-    width: ${cellSize}px;
-    height: ${cellSize}px;
-    margin-left: -${cellSize / 2}px;
-    margin-top: -${cellSize / 2}px;
+    width: ${flySize}px;
+    height: ${flySize}px;
+    margin-left: -${flySize / 2}px;
+    margin-top: -${flySize / 2}px;
     z-index: 100;
     pointer-events: none;
   `;
@@ -493,10 +498,12 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
 
   if (tileEl) tileEl.style.visibility = 'hidden';
 
+  const endScale = trayTileSize / flySize;
+
   fly.animate(
     [
       { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-      { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(0.75)`, opacity: 1 }
+      { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(${endScale})`, opacity: 1 }
     ],
     { duration: FLY_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
   ).finished.then(() => {
