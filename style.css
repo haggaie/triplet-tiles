@@ -9,6 +9,8 @@
   --text: #e5e7eb;
   --muted: #9ca3af;
   --tile-size: 64px;
+  /* Same roundness for board and tray tiles (18/64 ≈ 28.125%) */
+  --tile-radius: 28.125%;
 }
 
 *,
@@ -179,7 +181,7 @@ body {
   position: absolute;
   width: var(--tile-size);
   height: var(--tile-size);
-  border-radius: 18px;
+  border-radius: var(--tile-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +307,7 @@ body {
 .tray-tile {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: var(--tile-radius);
   display: flex;
   align-items: center;
   justify-content: center;
