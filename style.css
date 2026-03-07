@@ -250,6 +250,11 @@ body {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.3rem;
+  /* Shared empty-slot look: inner fill and ring match .tray-slot-inner inset */
+  --tray-slot-inner-bg: rgba(15, 23, 42, 0.9);
+  --tray-slot-ring: 6px;
+  --tray-slot-ring-color: rgba(31, 41, 55, 0.9);
+  --tray-slot-highlight: inset 0 1px 0 rgba(248, 250, 252, 0.05);
 }
 
 .tray-making-room .tray-slot-shift-right .tray-slot-inner {
@@ -262,6 +267,14 @@ body {
   transform: translateX(var(--tray-shift-left, 0));
 }
 
+/* Vacated area during compact: same look as empty slot (inner fill + ring + highlight) */
+.tray-compacting .tray-slot-shift-left {
+  background: var(--tray-slot-inner-bg);
+  box-shadow:
+    inset 0 0 0 var(--tray-slot-ring) var(--tray-slot-ring-color),
+    var(--tray-slot-highlight);
+}
+
 .tray-compacting {
   position: relative;
   z-index: 15;
@@ -272,16 +285,16 @@ body {
   z-index: 0;
   border-radius: 999px;
   height: 52px;
-  background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.5), rgba(31, 41, 55, 0.9));
-  box-shadow: inset 0 1px 0 rgba(248, 250, 252, 0.05);
+  background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.5), var(--tray-slot-ring-color));
+  box-shadow: var(--tray-slot-highlight);
   overflow: visible;
 }
 
 .tray-slot-inner {
   position: absolute;
-  inset: 6px;
+  inset: var(--tray-slot-ring);
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
+  background: var(--tray-slot-inner-bg);
   display: flex;
   align-items: center;
   justify-content: center;
