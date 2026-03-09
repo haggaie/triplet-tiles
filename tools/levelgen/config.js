@@ -28,6 +28,11 @@
  *       - overlap: "light" | "medium" | "heavy"
  *       - maxStackPerCell: number
  */
+const ALL_TILE_TYPES = [
+  'leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom',
+  'cherry', 'butterfly', 'sunflower', 'apple', 'carrot', 'bee'
+];
+
 module.exports = {
   seed: 1337,
   output: {
@@ -41,11 +46,11 @@ module.exports = {
       templateParams: { radius: 4 },
       gridSize: 11,
       count: 25,
-      tileTypes: ['leaf', 'flower', 'clover', 'star'],
+      tileTypes: ALL_TILE_TYPES.slice(0, 5),
       distribution: {
         mode: 'weightedTriplets',
         totalTriplets: 15,
-        weights: { leaf: 4, flower: 4, clover: 3, star: 2 }
+        weights: { leaf: 4, flower: 4, clover: 3, star: 3, acorn: 2 }
       },
       layering: {
         minZ: 0,
@@ -60,16 +65,19 @@ module.exports = {
       templateParams: { radius: 4, thickness: 2 },
       gridSize: 11,
       count: 25,
-      tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn'],
+      tileTypes: ALL_TILE_TYPES,
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 21,
-        weights: { leaf: 4, flower: 4, clover: 4, star: 3, acorn: 3 }
+        totalTriplets: 24,
+        weights: {
+          leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3,
+          cherry: 2, butterfly: 2, sunflower: 2, apple: 2, carrot: 2, bee: 2
+        }
       },
       layering: {
         minZ: 0,
         maxZ: 2,
-        overlap: 'medium',
+        overlap: 'heavy',
         maxStackPerCell: 3
       }
     },
@@ -79,11 +87,14 @@ module.exports = {
       templateParams: { radius: 5, thickness: 1 },
       gridSize: 13,
       count: 25,
-      tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom'],
+      tileTypes: ALL_TILE_TYPES,
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 24,
-        weights: { leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3 }
+        totalTriplets: 27,
+        weights: {
+          leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3,
+          cherry: 2, butterfly: 2, sunflower: 2, apple: 2, carrot: 2, bee: 2
+        }
       },
       layering: {
         minZ: 0,
@@ -92,17 +103,20 @@ module.exports = {
         maxStackPerCell: 4
       }
     },
-    // Late: largest shapes, most pressure.
+    // Late: largest shapes, most pressure, all 6 types.
     {
       templateId: 'letter',
       templateParams: { letter: 'S', radius: 6, thickness: 2 },
       gridSize: 15,
       count: 25,
-      tileTypes: ['leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom'],
+      tileTypes: ALL_TILE_TYPES,
       distribution: {
         mode: 'weightedTriplets',
-        totalTriplets: 30,
-        weights: { leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3 }
+        totalTriplets: 33,
+        weights: {
+          leaf: 4, flower: 4, clover: 4, star: 4, acorn: 3, mushroom: 3,
+          cherry: 2, butterfly: 2, sunflower: 2, apple: 2, carrot: 2, bee: 2
+        }
       },
       layering: {
         minZ: 0,

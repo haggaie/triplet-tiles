@@ -4,7 +4,13 @@ const TILE_TYPES = [
   { id: 'clover', emoji: '🍀' },
   { id: 'star', emoji: '⭐' },
   { id: 'acorn', emoji: '🌰' },
-  { id: 'mushroom', emoji: '🍄' }
+  { id: 'mushroom', emoji: '🍄' },
+  { id: 'cherry', emoji: '🍒' },
+  { id: 'butterfly', emoji: '🦋' },
+  { id: 'sunflower', emoji: '🌻' },
+  { id: 'apple', emoji: '🍎' },
+  { id: 'carrot', emoji: '🥕' },
+  { id: 'bee', emoji: '🐝' }
 ];
 
 /** Two fixed tutorial levels: short and simple, always first so players learn mechanics before harder levels. */

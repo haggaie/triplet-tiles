@@ -143,7 +143,17 @@ Distribution controls how many tiles of each type are in a level. All modes ensu
 - Good default for:
   - “Soft” bias towards some types but without micromanaging exact counts.
 
-#### 3.3. Zipf-based distribution (future design)
+#### 3.3. Tile type count and difficulty
+
+The **number of tile types** in a level strongly affects difficulty: more types mean more distinct symbols in the tray, so the tray fills with singletons and pairs more often and the player must plan to avoid overflow. The game defines a fixed set of tile types in `game.js` (`TILE_TYPES`); the tray holds at most **7** tiles. So:
+
+- **Upper bound**: The game defines a fixed set of types in `game.js` (currently **12**: leaf, flower, clover, star, acorn, mushroom, cherry, butterfly, sunflower, apple, carrot, bee). Levels cannot use more than that without changing the game.
+- **Per-level**: Each batch's `tileTypes` array chooses a *subset*. Using more types in a batch (e.g. 8–12) increases tray pressure and strategic difficulty; using fewer (e.g. 2–4) keeps levels easier.
+- **Setting it**: You can either set `tileTypes` explicitly per batch (as now) or derive it from a single list, e.g. `tileTypes: ALL_TYPES.slice(0, 4)` for "first 4 types" so type count is explicit and easy to tune. Letting the generator *choose* type count automatically (e.g. to hit a target difficulty) would require coupling generation to the solver/scorer and is usually not worth the complexity; configuring per batch is simpler and predictable.
+
+So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "many types" dimension. The tray holds 7 tiles, so with up to 12 types you still avoid the "7 singletons = instant loss" case. To raise difficulty for medium/hard, use **more types** in those batches (e.g. all 12) and combine with more triplets, heavier overlap, and/or more layers.
+
+#### 3.4. Zipf-based distribution (future design)
 
 We can add a third mode, `zipf`, to approximate a **Zipf law** over tile types:
 
