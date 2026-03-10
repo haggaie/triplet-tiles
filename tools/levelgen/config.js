@@ -37,7 +37,9 @@ module.exports = {
   seed: 1337,
   output: {
     outFile: 'levels.generated.js',
-    includeSolverStats: false
+    includeSolverStats: false,
+    /** If set, write a difficulty report (metrics and easy/medium/hard stats) to this path (relative to project root). */
+    reportFile: 'levelgen-report.md'
   },
   levels: [
     // Early ramp: short levels that require balancing tray vs opening tiles (medium overlap, moderate size).

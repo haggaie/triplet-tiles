@@ -1,4 +1,5 @@
 const { getTemplateCells } = require('./templates');
+const { getFillOrder, getLayerSilhouette } = require('./shapes');
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -200,69 +201,148 @@ function overlapBias(overlap) {
   }
 }
 
+/**
+ * Distribute tile indices to layers when using fill-bottom + per-layer silhouettes.
+ * Base layer (layerIndex 0) gets nBase tiles; the rest are split across upper layers
+ * respecting each layer's cell capacity.
+ */
+function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
+  const rest = seqLength - nBase;
+  if (rest <= 0) {
+    return [nBase].concat(layerCapacities.map(() => 0));
+  }
+  const counts = [];
+  let remaining = rest;
+  for (let k = 0; k < layerCapacities.length; k += 1) {
+    const cap = layerCapacities[k];
+    const want = k < layerCapacities.length - 1
+      ? Math.min(cap, Math.ceil(remaining / (layerCapacities.length - k)))
+      : remaining;
+    const n = Math.min(cap, Math.max(0, want));
+    counts.push(n);
+    remaining -= n;
+  }
+  if (remaining > 0) {
+    for (let k = 0; k < counts.length && remaining > 0; k += 1) {
+      const extra = Math.min(remaining, layerCapacities[k] - counts[k]);
+      if (extra > 0) {
+        counts[k] += extra;
+        remaining -= extra;
+      }
+    }
+  }
+  return [nBase, ...counts];
+}
+
 function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering) {
-  const { minZ, maxZ, overlap, maxStackPerCell } = layering;
+  const { minZ, maxZ, overlap, maxStackPerCell, fillBottom, layerShape, layerShapeOptions } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
   if (maxLayer < minLayer) throw new Error('layering.maxZ must be >= minZ');
 
-  const layers = maxLayer - minLayer + 1;
-  const tilesPerLayer = Math.ceil(seq.length / layers);
+  const numLayers = maxLayer - minLayer + 1;
+  const useFillBottom = fillBottom === true;
+  const shapeStrategy = layerShape || 'full';
+  const shapeOpts = layerShapeOptions || {};
+
+  // Per-layer silhouettes: layerIndex 0 = base (minZ), 1 = minZ+1, ...
+  const layerCellsByIndex = [];
+  for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+    layerCellsByIndex.push(
+      getLayerSilhouette(templateCells, gridSize, shapeStrategy, layerIdx, shapeOpts)
+    );
+  }
+
+  const baseCells = layerCellsByIndex[0];
+  const fillOrder = useFillBottom ? getFillOrder(baseCells) : null;
 
   let stackCap = Math.max(1, maxStackPerCell || 2);
-  // Ensure the silhouette can physically hold all tiles.
-  // If config underestimates capacity, increase stacking up to a reasonable cap.
   const neededCap = Math.ceil(seq.length / Math.max(1, templateCells.length));
-  if (neededCap > stackCap) {
-    stackCap = Math.min(6, neededCap);
-  }
-  const stackCount = new Map(); // "x,y" -> count
-  const usedPositions = new Set(); // "x,y,z" -> at most one tile per position
-  const posKey = (cx, cy, cz) => `${cx},${cy},${cz}`;
+  if (neededCap > stackCap) stackCap = Math.min(6, neededCap);
 
+  const usedPositions = new Set();
+  const posKey = (cx, cy, cz) => `${cx},${cy},${cz}`;
   const bias = overlapBias(overlap);
 
-  const layout = [];
-  for (let i = 0; i < seq.length; i += 1) {
-    const type = seq[i];
-    const layerIdx = Math.floor(i / tilesPerLayer);
-    const z = maxLayer - layerIdx;
-
-    // Choose a cell from the template. With overlap bias, prefer reusing cells already stacked.
-    // Only allow (x,y,z) that is not yet used — at most one tile per position.
-    const canStack = [];
-    const canUse = [];
-    for (const c of templateCells) {
-      const k = `${c.x},${c.y}`;
-      if (usedPositions.has(posKey(c.x, c.y, z))) continue;
-      const used = stackCount.get(k) || 0;
-      if (used < stackCap) {
-        canUse.push(c);
-        if (used > 0) canStack.push(c);
-      }
-    }
-    if (canUse.length === 0) {
+  let layerCounts;
+  if (useFillBottom && numLayers >= 2) {
+    const nBase = Math.min(seq.length, baseCells.length);
+    const upperCaps = layerCellsByIndex.slice(1).map(cells => cells.length);
+    layerCounts = partitionTilesToLayers(seq.length, nBase, upperCaps);
+  } else if (useFillBottom && numLayers === 1) {
+    layerCounts = [seq.length];
+  } else {
+    const caps = layerCellsByIndex.map(c => c.length);
+    layerCounts = partitionTilesToLayers(seq.length, 0, caps);
+    if (layerCounts[0] === 0 && seq.length > 0) {
+      const totalCap = caps.reduce((a, b) => a + b, 0);
       throw new Error(
-        `no free (x,y,z) slot at z=${z} (template cells=${templateCells.length}, stackCap=${stackCap}); ` +
-        'ensure (templateCells * layers) >= tile count or increase maxZ/minZ'
+        `total layer capacity ${totalCap} < ${seq.length} tiles; ` +
+        'use layerShape "full" or reduce tile count'
       );
     }
-
-    let cell;
-    if (canStack.length > 0 && rng() < bias) {
-      cell = choice(rng, canStack);
-    } else {
-      cell = choice(rng, canUse);
+    const sum = layerCounts.reduce((a, b) => a + b, 0);
+    if (sum < seq.length) {
+      layerCounts[layerCounts.length - 1] += seq.length - sum;
     }
-
-    const k = `${cell.x},${cell.y}`;
-    stackCount.set(k, (stackCount.get(k) || 0) + 1);
-    usedPositions.add(posKey(cell.x, cell.y, z));
-    layout.push({ type, x: cell.x, y: cell.y, z });
   }
 
-  // Ensure at least 2 layers are used (multi-layer) by force-placing a couple tiles at z>minZ if needed.
-  // Only move a tile to maxLayer if that (x,y,maxLayer) slot is free to preserve one-tile-per-position.
+  const stackCount = new Map();
+  const layout = [];
+  let seqIndex = 0;
+
+  for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+    const z = minLayer + layerIdx;
+    const cells = layerCellsByIndex[layerIdx];
+    const n = layerCounts[layerIdx] || 0;
+
+    if (useFillBottom && layerIdx === 0 && fillOrder && n > 0) {
+      for (let j = 0; j < n && seqIndex < seq.length; j += 1) {
+        const type = seq[seqIndex++];
+        const cell = fillOrder[j];
+        usedPositions.add(posKey(cell.x, cell.y, z));
+        const k = `${cell.x},${cell.y}`;
+        stackCount.set(k, (stackCount.get(k) || 0) + 1);
+        layout.push({ type, x: cell.x, y: cell.y, z });
+      }
+      continue;
+    }
+
+    for (let j = 0; j < n && seqIndex < seq.length; j += 1) {
+      const type = seq[seqIndex++];
+      const canStack = [];
+      const canUse = [];
+      for (const c of cells) {
+        if (usedPositions.has(posKey(c.x, c.y, z))) continue;
+        const used = stackCount.get(`${c.x},${c.y}`) || 0;
+        if (used < stackCap) {
+          canUse.push(c);
+          if (used > 0) canStack.push(c);
+        }
+      }
+      if (canUse.length === 0) {
+        throw new Error(
+          `no free (x,y,z) slot at z=${z} (layer cells=${cells.length}, stackCap=${stackCap}); ` +
+          'try layerShape "full" or fewer tiles'
+        );
+      }
+      const cell = (canStack.length > 0 && rng() < bias)
+        ? choice(rng, canStack)
+        : choice(rng, canUse);
+      const k = `${cell.x},${cell.y}`;
+      stackCount.set(k, (stackCount.get(k) || 0) + 1);
+      usedPositions.add(posKey(cell.x, cell.y, z));
+      layout.push({ type, x: cell.x, y: cell.y, z });
+    }
+  }
+
+  if (layout.length < seq.length) {
+    throw new Error(
+      `layout placed ${layout.length} tiles but sequence has ${seq.length}; ` +
+      'layer capacities may be too small'
+    );
+  }
+
   const usedZ = new Set(layout.map(t => t.z));
   if (usedZ.size < 2 && maxLayer > minLayer) {
     let moved = 0;

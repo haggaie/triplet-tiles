@@ -30,6 +30,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `output`:
       - `outFile`: typically `levels.generated.js`.
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
+      - `reportFile`: if set (e.g. `levelgen-report.md`), writes a difficulty report with metrics and easy/medium/hard statistics to that path.
   - `levels`: array of “batches” describing how to generate groups of levels:
     - `templateId`: name of a shape template (`heart`, `spiral`, `letter`, `rectangle`, `diamond`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
@@ -107,6 +108,10 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     5. Rewrite `id` and `name` to reflect difficulty order.
     6. Emit `levels.generated.js`:
        - Defines `window.__TRIPLET_GENERATED_LEVELS__ = [...]`.
+    7. **Difficulty report** (if `config.output.reportFile` is set):
+       - Writes a markdown report to the given path (e.g. `levelgen-report.md`).
+       - Report includes: overall difficulty score range and mean metrics; statistics by band (**easy** = bottom third, **medium** = middle third, **hard** = top third by score).
+       - Per band: level count, difficulty score min/max/mean, and for each metric (min tray slack, forced-move ratio, rollout failure rate, avg/min tappable tiles, solution steps, solver nodes expanded) min/max/mean.
 
 - **Runtime loading**:
   - `index.html` includes:

@@ -2,3 +2,4 @@ node_modules
 dist
 levels.generated.js
 test-results/
+levelgen-report.md
