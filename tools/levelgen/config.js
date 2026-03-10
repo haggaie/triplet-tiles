@@ -47,6 +47,15 @@ module.exports = {
       gridSize: 11,
       count: 25,
       tileTypes: ALL_TILE_TYPES.slice(0, 5),
+      sequenceConstraints: {
+        // Ensure the sequence hits some tray pressure at least once.
+        // minSlack = min(7 - traySize) over the simulated pick order.
+        requireMinSlackAtMost: 3
+      },
+      solverConstraints: {
+        // Enforce real (solver-path) tray pressure at least once.
+        requireMinSlackAtMost: 3
+      },
       distribution: {
         mode: 'weightedTriplets',
         totalTriplets: 15,
@@ -66,6 +75,12 @@ module.exports = {
       gridSize: 11,
       count: 25,
       tileTypes: ALL_TILE_TYPES,
+      sequenceConstraints: {
+        requireMinSlackAtMost: 2
+      },
+      solverConstraints: {
+        requireMinSlackAtMost: 3
+      },
       distribution: {
         mode: 'weightedTriplets',
         totalTriplets: 24,
@@ -88,6 +103,12 @@ module.exports = {
       gridSize: 13,
       count: 25,
       tileTypes: ALL_TILE_TYPES,
+      sequenceConstraints: {
+        requireMinSlackAtMost: 1
+      },
+      solverConstraints: {
+        requireMinSlackAtMost: 3
+      },
       distribution: {
         mode: 'weightedTriplets',
         totalTriplets: 27,
@@ -110,6 +131,12 @@ module.exports = {
       gridSize: 15,
       count: 25,
       tileTypes: ALL_TILE_TYPES,
+      sequenceConstraints: {
+        requireMinSlackAtMost: 1
+      },
+      solverConstraints: {
+        requireMinSlackAtMost: 3
+      },
       distribution: {
         mode: 'weightedTriplets',
         totalTriplets: 33,

@@ -87,7 +87,7 @@ function distributionToCounts(distribution, tileTypes) {
   throw new Error(`Unknown distribution mode "${distribution.mode}"`);
 }
 
-function buildTypeSequence(rng, countsByType) {
+function buildTypeSequence(rng, countsByType, options = {}) {
   // Create an explicit multiset list of tile types.
   const bag = [];
   Object.entries(countsByType).forEach(([type, count]) => {
@@ -102,6 +102,13 @@ function buildTypeSequence(rng, countsByType) {
   const seq = [];
   const trayCounts = {};
   let traySize = 0;
+  let minSlack = 7;
+  const requireMinSlackAtMost = Number.isInteger(options.requireMinSlackAtMost)
+    ? options.requireMinSlackAtMost
+    : null;
+  if (requireMinSlackAtMost !== null && (requireMinSlackAtMost < 0 || requireMinSlackAtMost > 7)) {
+    throw new Error(`requireMinSlackAtMost must be in [0..7] (got ${requireMinSlackAtMost})`);
+  }
 
   function trayAdd(type) {
     trayCounts[type] = (trayCounts[type] || 0) + 1;
@@ -110,6 +117,7 @@ function buildTypeSequence(rng, countsByType) {
       trayCounts[type] -= 3;
       traySize -= 3;
     }
+    minSlack = Math.min(minSlack, 7 - traySize);
   }
 
   while (bag.length > 0) {
@@ -169,6 +177,12 @@ function buildTypeSequence(rng, countsByType) {
     // If we end with leftovers, the bag/distribution is still valid (multiples of 3),
     // so this indicates a weakness in greedy ordering. Shuffle and retry should fix it.
     throw new Error('failed to build tray-feasible pick sequence (non-empty tray at end)');
+  }
+
+  if (requireMinSlackAtMost !== null && minSlack > requireMinSlackAtMost) {
+    throw new Error(
+      `failed to hit required tray tightness (minSlack=${minSlack}, requireMinSlackAtMost=${requireMinSlackAtMost})`
+    );
   }
 
   return seq;
@@ -272,10 +286,12 @@ function generateOneLevel(rng, batch, levelId) {
   const countsByType = distributionToCounts(batch.distribution, batch.tileTypes);
 
   // Retry sequence building a few times in case the greedy ordering fails.
+  const seqConstraints = batch.sequenceConstraints || {};
+  const maxAttempts = Number.isInteger(seqConstraints.maxAttempts) ? seqConstraints.maxAttempts : 80;
   let seq = null;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
-      seq = buildTypeSequence(rng, countsByType);
+      seq = buildTypeSequence(rng, countsByType, seqConstraints);
       break;
     } catch {
       // re-shuffle via rng state and retry
@@ -316,6 +332,8 @@ function generateLevelsFromConfig(config) {
 }
 
 module.exports = {
-  generateLevelsFromConfig
+  generateLevelsFromConfig,
+  generateOneLevel,
+  mulberry32
 };
 
