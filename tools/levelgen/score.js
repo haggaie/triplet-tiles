@@ -100,6 +100,11 @@ function simulatePathMetrics(level, solution) {
   let steps = 0;
   let minSlack = 7;
 
+  /** Per-step values for temporal uniformity: slack after step, forced flag, tappable count. */
+  const stepSlacks = [];
+  const stepForced = [];
+  const stepTappable = [];
+
   for (const idx of solution) {
     if (traySize >= 7) break;
     const tappable = getTappable(layout, removed, coverers);
@@ -117,7 +122,11 @@ function simulatePathMetrics(level, solution) {
     scored.sort((a, b) => b.s - a.s);
     const best = scored[0]?.s ?? -Infinity;
     const safeCount = scored.filter(m => m.s >= best - 10).length;
-    if (safeCount <= 1) forcedMoves += 1;
+    const isForced = safeCount <= 1;
+    if (isForced) forcedMoves += 1;
+
+    stepTappable.push(tappableCount);
+    stepForced.push(isForced ? 1 : 0);
 
     // Apply the intended move.
     bitsetAdd(removed, idx);
@@ -125,19 +134,57 @@ function simulatePathMetrics(level, solution) {
     const next = applyTrayAdd(trayCounts, traySize, type);
     trayCounts = next.trayCounts;
     traySize = next.traySize;
-    minSlack = Math.min(minSlack, 7 - traySize);
+    const slackAfter = 7 - traySize;
+    minSlack = Math.min(minSlack, slackAfter);
+    stepSlacks.push(slackAfter);
     steps += 1;
   }
 
   const avgTappable = steps > 0 ? sumTappable / steps : 0;
   const forcedRatio = steps > 0 ? forcedMoves / steps : 1;
 
+  // Temporal uniformity: split solution into windows and compute hardness per window.
+  const NUM_DIFFICULTY_WINDOWS = 3;
+  let difficultyVariance = 0;
+  let difficultyRange = 0;
+  const windowHardnesses = [];
+  if (steps >= NUM_DIFFICULTY_WINDOWS) {
+    const windowSize = steps / NUM_DIFFICULTY_WINDOWS;
+    for (let w = 0; w < NUM_DIFFICULTY_WINDOWS; w += 1) {
+      const start = Math.floor(w * windowSize);
+      const end = w < NUM_DIFFICULTY_WINDOWS - 1
+        ? Math.floor((w + 1) * windowSize)
+        : steps;
+      let wMinSlack = 7;
+      let wForced = 0;
+      let wMinTappable = Infinity;
+      for (let i = start; i < end; i += 1) {
+        wMinSlack = Math.min(wMinSlack, stepSlacks[i]);
+        wForced += stepForced[i];
+        wMinTappable = Math.min(wMinTappable, stepTappable[i]);
+      }
+      const wSteps = end - start;
+      const wForcedRatio = wSteps > 0 ? wForced / wSteps : 0;
+      const wMinTapp = Number.isFinite(wMinTappable) ? wMinTappable : 0;
+      const slackHard = clamp01((3 - wMinSlack) / 3);
+      const forcedHard = clamp01(wForcedRatio);
+      const minChoiceHard = clamp01(1 - wMinTapp / 6);
+      windowHardnesses.push(slackHard * 0.26 + forcedHard * 0.24 + minChoiceHard * 0.1);
+    }
+    const mean = windowHardnesses.reduce((a, b) => a + b, 0) / windowHardnesses.length;
+    difficultyVariance = windowHardnesses.reduce((sum, x) => sum + (x - mean) ** 2, 0) / windowHardnesses.length;
+    difficultyRange = Math.max(...windowHardnesses) - Math.min(...windowHardnesses);
+  }
+
   return {
     steps,
     avgTappable,
     minTappable: Number.isFinite(minTappable) ? minTappable : 0,
     forcedRatio,
-    minSlack
+    minSlack,
+    difficultyVariance,
+    difficultyRange,
+    windowHardnesses
   };
 }
 
