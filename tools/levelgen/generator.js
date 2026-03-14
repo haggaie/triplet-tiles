@@ -107,9 +107,19 @@ function buildTypeSequence(rng, countsByType, options = {}) {
   const requireMinSlackAtMost = Number.isInteger(options.requireMinSlackAtMost)
     ? options.requireMinSlackAtMost
     : null;
+  const targetSlackBand = Array.isArray(options.targetSlackBand) && options.targetSlackBand.length >= 2
+    ? { lo: options.targetSlackBand[0], hi: options.targetSlackBand[1] }
+    : null;
+  const maxSlackRunLength = Number.isInteger(options.maxSlackRunLength) && options.maxSlackRunLength > 0
+    ? options.maxSlackRunLength
+    : null;
+  const rejectLongHighSlackRun = options.rejectLongHighSlackRun === true;
   if (requireMinSlackAtMost !== null && (requireMinSlackAtMost < 0 || requireMinSlackAtMost > 7)) {
     throw new Error(`requireMinSlackAtMost must be in [0..7] (got ${requireMinSlackAtMost})`);
   }
+
+  /** Consecutive picks where slack (7 - traySize) stayed above target band hi. */
+  let runLengthHighSlack = 0;
 
   function trayAdd(type) {
     trayCounts[type] = (trayCounts[type] || 0) + 1;
@@ -119,6 +129,19 @@ function buildTypeSequence(rng, countsByType, options = {}) {
       traySize -= 3;
     }
     minSlack = Math.min(minSlack, 7 - traySize);
+    const slack = 7 - traySize;
+    if (targetSlackBand && maxSlackRunLength != null) {
+      if (slack > targetSlackBand.hi) {
+        runLengthHighSlack += 1;
+        if (rejectLongHighSlackRun && runLengthHighSlack > maxSlackRunLength) {
+          throw new Error(
+            `slack stayed above ${targetSlackBand.hi} for more than ${maxSlackRunLength} consecutive picks`
+          );
+        }
+      } else {
+        runLengthHighSlack = 0;
+      }
+    }
   }
 
   while (bag.length > 0) {
@@ -130,6 +153,9 @@ function buildTypeSequence(rng, countsByType, options = {}) {
     const K = Math.min(20, bag.length);
     let bestIdx = 0;
     let bestScore = -Infinity;
+    const slackNow = 7 - traySize;
+    const wantMorePressure = targetSlackBand && slackNow > targetSlackBand.hi &&
+      (maxSlackRunLength == null || runLengthHighSlack >= Math.max(0, maxSlackRunLength - 2));
 
     for (let s = 0; s < K; s += 1) {
       const idx = Math.floor(rng() * bag.length);
@@ -141,6 +167,12 @@ function buildTypeSequence(rng, countsByType, options = {}) {
       if (inTray === 2) score += 100; // completes triplet
       if (inTray === 1) score += 20;
       if (inTray === 0) score -= 5;
+
+      // Sequence shaping: when slack is above band and we've had a long high-slack run, bias toward adding pressure.
+      if (wantMorePressure) {
+        if (inTray === 2) score -= 40; // prefer not to clear tray yet
+        if (inTray === 1 || inTray === 0) score += 15; // prefer adding to tray
+      }
 
       // Penalize adding a new type when tray is tight.
       const distinct = Object.keys(trayCounts).filter(t => trayCounts[t] > 0).length;
@@ -235,7 +267,7 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
 }
 
 function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering) {
-  const { minZ, maxZ, overlap, maxStackPerCell, full, layerShape, layerShapeOptions } = layering;
+  const { minZ, maxZ, overlap, maxStackPerCell, full, layerShape, layerShapeOptions, interleavePlacement } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
   if (maxLayer < minLayer) throw new Error('layering.maxZ must be >= minZ');
@@ -307,6 +339,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   const stackCount = new Map();
   const layout = [];
   let seqIndex = 0;
+  const useInterleave = interleavePlacement === true && useFullFill;
 
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     const z = minLayer + layerIdx;
@@ -315,8 +348,19 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     const fillOrder = fillOrdersByLayer ? fillOrdersByLayer[layerIdx] : null;
 
     if (useFullFill && fillOrder && n > 0) {
-      for (let j = 0; j < n && seqIndex < seq.length; j += 1) {
-        const type = seq[seqIndex++];
+      const baseSeqIndex = seqIndex;
+      seqIndex += n;
+      let positionToSeqIndex;
+      if (useInterleave && n > 1) {
+        const indices = Array.from({ length: n }, (_, i) => i);
+        shuffleInPlace(rng, indices);
+        positionToSeqIndex = (j) => baseSeqIndex + indices[j];
+      } else {
+        positionToSeqIndex = (j) => baseSeqIndex + j;
+      }
+      for (let j = 0; j < n; j += 1) {
+        const seqIdx = positionToSeqIndex(j);
+        const type = seq[seqIdx];
         const cell = fillOrder[j];
         usedPositions.add(posKey(cell.x, cell.y, z));
         const k = `${cell.x},${cell.y}`;

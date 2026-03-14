@@ -47,7 +47,7 @@ module.exports = {
       templateId: 'diamond',
       templateParams: { radius: 4 },
       gridSize: 11,
-      count: 25,
+      count: 3,
       tileTypes: ALL_TILE_TYPES.slice(0, 5),
       sequenceConstraints: {
         // Ensure the sequence hits some tray pressure at least once.
@@ -77,7 +77,7 @@ module.exports = {
       templateId: 'heart',
       templateParams: { radius: 4, thickness: 2 },
       gridSize: 11,
-      count: 25,
+      count: 3,
       tileTypes: ALL_TILE_TYPES,
       sequenceConstraints: {
         requireMinSlackAtMost: 2
@@ -107,7 +107,7 @@ module.exports = {
       templateId: 'spiral',
       templateParams: { radius: 5, thickness: 1 },
       gridSize: 13,
-      count: 25,
+      count: 3,
       maxGenerateAttempts: 2500,
       tileTypes: ALL_TILE_TYPES,
       sequenceConstraints: {
@@ -138,10 +138,13 @@ module.exports = {
       templateId: 'letter',
       templateParams: { letter: 'S', radius: 6, thickness: 2 },
       gridSize: 15,
-      count: 25,
+      count: 3,
       tileTypes: ALL_TILE_TYPES,
       sequenceConstraints: {
-        requireMinSlackAtMost: 1
+        requireMinSlackAtMost: 1,
+        targetSlackBand: [1, 3],
+        maxSlackRunLength: 22,
+        maxAttempts: 200
       },
       solverConstraints: {
         requireMinSlackAtMost: 3,
@@ -161,7 +164,8 @@ module.exports = {
         overlap: 'heavy',
         maxStackPerCell: 4,
         full: true,
-        layerShape: 'full'
+        layerShape: 'full',
+        interleavePlacement: true
       }
     }
   ]
