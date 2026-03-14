@@ -1,4 +1,69 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+
+const { solveLevel } = require('../tools/levelgen/solver');
+
+function loadGeneratedLevels() {
+  const projectRoot = path.resolve(__dirname, '..');
+  const filePath = path.resolve(projectRoot, 'levels.generated.js');
+  const src = fs.readFileSync(filePath, 'utf8');
+  const marker = 'window.__TRIPLET_GENERATED_LEVELS__ = ';
+  const start = src.indexOf(marker);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const jsonStart = start + marker.length;
+  const jsonEnd = src.lastIndexOf(';\n');
+  expect(jsonEnd).toBeGreaterThan(jsonStart);
+  const jsonText = src.slice(jsonStart, jsonEnd).trim();
+  return JSON.parse(jsonText);
+}
+
+/**
+ * Simulates applying a solution (array of layout indices) to a level and returns
+ * the expected score and final tray length. Mirrors game logic: insert by shape, remove triples.
+ */
+function simulateSolutionScore(level, solution) {
+  const layout = level.layout;
+  let tray = [];
+  let score = 0;
+
+  function insertByShape(type) {
+    let insertIndex = tray.length;
+    for (let i = tray.length - 1; i >= 0; i -= 1) {
+      if (tray[i] === type) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+    tray.splice(insertIndex, 0, type);
+  }
+
+  /** One round per move: remove 3 of each type that has >= 3 (matches game's handleMatchingInTray). */
+  function removeTriples() {
+    const counts = {};
+    tray.forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+    const toRemove = Object.keys(counts).filter(t => counts[t] >= 3);
+    for (const type of toRemove) {
+      let removed = 0;
+      tray = tray.filter(t => {
+        if (t === type && removed < 3) {
+          removed += 1;
+          return false;
+        }
+        return true;
+      });
+      score += 30;
+    }
+  }
+
+  for (const idx of solution) {
+    const type = layout[idx].type;
+    insertByShape(type);
+    removeTriples();
+  }
+
+  return { score, trayLength: tray.length };
+}
 
 async function resetToLevel1(page) {
   await page.goto('/');
@@ -135,6 +200,57 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
       return window.__tripletTestHooks.getTappableTiles().map(t => t.id);
     });
     expect(laterTappableIds).toContain(belowId);
+  });
+
+  test('clicking through solution during animations keeps state consistent with solution', async ({ page }) => {
+    test.setTimeout(120000); // Animations per move can take ~1–2s; allow time for full solution.
+
+    const levels = loadGeneratedLevels();
+    expect(levels.length).toBeGreaterThanOrEqual(1);
+    const level = levels[0];
+    const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
+    expect(result.solvable).toBe(true);
+    expect(Array.isArray(result.solution)).toBe(true);
+    expect(result.solution.length).toBeGreaterThan(0);
+
+    const { score: expectedScore, trayLength: expectedTrayLength } = simulateSolutionScore(level, result.solution);
+
+    await page.goto('/');
+    await page.waitForSelector('#board');
+    await page.evaluate(() => {
+      window.__tripletTestHooks.resetAllProgress();
+    });
+    await page.waitForSelector('#board .tile');
+
+    // First generated level is at game level index 2 (0 and 1 are tutorial).
+    const gameLevelIndex = 2;
+    await page.evaluate(idx => {
+      window.__tripletTestHooks.startLevel(idx);
+    }, gameLevelIndex);
+    await page.waitForSelector('#board .tile');
+
+    // Do NOT set skipAnimationsForTests — we want animations on. Click through the full solution
+    // without waiting for animations to finish, to assert that state stays consistent.
+    const solutionTileIds = result.solution.map(idx => `t_${gameLevelIndex}_${idx}`);
+    for (const tileId of solutionTileIds) {
+      await page.evaluate(id => {
+        window.__tripletTestHooks.clickTileById(id);
+      }, tileId);
+      // Intentionally do not await waitForActionComplete() — click while animations may still be running.
+    }
+
+    // Wait for level to complete (win overlay). Each move's animations can be ~1–2s; allow enough time.
+    const solutionSteps = result.solution.length;
+    const overlayTimeout = Math.max(60000, solutionSteps * 2500);
+    await expect(page.locator('#overlay')).toBeVisible({ timeout: overlayTimeout });
+    await expect(page.locator('#overlay-title')).toHaveText('Level Complete');
+
+    const actualScore = parseInt(await page.locator('#score-value').textContent(), 10);
+    expect(actualScore).toBe(expectedScore);
+
+    const state = await page.evaluate(() => window.__tripletTestHooks.getState());
+    expect(state.trayTiles.length).toBe(expectedTrayLength);
+    expect(state.isLevelOver).toBe(true);
   });
 });
 

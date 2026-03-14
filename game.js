@@ -150,6 +150,10 @@ let _actionCompleteResolve = null;
 /** When true, tile fly/combine/compact animations are skipped (used only by tests that play a full level). */
 let skipAnimationsForTests = false;
 
+/** Queue of tile IDs to process when a click happens during an ongoing move animation. Ensures moves apply in click order. */
+let _moveQueue = [];
+let _isMoveAnimating = false;
+
 const ui = {};
 
 function initDomRefs() {
@@ -316,6 +320,8 @@ function savePowerups() {
 function startLevel(index) {
   const clampedIndex = Math.max(0, Math.min(index, LEVELS.length - 1));
   state.currentLevelIndex = clampedIndex;
+  _moveQueue = [];
+  _isMoveAnimating = false;
   const level = LEVELS[clampedIndex];
   state.boardTiles = level.layout.map((tile, i) => ({
     id: `t_${clampedIndex}_${i}`,
@@ -384,6 +390,11 @@ function insertTrayTileByShape(trayTiles, newTile) {
 function handleBoardTileClick(tileId) {
   if (state.isLevelOver) return;
 
+  if (!skipAnimationsForTests && _isMoveAnimating) {
+    _moveQueue.push(tileId);
+    return;
+  }
+
   const tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
   if (isTileCovered(tile)) return;
@@ -411,6 +422,11 @@ function handleBoardTileClick(tileId) {
         _actionCompleteResolve = null;
         _actionCompletePromise = null;
       }
+      _isMoveAnimating = false;
+      if (_moveQueue.length > 0) {
+        const nextId = _moveQueue.shift();
+        setTimeout(() => handleBoardTileClick(nextId), 0);
+      }
     });
   }
 
@@ -419,6 +435,7 @@ function handleBoardTileClick(tileId) {
     return;
   }
 
+  _isMoveAnimating = true;
   if (typeof window !== 'undefined' && window.__tripletTestHooks) {
     _actionCompletePromise = new Promise(r => { _actionCompleteResolve = r; });
   }
