@@ -3,3 +3,4 @@ dist
 levels.generated.js
 test-results/
 levelgen-report.md
+crates/levelgen-solver/target/
