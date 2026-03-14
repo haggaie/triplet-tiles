@@ -235,13 +235,13 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
 }
 
 function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering) {
-  const { minZ, maxZ, overlap, maxStackPerCell, fillBottom, layerShape, layerShapeOptions } = layering;
+  const { minZ, maxZ, overlap, maxStackPerCell, full, layerShape, layerShapeOptions } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
   if (maxLayer < minLayer) throw new Error('layering.maxZ must be >= minZ');
 
   const numLayers = maxLayer - minLayer + 1;
-  const useFillBottom = fillBottom === true;
+  const useFullFill = full === true;
   const shapeStrategy = layerShape || 'full';
   const shapeOpts = layerShapeOptions || {};
 
@@ -254,7 +254,10 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   }
 
   const baseCells = layerCellsByIndex[0];
-  const fillOrder = useFillBottom ? getFillOrder(baseCells) : null;
+  // When full is true, we fill every layer in deterministic order.
+  const fillOrdersByLayer = useFullFill
+    ? layerCellsByIndex.map(cells => getFillOrder(cells))
+    : null;
 
   let stackCap = Math.max(1, maxStackPerCell || 2);
   const neededCap = Math.ceil(seq.length / Math.max(1, templateCells.length));
@@ -265,25 +268,39 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   const bias = overlapBias(overlap);
 
   let layerCounts;
-  if (useFillBottom && numLayers >= 2) {
+  if (useFullFill && numLayers >= 2) {
     const nBase = Math.min(seq.length, baseCells.length);
     const upperCaps = layerCellsByIndex.slice(1).map(cells => cells.length);
     layerCounts = partitionTilesToLayers(seq.length, nBase, upperCaps);
-  } else if (useFillBottom && numLayers === 1) {
+  } else if (useFullFill && numLayers === 1) {
     layerCounts = [seq.length];
   } else {
     const caps = layerCellsByIndex.map(c => c.length);
-    layerCounts = partitionTilesToLayers(seq.length, 0, caps);
-    if (layerCounts[0] === 0 && seq.length > 0) {
-      const totalCap = caps.reduce((a, b) => a + b, 0);
+    let left = seq.length;
+    layerCounts = [];
+    for (let k = 0; k < numLayers; k += 1) {
+      const cap = caps[k];
+      const want = k < numLayers - 1
+        ? Math.min(cap, Math.ceil(left / (numLayers - k)))
+        : left;
+      const n = Math.min(cap, Math.max(0, want));
+      layerCounts.push(n);
+      left -= n;
+    }
+    if (left > 0) {
+      for (let k = 0; k < numLayers && left > 0; k += 1) {
+        const extra = Math.min(left, caps[k] - layerCounts[k]);
+        if (extra > 0) {
+          layerCounts[k] += extra;
+          left -= extra;
+        }
+      }
+    }
+    if (left > 0) {
       throw new Error(
-        `total layer capacity ${totalCap} < ${seq.length} tiles; ` +
+        `total layer capacity ${caps.reduce((a, b) => a + b, 0)} < ${seq.length} tiles; ` +
         'use layerShape "full" or reduce tile count'
       );
-    }
-    const sum = layerCounts.reduce((a, b) => a + b, 0);
-    if (sum < seq.length) {
-      layerCounts[layerCounts.length - 1] += seq.length - sum;
     }
   }
 
@@ -295,8 +312,9 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     const z = minLayer + layerIdx;
     const cells = layerCellsByIndex[layerIdx];
     const n = layerCounts[layerIdx] || 0;
+    const fillOrder = fillOrdersByLayer ? fillOrdersByLayer[layerIdx] : null;
 
-    if (useFillBottom && layerIdx === 0 && fillOrder && n > 0) {
+    if (useFullFill && fillOrder && n > 0) {
       for (let j = 0; j < n && seqIndex < seq.length; j += 1) {
         const type = seq[seqIndex++];
         const cell = fillOrder[j];

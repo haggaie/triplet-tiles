@@ -67,7 +67,9 @@ module.exports = {
         minZ: 0,
         maxZ: 2,
         overlap: 'medium',
-        maxStackPerCell: 3
+        maxStackPerCell: 3,
+        full: true,
+        layerShape: 'pyramid'
       }
     },
     // Mid: more types, tighter tray pressure, fewer “obvious” moves.
@@ -95,7 +97,9 @@ module.exports = {
         minZ: 0,
         maxZ: 2,
         overlap: 'heavy',
-        maxStackPerCell: 3
+        maxStackPerCell: 3,
+        full: true,
+        layerShape: 'pyramid'
       }
     },
     // Hard: heavy overlap, more layers — must plan to avoid tray overflow.
@@ -104,6 +108,7 @@ module.exports = {
       templateParams: { radius: 5, thickness: 1 },
       gridSize: 13,
       count: 25,
+      maxGenerateAttempts: 2500,
       tileTypes: ALL_TILE_TYPES,
       sequenceConstraints: {
         requireMinSlackAtMost: 1
@@ -123,7 +128,9 @@ module.exports = {
         minZ: 0,
         maxZ: 3,
         overlap: 'heavy',
-        maxStackPerCell: 4
+        maxStackPerCell: 4,
+        full: true,
+        layerShape: 'full'
       }
     },
     // Late: largest shapes, most pressure, all 6 types.
@@ -151,7 +158,9 @@ module.exports = {
         minZ: 0,
         maxZ: 3,
         overlap: 'heavy',
-        maxStackPerCell: 4
+        maxStackPerCell: 4,
+        full: true,
+        layerShape: 'full'
       }
     }
   ]

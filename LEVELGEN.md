@@ -42,6 +42,9 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).
       - `overlap`: `'light' | 'medium' | 'heavy'` (bias towards reusing stacks).
       - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)` (one per z); auto-raised if needed so the silhouette can hold all tiles.
+      - `full`: if `true`, **every layer** is filled **in a deterministic row-by-row order** so each layer’s silhouette is clean and complete (see **Fill and layer-shape strategies** below).
+      - `layerShape`: `'full' | 'pyramid' | 'shift'` — how upper layers derive their silhouette from the base (default `'full'`).
+      - `layerShapeOptions`: optional `{ shiftDx?, shiftDy? }` for `layerShape: 'shift'` (per-layer delta; default 1, 0).
     - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
 
 - **Templates**: `tools/levelgen/templates.js`
@@ -59,11 +62,13 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Converts `distribution` → exact tile counts per type (always multiples of 3).
       - Builds a tray-feasible pick sequence of tile types (simulated tray with auto-triplets).
       - Converts the sequence into a multi-layer layout over the template silhouette:
-        - Tiles are assigned to layers between `minZ` and `maxZ`.
+        - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, **every layer** is filled in deterministic row-by-row order so each layer’s silhouette is fully and cleanly filled; tile counts per layer respect each layer’s cell capacity.
+        - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index.
         - Overlap density is controlled via `overlap` + `maxStackPerCell`.
         - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
     - Returns `{ levels, meta: { seed } }`.
+  - **Shapes**: `tools/levelgen/shapes.js` provides silhouette helpers: `getFillOrder`, `shrinkSilhouette`, `pyramidSilhouettes`, `shiftSilhouette`, `getLayerSilhouette`.
 
 - **Solver**: `tools/levelgen/solver.js`
   - `solveLevel(level, { mode, maxNodes })`:
@@ -262,20 +267,15 @@ npx playwright test
 
 ### 5. Extending the system
 
-#### 5.1 Why levels don’t resemble the template shape — and trade-offs of forcing fill
+#### 5.1 Fill and layer-shape strategies (implemented)
 
-The generator only **constrains** tiles to lie inside the template silhouette; it does **not** try to “draw” the shape. For each tile it chooses a cell with `choice(rng, canUse)` (or overlap-biased `canStack`), so positions are effectively random within the allowed set. Result: the bounding region matches the template, but the fill is scattered and stacked by chance, so hearts, diamonds, spirals, and letters are often not visually recognizable.
+- **`full: true`** (recommended): **Every layer** is filled in a deterministic **row-by-row** order (sort by `(y, x)`), so each layer’s silhouette is fully and cleanly filled—no random scatter. Tile counts per layer respect each layer’s cell capacity (so with `layerShape: 'pyramid'` or `'shift'`, upper layers may have fewer cells and thus fewer tiles).
+- **`layerShape`** controls each layer’s allowed cells (and thus its fill shape):
+  - **`'full'`**: Every layer uses the same silhouette as the base; all layers are fully filled in order.
+  - **`'pyramid'`**: Layer 0 = full silhouette; layer 1 = silhouette **shrunk by one tile** (only cells that have all four cardinal neighbors in the set); layer 2 = shrunk again; etc. Each layer is fully filled in order, producing a pyramid-like stack.
+  - **`'shift'`**: Layer 0 = base; layer *k* = base shifted by `(k * shiftDx, k * shiftDy)` (default `shiftDx: 1`, `shiftDy: 0`). Each layer is fully filled in order. Configure via `layerShapeOptions: { shiftDx, shiftDy }`.
 
-**If we force the generator to fill the desired template** (e.g. assign tiles in a deterministic “fill order” so the bottom layer traces the shape, then stack on top), the trade-offs are:
-
-| Aspect | Trade-off |
-|--------|-----------|
-| **Solvability / reject rate** | The tray-feasible **sequence** is built without knowing positions. When we fix positions (fill order), we fix the **coverage graph** (which tile covers which). That geometry may be better or worse for solvability; typically some layouts become unsolvable, so **more candidates get rejected** by the solver. You may need to generate more candidates per batch or relax other constraints. |
-| **Difficulty spread** | Forced fill tends to use the silhouette more evenly (e.g. full bottom layer). That can change branching and tray pressure, so difficulty distribution can shift; some batches may need re-tuning (e.g. overlap, layers, or counts). |
-| **Implementation** | Each template needs a **fill order**: a deterministic ordering of its cells (e.g. row-by-row, spiral path, stroke order for letters). Templates that already produce a path (e.g. spiral) can reuse it; others need a defined order (e.g. sort by `(y, x)` for a consistent fill). The generator would then assign the i-th tile in the sequence to the i-th cell in that order (layer by layer) instead of picking at random. |
-| **Tile count vs template size** | For “bottom layer = full shape” we need at least `templateCells.length` tiles in the first layer. So total tile count and layer counts must be compatible with the template size (e.g. if the silhouette has 50 cells and we have 2 layers, we need at least 50 tiles; the rest go to layer 1). |
-
-**Summary:** Forcing fill improves **recognizability** of shapes (hearts, letters, etc.) but can **increase reject rate** and shift **difficulty**; it’s a trade-off between aesthetics and pipeline yield, and can be implemented by adding a fill-order per template and a “fill mode” in the generator that uses it instead of random placement.
+**Trade-offs:** Fill + pyramid/shift improves **recognizability** and a clean stack; the fixed coverage graph can **increase solver reject rate** for some levels, so you may need to generate more candidates per batch or relax constraints. Tile count must be compatible with layer capacities (e.g. with pyramid, upper layers have fewer cells; the generator partitions tiles accordingly and throws if total capacity is exceeded).
 
 - **Add new templates**: extend `getTemplateCells` in `templates.js` with new shapes (e.g. animals, letters, themed silhouettes) and new `templateId`s.
 - **Tune difficulty curve**:
