@@ -232,10 +232,30 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     // Do NOT set skipAnimationsForTests — we want animations on. Click through the full solution
     // without waiting for animations to finish, to assert that state stays consistent.
     const solutionTileIds = result.solution.map(idx => `t_${gameLevelIndex}_${idx}`);
-    for (const tileId of solutionTileIds) {
-      await page.evaluate(id => {
-        window.__tripletTestHooks.clickTileById(id);
-      }, tileId);
+
+    // When solution has at least 2 moves: briefly delay after first click so second click gets queued, then assert queued tile style.
+    if (solutionTileIds.length >= 2) {
+      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[0]);
+      await page.waitForTimeout(50);
+      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[1]);
+      const queuedStyleOk = await page.evaluate(() => {
+        const el = document.querySelector('#board .tile.tile-queued');
+        if (!el) return { found: false };
+        const cs = getComputedStyle(el);
+        const transform = cs.transform;
+        const hasLift = transform && transform !== 'none';
+        const hasShadow = !!(cs.boxShadow && cs.boxShadow !== 'none');
+        return { found: true, ok: hasLift && hasShadow, hasLift, hasShadow };
+      });
+      if (queuedStyleOk.found) {
+        expect(queuedStyleOk.ok, `queued tile should have lift and shadow: ${JSON.stringify(queuedStyleOk)}`).toBe(true);
+      }
+    }
+
+    // Click all solution tiles in quick succession (same as original test); first 0–2 already clicked above if length >= 2.
+    const startIndex = solutionTileIds.length >= 2 ? 2 : 0;
+    for (let i = startIndex; i < solutionTileIds.length; i += 1) {
+      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[i]);
       // Intentionally do not await waitForActionComplete() — click while animations may still be running.
     }
 
