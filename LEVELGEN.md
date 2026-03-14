@@ -38,7 +38,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
     - `gridSize`: board size used by the template (odd values like 11, 13, 15 recommended).
     - `count`: how many levels to generate for this batch.
-    - `tileTypes`: list of tile ids (must exist in `TILE_TYPES` in `game.js`).
+    - `tileTypes`: list of tile type identifiers — either **tile id strings** (from `TILE_TYPES` in `game.js`) or **0-based integer indices** into `TILE_TYPES`. Distribution `weights` and `explicitCounts` use the same type identifiers (strings or integers) as keys.
     - `distribution`: how many tiles of each type to place (see section 3).
     - `layering`:
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).

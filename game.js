@@ -88,6 +88,13 @@ const STORAGE_KEYS = {
 };
 
 function getTileVisual(typeId) {
+  if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
+    return TILE_TYPES[typeId].emoji;
+  }
+  if (typeof typeId === 'string' && /^\d+$/.test(typeId)) {
+    const idx = parseInt(typeId, 10);
+    return TILE_TYPES[idx]?.emoji ?? '?';
+  }
   const found = TILE_TYPES.find(t => t.id === typeId);
   return found ? found.emoji : '?';
 }
@@ -312,7 +319,7 @@ function startLevel(index) {
   const level = LEVELS[clampedIndex];
   state.boardTiles = level.layout.map((tile, i) => ({
     id: `t_${clampedIndex}_${i}`,
-    type: tile.type,
+    type: typeof tile.type === 'number' ? String(tile.type) : tile.type,
     x: tile.x,
     y: tile.y,
     z: tile.z,

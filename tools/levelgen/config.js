@@ -16,13 +16,13 @@
  *     - templateParams: object (template-specific)
  *     - gridSize: number (odd-ish recommended; must match template output range)
  *     - count: number (how many levels to generate for this batch)
- *     - tileTypes: string[] (must exist in game’s TILE_TYPES ids)
+ *     - tileTypes: string[] | number[] — tile id strings (from game’s TILE_TYPES) or 0-based integer indices into TILE_TYPES
  *     - distribution:
  *       - mode: "explicitCounts" | "weightedTriplets"
- *       - explicitCounts: { [typeId]: number } (each multiple of 3)
+ *       - explicitCounts: { [typeId]: number } (typeId = string or integer; each count multiple of 3)
  *         OR
  *       - totalTriplets: number (totalTiles = totalTriplets*3)
- *       - weights: { [typeId]: number } (relative weights; generator will round to multiples of 3)
+ *       - weights: { [typeId]: number } (typeId = string or integer; relative weights; generator rounds to multiples of 3)
  *     - layering:
  *       - minZ: number (usually 0)
  *       - maxZ: number (inclusive)
@@ -35,8 +35,12 @@ const ALL_TILE_TYPES = [
   'cherry', 'butterfly', 'sunflower', 'apple', 'carrot', 'bee'
 ];
 
+/** 0-based indices for first 5 tile types; use with tileTypes and weights, e.g. weights: { 0: 4, 1: 3, 2: 3, 3: 2, 4: 2 } */
+const INDICES_FIRST_5 = [0, 1, 2, 3, 4];
+
 module.exports = {
   ALL_TILE_TYPES,
+  INDICES_FIRST_5,
   seed: 1337,
   /** 'batches' = use levels[] and batch constraints; 'randomPool' = generate pool then filter/sort by difficulty */
   generationMode: 'batches',
@@ -165,11 +169,11 @@ module.exports = {
       },
       layering: {
         minZ: 0,
-        maxZ: 3,
+        maxZ: 1,
         overlap: 'heavy',
         maxStackPerCell: 4,
         full: true,
-        layerShape: 'full',
+        layerShape: 'shift',
         interleavePlacement: true
       }
     }
