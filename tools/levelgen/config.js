@@ -133,7 +133,7 @@ module.exports = {
         layerShape: 'full'
       }
     },
-    // Late: largest shapes, most pressure, all 6 types.
+    // Late: largest shapes, most pressure, all 6 types. Require consistent difficulty across playthrough.
     {
       templateId: 'letter',
       templateParams: { letter: 'S', radius: 6, thickness: 2 },
@@ -144,7 +144,8 @@ module.exports = {
         requireMinSlackAtMost: 1
       },
       solverConstraints: {
-        requireMinSlackAtMost: 3
+        requireMinSlackAtMost: 3,
+        requireMaxDifficultyRange: 0.3
       },
       distribution: {
         mode: 'weightedTriplets',

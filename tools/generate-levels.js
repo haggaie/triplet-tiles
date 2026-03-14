@@ -26,6 +26,9 @@ function main() {
     const requireMinSlackAtMost = Number.isInteger(solverConstraints.requireMinSlackAtMost)
       ? solverConstraints.requireMinSlackAtMost
       : null;
+    const requireMaxDifficultyRange = typeof solverConstraints.requireMaxDifficultyRange === 'number'
+      ? solverConstraints.requireMaxDifficultyRange
+      : null;
     if (requireMinSlackAtMost !== null && (requireMinSlackAtMost < 0 || requireMinSlackAtMost > 7)) {
       throw new Error(`solverConstraints.requireMinSlackAtMost must be in [0..7] (got ${requireMinSlackAtMost})`);
     }
@@ -59,6 +62,10 @@ function main() {
         continue;
       }
       if (requireMinSlackAtMost !== null && scoredLevel.metrics.minSlack > requireMinSlackAtMost) {
+        rejected += 1;
+        continue;
+      }
+      if (requireMaxDifficultyRange !== null && scoredLevel.metrics.difficultyRange > requireMaxDifficultyRange) {
         rejected += 1;
         continue;
       }
@@ -141,6 +148,8 @@ function buildDifficultyReport(levels, seed, rejected) {
     const minTappableS = stats(m, l => l._reportMetrics.minTappable);
     const stepsS = stats(m, l => l._reportMetrics.steps);
     const nodesS = stats(m, l => l._reportMetrics.nodesExpanded);
+    const difficultyRangeS = stats(m, l => l._reportMetrics.difficultyRange);
+    const difficultyVarianceS = stats(m, l => l._reportMetrics.difficultyVariance);
 
     let out = `### ${title}\n\n`;
     out += `| Metric | Min | Max | Mean |\n|--------|-----|-----|------|\n`;
@@ -152,6 +161,8 @@ function buildDifficultyReport(levels, seed, rejected) {
     out += `| Min tappable tiles (bottleneck) | ${format(minTappableS.min)} | ${format(minTappableS.max)} | ${format(minTappableS.mean)} |\n`;
     out += `| Solution steps | ${format(stepsS.min)} | ${format(stepsS.max)} | ${format(stepsS.mean)} |\n`;
     out += `| Solver nodes expanded | ${format(nodesS.min)} | ${format(nodesS.max)} | ${format(nodesS.mean)} |\n`;
+    out += `| Difficulty range (in-level uniformity) | ${format(difficultyRangeS.min)} | ${format(difficultyRangeS.max)} | ${format(difficultyRangeS.mean)} |\n`;
+    out += `| Difficulty variance (in-level uniformity) | ${format(difficultyVarianceS.min)} | ${format(difficultyVarianceS.max)} | ${format(difficultyVarianceS.mean)} |\n`;
     out += `\n**Level count:** ${levelsInBand.length}\n\n`;
     return out;
   }
@@ -176,6 +187,8 @@ function buildDifficultyReport(levels, seed, rejected) {
   md += `| Mean forced-move ratio | ${format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean)} |\n`;
   md += `| Mean rollout failure rate | ${format(stats(withMetrics, l => l._reportMetrics.failureRate).mean)} |\n`;
   md += `| Mean solution steps | ${format(stats(withMetrics, l => l._reportMetrics.steps).mean)} |\n`;
+  md += `| Mean difficulty range (in-level uniformity) | ${format(stats(withMetrics, l => l._reportMetrics.difficultyRange).mean)} |\n`;
+  md += `| Mean difficulty variance (in-level uniformity) | ${format(stats(withMetrics, l => l._reportMetrics.difficultyVariance).mean)} |\n`;
   md += `\n`;
 
   md += `## By difficulty band\n\n`;
