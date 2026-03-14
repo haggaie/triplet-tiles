@@ -144,51 +144,77 @@ function buildTypeSequence(rng, countsByType, options = {}) {
     }
   }
 
+  const pickMode = options.pickMode === 'random' ? 'random' : 'greedy';
+
   while (bag.length > 0) {
     if (traySize > 7) {
       throw new Error('internal error: tray overflow in sequence builder');
     }
 
-    // Candidate selection: sample K items from bag and pick best by score.
+    // Candidate selection: sample K items from bag, then pick by score or at random.
     const K = Math.min(20, bag.length);
-    let bestIdx = 0;
-    let bestScore = -Infinity;
     const slackNow = 7 - traySize;
     const wantMorePressure = targetSlackBand && slackNow > targetSlackBand.hi &&
       (maxSlackRunLength == null || runLengthHighSlack >= Math.max(0, maxSlackRunLength - 2));
 
-    for (let s = 0; s < K; s += 1) {
-      const idx = Math.floor(rng() * bag.length);
-      const type = bag[idx];
-      const inTray = trayCounts[type] || 0;
-
-      // Score higher if it completes a match or extends an existing pair.
-      let score = 0;
-      if (inTray === 2) score += 100; // completes triplet
-      if (inTray === 1) score += 20;
-      if (inTray === 0) score -= 5;
-
-      // Sequence shaping: when slack is above band and we've had a long high-slack run, bias toward adding pressure.
-      if (wantMorePressure) {
-        if (inTray === 2) score -= 40; // prefer not to clear tray yet
-        if (inTray === 1 || inTray === 0) score += 15; // prefer adding to tray
+    let pickIdx;
+    if (pickMode === 'random') {
+      // Collect K candidate indices; keep only those that wouldn't overflow the tray.
+      const candidateIndices = [];
+      const seenIdx = new Set();
+      for (let s = 0; s < K; s += 1) {
+        const idx = Math.floor(rng() * bag.length);
+        if (seenIdx.has(idx)) continue;
+        seenIdx.add(idx);
+        const type = bag[idx];
+        const inTray = trayCounts[type] || 0;
+        if (traySize < 7 || inTray === 2) candidateIndices.push(idx);
       }
+      if (candidateIndices.length > 0) {
+        pickIdx = candidateIndices[Math.floor(rng() * candidateIndices.length)];
+      } else {
+        // Tray full; must pick a type that completes a triplet (same fallback as below).
+        pickIdx = bag.findIndex(t => (trayCounts[t] || 0) === 2);
+        if (pickIdx < 0) {
+          throw new Error('internal error: tray overflow in sequence builder');
+        }
+      }
+    } else {
+      let bestScore = -Infinity;
+      pickIdx = 0;
+      for (let s = 0; s < K; s += 1) {
+        const idx = Math.floor(rng() * bag.length);
+        const type = bag[idx];
+        const inTray = trayCounts[type] || 0;
 
-      // Penalize adding a new type when tray is tight.
-      const distinct = Object.keys(trayCounts).filter(t => trayCounts[t] > 0).length;
-      if (inTray === 0 && traySize >= 5) score -= 20;
-      if (distinct >= 6 && inTray === 0) score -= 50;
+        // Score higher if it completes a match or extends an existing pair.
+        let score = 0;
+        if (inTray === 2) score += 100; // completes triplet
+        if (inTray === 1) score += 20;
+        if (inTray === 0) score -= 5;
 
-      // Soft random tie-break.
-      score += rng();
+        // Sequence shaping: when slack is above band and we've had a long high-slack run, bias toward adding pressure.
+        if (wantMorePressure) {
+          if (inTray === 2) score -= 40; // prefer not to clear tray yet
+          if (inTray === 1 || inTray === 0) score += 15; // prefer adding to tray
+        }
 
-      if (score > bestScore) {
-        bestScore = score;
-        bestIdx = idx;
+        // Penalize adding a new type when tray is tight.
+        const distinct = Object.keys(trayCounts).filter(t => trayCounts[t] > 0).length;
+        if (inTray === 0 && traySize >= 5) score -= 20;
+        if (distinct >= 6 && inTray === 0) score -= 50;
+
+        // Soft random tie-break.
+        score += rng();
+
+        if (score > bestScore) {
+          bestScore = score;
+          pickIdx = idx;
+        }
       }
     }
 
-    const chosen = bag.splice(bestIdx, 1)[0];
+    const chosen = bag.splice(pickIdx, 1)[0];
     // Ensure we never exceed tray capacity (should be true by construction unless bag is pathological).
     if (traySize >= 7 && (trayCounts[chosen] || 0) < 2) {
       // Try to find any type in bag that would immediately clear a triplet.
@@ -473,9 +499,123 @@ function generateLevelsFromConfig(config) {
   return { levels, meta: { seed } };
 }
 
+const DEFAULT_POOL_PARAM_RANGES = {
+  templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter'],
+  gridSizes: [11, 13, 15],
+  numTypesMin: 4,
+  numTypesMax: 12,
+  totalTripletsMin: 15,
+  totalTripletsMax: 40,
+  maxZMin: 2,
+  maxZMax: 3,
+  overlaps: ['light', 'medium', 'heavy'],
+  layerShapes: ['full', 'pyramid', 'shift'],
+  maxStackPerCellMin: 3,
+  maxStackPerCellMax: 4
+};
+
+function sampleTemplateParams(templateId, gridSize, rng) {
+  const id = String(templateId).toLowerCase();
+  const g = Number.isInteger(gridSize) ? gridSize : 11;
+  switch (id) {
+    case 'rectangle': {
+      const w = Math.max(3, Math.floor(g * 0.5) + Math.floor(rng() * Math.floor(g * 0.3)));
+      const h = Math.max(3, Math.floor(g * 0.5) + Math.floor(rng() * Math.floor(g * 0.3)));
+      return { width: w, height: h };
+    }
+    case 'diamond':
+      return { radius: 3 + Math.floor(rng() * 3) };
+    case 'heart':
+      return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+    case 'spiral':
+      return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+    case 'letter':
+      return {
+        letter: rng() < 0.5 ? 'S' : 'C',
+        radius: 4 + Math.floor(rng() * 2),
+        thickness: 1 + Math.floor(rng() * 2)
+      };
+    default:
+      return { radius: 4 };
+  }
+}
+
+/**
+ * Generate one level by sampling from param ranges. Uses random pick mode for the
+ * sequence (no sequenceConstraints). Returns null if layout generation throws.
+ */
+function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
+  const ranges = { ...DEFAULT_POOL_PARAM_RANGES, ...paramRanges };
+  const tileTypesPool = ranges.tileTypesPool;
+  if (!Array.isArray(tileTypesPool) || tileTypesPool.length < 3) {
+    throw new Error('paramRanges.tileTypesPool must be an array of at least 3 tile type ids');
+  }
+
+  const templateId = choice(rng, ranges.templateIds);
+  const gridSize = choice(rng, ranges.gridSizes);
+  const templateParams = sampleTemplateParams(templateId, gridSize, rng);
+
+  const numTypesMin = Math.max(2, ranges.numTypesMin ?? 4);
+  const numTypesMax = Math.min(tileTypesPool.length, ranges.numTypesMax ?? 12);
+  const numTypes = numTypesMin + Math.floor(rng() * (numTypesMax - numTypesMin + 1));
+  const shuffled = tileTypesPool.slice();
+  shuffleInPlace(rng, shuffled);
+  const tileTypes = shuffled.slice(0, numTypes);
+
+  const tripletsMin = Math.max(5, ranges.totalTripletsMin ?? 15);
+  const tripletsMax = Math.min(50, ranges.totalTripletsMax ?? 40);
+  const totalTriplets = tripletsMin + Math.floor(rng() * (tripletsMax - tripletsMin + 1));
+
+  const weights = {};
+  tileTypes.forEach(t => {
+    weights[t] = 0.5 + rng();
+  });
+  const distribution = {
+    mode: 'weightedTriplets',
+    totalTriplets,
+    weights
+  };
+
+  const maxZMin = Math.max(1, ranges.maxZMin ?? 2);
+  const maxZMax = Math.min(4, ranges.maxZMax ?? 3);
+  const maxZ = maxZMin + Math.floor(rng() * (maxZMax - maxZMin + 1));
+  const overlap = choice(rng, ranges.overlaps);
+  const layerShape = choice(rng, ranges.layerShapes);
+  const mscMin = ranges.maxStackPerCellMin ?? 3;
+  const mscMax = ranges.maxStackPerCellMax ?? 4;
+  const maxStackPerCell = mscMin + Math.floor(rng() * (mscMax - mscMin + 1));
+
+  const layering = {
+    minZ: 0,
+    maxZ,
+    overlap,
+    maxStackPerCell,
+    full: true,
+    layerShape
+  };
+
+  try {
+    const templateCells = getTemplateCells(templateId, templateParams, gridSize);
+    const countsByType = distributionToCounts(distribution, tileTypes);
+    const seq = buildTypeSequence(rng, countsByType, { pickMode: 'random' });
+    const layout = generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering);
+    return {
+      id: levelId,
+      name: `${String(templateId).toUpperCase()} ${levelId}`,
+      gridSize,
+      difficultyScore: 0,
+      layout
+    };
+  } catch {
+    return null;
+  }
+}
+
 module.exports = {
   generateLevelsFromConfig,
   generateOneLevel,
-  mulberry32
+  generateOneRandomLevel,
+  mulberry32,
+  DEFAULT_POOL_PARAM_RANGES
 };
 

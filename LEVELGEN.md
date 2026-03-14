@@ -27,6 +27,8 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
 - **Config**: `tools/levelgen/config.js`
   - Global:
     - `seed`: base RNG seed for reproducible generation.
+    - `generationMode`: `'batches'` (default) or `'randomPool'`. With `'batches'`, the CLI uses the `levels` array and applies per-batch constraints. With `'randomPool'`, it generates a large pool of random candidates, keeps only solvable ones, sorts by difficulty score, and optionally takes the first N levels for a better difficulty spread (see **Random pool mode** below).
+    - `pool`: when `generationMode === 'randomPool'`, an object `{ count, keep?, paramRanges? }`. `count` is how many candidate levels to generate. `keep` (optional) is how many to keep after sorting by difficulty (default: keep all solvable). `paramRanges` (optional) overrides default sampling ranges (templates, grid sizes, tile type count, triplets, layering, etc.); the generator merges these with built-in defaults and requires `tileTypesPool` (or `config.ALL_TILE_TYPES`) for the set of tile type ids to sample from.
     - `output`:
       - `outFile`: typically `levels.generated.js`.
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
@@ -102,9 +104,9 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - Branching (avg/min tappable) and search effort matter too, but the weights are tuned so tray pressure and forced choices dominate, ensuring the curve favors strategic difficulty over sheer size or variety.
 
 - **CLI & output**: `tools/generate-levels.js`
-  - Steps:
+  - Steps (when `generationMode === 'batches'`):
     1. Import `config.js`.
-    2. Call `generateLevelsFromConfig(config)` to produce candidate levels.
+    2. Call `generateLevelsFromConfig(config)` to produce candidate levels (or, when `generationMode === 'randomPool'`, generate `pool.count` levels via `generateOneRandomLevel` with random params).
     3. For each candidate:
        - Call `scoreLevel` to:
          - Discard unsolvable levels.
@@ -125,6 +127,8 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - `game.js` uses:
     - `window.__TRIPLET_GENERATED_LEVELS__` if available.
     - Otherwise, a small built-in `FALLBACK_LEVELS` array.
+
+- **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. Each candidate is built with **random pick** sequence mode (tray-feasible but not greedy), so layouts tend to be less “solved-friendly” and the difficulty spread is wider. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
 
 ---
 

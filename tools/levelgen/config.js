@@ -6,6 +6,7 @@
  *
  * Schema (high-level):
  * - seed: number
+ * - generationMode: "batches" | "randomPool"
  * - output:
  *   - outFile: string (path relative to project root)
  *   - includeSolverStats: boolean
@@ -27,6 +28,7 @@
  *       - maxZ: number (inclusive)
  *       - overlap: "light" | "medium" | "heavy"
  *       - maxStackPerCell: number
+ * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
  */
 const ALL_TILE_TYPES = [
   'leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom',
@@ -34,7 +36,10 @@ const ALL_TILE_TYPES = [
 ];
 
 module.exports = {
+  ALL_TILE_TYPES,
   seed: 1337,
+  /** 'batches' = use levels[] and batch constraints; 'randomPool' = generate pool then filter/sort by difficulty */
+  generationMode: 'batches',
   output: {
     outFile: 'levels.generated.js',
     includeSolverStats: false,
