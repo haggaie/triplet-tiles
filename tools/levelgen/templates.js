@@ -159,11 +159,13 @@ function letterTemplate({ letter, radius, thickness }, gridSize) {
   };
 
   if (ch === 'S') {
+    // S shape: top curve (top bar + left vertical), mid bar, bottom curve (right vertical + bottom bar).
+    // Use full radius for height so the two openings stay visible; keep width slightly narrower.
     const left = -Math.floor(r * 0.6);
     const right = Math.floor(r * 0.6);
-    const top = -Math.floor(r * 0.6);
+    const top = -r;
     const mid = 0;
-    const bottom = Math.floor(r * 0.6);
+    const bottom = r;
 
     addBarH(top, left, right);
     addBarH(mid, left, right);
@@ -183,7 +185,8 @@ function letterTemplate({ letter, radius, thickness }, gridSize) {
     return dilate(diamondTemplate({ radius: Math.floor(r * 0.6) }, gridSize), gridSize, t - 1);
   }
 
-  return dilate(uniqueCells(cells), gridSize, t - 1);
+  // Don't dilate letter shapes: dilation fills in the S/C openings and turns them into a blob.
+  return uniqueCells(cells);
 }
 
 function getTemplateCells(templateId, templateParams, gridSize) {
