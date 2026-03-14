@@ -1,5 +1,10 @@
 // @ts-check
+const path = require('path');
 const { defineConfig } = require('@playwright/test');
+
+// Use project-local browsers so Cursor's test runner (which may use a different
+// HOME/env) finds them. Run once: npx playwright install
+process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(__dirname, '.playwright-browsers');
 
 module.exports = defineConfig({
   testDir: './tests',
