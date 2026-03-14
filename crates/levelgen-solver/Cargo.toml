@@ -1,0 +1,21 @@
+[package]
+name = "levelgen-solver"
+version = "0.1.0"
+edition = "2021"
+description = "Native DFS solver for Triplet Tiles level generator"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+bit-set = "0.5"
+napi = "2"
+napi-derive = "2"
+rustc-hash = "1"
+
+[build-dependencies]
+napi-build = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
