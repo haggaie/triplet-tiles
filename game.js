@@ -350,17 +350,37 @@ function startLevel(index) {
   renderTray();
 }
 
-function isTileCovered(tile) {
+function isTileCovered(tile, ignoreTileId = null) {
   return state.boardTiles.some(
-    other => !other.removed && other.z > tile.z && (
+    other => other.id !== ignoreTileId && !other.removed && other.z > tile.z && (
       -1 <= other.x - tile.x && other.x - tile.x <= 0 &&
       0 <= other.y - tile.y && other.y - tile.y <= 1
     )
   );
 }
 
-function getTappableTiles() {
-  return state.boardTiles.filter(tile => !tile.removed && !isTileCovered(tile));
+/** If ignoreTileId is set, tappable tiles are computed as if that tile were already removed (for early clickability during fly). */
+function getTappableTiles(ignoreTileId = null) {
+  return state.boardTiles.filter(
+    tile => !tile.removed && tile.id !== ignoreTileId && !isTileCovered(tile, ignoreTileId)
+  );
+}
+
+/** Updates only tappable/blocked classes on board tiles (e.g. during fly so newly uncovered tiles become clickable). */
+function updateBoardTappableState(ignoreTileId = null) {
+  if (!ui.board) return;
+  const tappableIds = new Set(getTappableTiles(ignoreTileId).map(t => t.id));
+  for (const child of ui.board.children) {
+    const id = child.dataset.tileId;
+    if (!id) continue;
+    if (tappableIds.has(id)) {
+      child.classList.add('tappable');
+      child.classList.remove('blocked');
+    } else {
+      child.classList.add('blocked');
+      child.classList.remove('tappable');
+    }
+  }
 }
 
 /** Returns the tray slot index where a new tile of this type would be inserted (by shape grouping). */
@@ -390,14 +410,19 @@ function insertTrayTileByShape(trayTiles, newTile) {
 function handleBoardTileClick(tileId) {
   if (state.isLevelOver) return;
 
-  if (!skipAnimationsForTests && _isMoveAnimating) {
-    _moveQueue.push(tileId);
-    return;
-  }
-
   const tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
   if (isTileCovered(tile)) return;
+
+  if (!skipAnimationsForTests && _isMoveAnimating) {
+    if (state.trayTiles.length >= 7 || _moveQueue.includes(tileId)) return;
+    _moveQueue.push(tileId);
+    const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
+    if (tileEl) {
+      tileEl.classList.add('tile-queued');
+    }
+    return;
+  }
 
   if (state.trayTiles.length >= 7) {
     triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
@@ -439,6 +464,8 @@ function handleBoardTileClick(tileId) {
   if (typeof window !== 'undefined' && window.__tripletTestHooks) {
     _actionCompletePromise = new Promise(r => { _actionCompleteResolve = r; });
   }
+
+  updateBoardTappableState(tile.id);
 
   startTrayMakeRoomAnimation(insertIndex);
 
