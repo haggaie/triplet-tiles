@@ -138,6 +138,20 @@ pub fn solve(
         .unwrap_or(0)
         + 1;
 
+    // Unsolvable if any type count is not a multiple of 3 (cannot clear all tiles).
+    let mut type_counts = vec![0usize; num_types];
+    for t in tiles {
+        type_counts[t.type_id as usize] += 1;
+    }
+    if type_counts.iter().any(|&c| c % 3 != 0) {
+        return SolveResult {
+            status: SolveStatus::Fail,
+            solution: None,
+            nodes_expanded: 0,
+            memo_size: 0,
+        };
+    }
+
     let coverers = compute_coverers(tiles);
     let removed0 = BitSet::new();
     let tray0 = vec![0u8; num_types];
