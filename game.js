@@ -491,8 +491,9 @@ function handleBoardTileClick(tileId) {
 
   let tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
-  if (isTileCovered(tile)) {
-    // Queue at front so we retry as soon as idle (preserves solution order when rapid clicks leave tile momentarily covered).
+  // Ignore the flying tile when checking coverage (early clickability during fly; see getTappableTiles).
+  const ignoreFlyingId = _currentFly ? _currentFly.tile.id : null;
+  if (isTileCovered(tile, ignoreFlyingId)) {
     _waitingForRoom.unshift(tileId);
     return;
   }
@@ -833,7 +834,8 @@ function animateMatchCombine(type, onComplete) {
 }
 
 function handleMatchingInTrayAnimated(onComplete) {
-  const matchingTypes = getMatchingTypesInTray();
+  // Exclude types already being combined so concurrent snap applies don't double-score the same tiles.
+  const matchingTypes = getMatchingTypesInTray().filter(t => !_combiningTypes.includes(t));
   if (matchingTypes.length === 0) {
     onComplete();
     return;
