@@ -154,6 +154,16 @@ let skipAnimationsForTests = false;
 let _moveQueue = [];
 let _isMoveAnimating = false;
 
+/** Current fly in progress (snap approach: at most one). When user starts a new fly, we snap this one to target first. */
+let _currentFly = null;
+/** Queue of apply thunks; processed one at a time so fly completions don't race. */
+let _applyQueue = [];
+let _applyRunning = false;
+/** Types currently being combined (in-flight combine animations). Used for projected tray. */
+let _combiningTypes = [];
+/** Pending tile IDs to start flying when tray has room (after a combine frees space). */
+let _waitingForRoom = [];
+
 const ui = {};
 
 function initDomRefs() {
@@ -322,6 +332,11 @@ function startLevel(index) {
   state.currentLevelIndex = clampedIndex;
   _moveQueue = [];
   _isMoveAnimating = false;
+  _currentFly = null;
+  _applyQueue = [];
+  _applyRunning = false;
+  _combiningTypes = [];
+  _waitingForRoom = [];
   const level = LEVELS[clampedIndex];
   state.boardTiles = level.layout.map((tile, i) => ({
     id: `t_${clampedIndex}_${i}`,
@@ -407,24 +422,110 @@ function insertTrayTileByShape(trayTiles, newTile) {
   trayTiles.splice(insertIndex, 0, newTile);
 }
 
+/** Returns insert index for a type given a tray array (e.g. projected tray). */
+function getTrayInsertIndexForTray(trayTiles, type) {
+  let insertIndex = trayTiles.length;
+  for (let i = trayTiles.length - 1; i >= 0; i -= 1) {
+    if (trayTiles[i].type === type) {
+      insertIndex = i + 1;
+      break;
+    }
+  }
+  return insertIndex;
+}
+
+/** Builds logical tray: current state + current flying tile, minus tiles being removed by in-flight combines. */
+function getProjectedTray() {
+  const tray = state.trayTiles.map(t => ({ ...t }));
+  if (_currentFly) {
+    insertTrayTileByShape(tray, { id: _currentFly.tile.id, type: _currentFly.type });
+  }
+  _combiningTypes.forEach(type => {
+    let removed = 0;
+    for (let i = tray.length - 1; i >= 0 && removed < 3; i -= 1) {
+      if (tray[i].type === type) {
+        tray.splice(i, 1);
+        removed += 1;
+      }
+    }
+  });
+  return { tray, length: tray.length };
+}
+
+/** Called when one apply (including its handleMatchingInTrayAnimated) is fully done. Process next or mark idle. */
+function applyQueueNext() {
+  if (_applyQueue.length > 0) {
+    const thunk = _applyQueue.shift();
+    thunk();
+  } else {
+    _applyRunning = false;
+    checkAllIdle();
+  }
+}
+
+/** When no apply is running and queue is empty: mark not animating, resolve test promise, start any waiting-for-room fly. */
+function checkAllIdle() {
+  if (_applyRunning || _currentFly || _combiningTypes.length > 0) return;
+  _isMoveAnimating = false;
+  if (_actionCompleteResolve) {
+    _actionCompleteResolve();
+    _actionCompleteResolve = null;
+    _actionCompletePromise = null;
+  }
+  if (_waitingForRoom.length > 0) {
+    const nextId = _waitingForRoom.shift();
+    setTimeout(() => handleBoardTileClick(nextId), 0);
+  }
+}
+
+function enqueueApply(thunk) {
+  _applyQueue.push(thunk);
+  if (!_applyRunning) {
+    _applyRunning = true;
+    applyQueueNext();
+  }
+}
+
 function handleBoardTileClick(tileId) {
   if (state.isLevelOver) return;
 
-  const tile = state.boardTiles.find(t => t.id === tileId);
+  let tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
   if (isTileCovered(tile)) return;
 
-  if (!skipAnimationsForTests && _isMoveAnimating) {
-    if (state.trayTiles.length >= 7 || _moveQueue.includes(tileId)) return;
-    _moveQueue.push(tileId);
-    const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
-    if (tileEl) {
-      tileEl.classList.add('tile-queued');
+  if (skipAnimationsForTests) {
+    if (state.trayTiles.length >= 7) {
+      triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
+      return;
     }
+    takeSnapshot();
+    const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
+    tile.removed = true;
+    insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
+    renderBoard(true);
+    renderTray();
+    handleMatchingInTray();
+    renderHud();
+    checkWinCondition();
     return;
   }
 
-  if (state.trayTiles.length >= 7) {
+  // Snap current fly to target so the new fly has a defined target (plan: option a)
+  if (_currentFly) {
+    clearTrayMakeRoomAnimation();
+    _currentFly.cancelSnap();
+  }
+
+  // Re-resolve tile (unchanged; we're still processing this click)
+  tile = state.boardTiles.find(t => t.id === tileId);
+  if (!tile || tile.removed) return;
+
+  const projected = getProjectedTray();
+  if (projected.length >= 7) {
+    if (_combiningTypes.length > 0) {
+      _waitingForRoom.push(tileId);
+      return;
+    }
     triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
     return;
   }
@@ -434,30 +535,16 @@ function handleBoardTileClick(tileId) {
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
   const insertIndex = getTrayInsertIndex(tile.type);
 
-  function applyMove() {
+  function applyMove(onMatchingDone) {
     tile.removed = true;
     insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
-    renderBoard(!skipAnimationsForTests);
+    renderBoard(true);
     renderTray();
     handleMatchingInTrayAnimated(() => {
       renderHud();
       checkWinCondition();
-      if (_actionCompleteResolve) {
-        _actionCompleteResolve();
-        _actionCompleteResolve = null;
-        _actionCompletePromise = null;
-      }
-      _isMoveAnimating = false;
-      if (_moveQueue.length > 0) {
-        const nextId = _moveQueue.shift();
-        setTimeout(() => handleBoardTileClick(nextId), 0);
-      }
+      onMatchingDone();
     });
-  }
-
-  if (skipAnimationsForTests) {
-    applyMove();
-    return;
   }
 
   _isMoveAnimating = true;
@@ -466,13 +553,20 @@ function handleBoardTileClick(tileId) {
   }
 
   updateBoardTappableState(tile.id);
-
   startTrayMakeRoomAnimation(insertIndex);
 
-  animateTileToTray(tile, tileEl, insertIndex, () => {
+  const handle = animateTileToTray(tile, tileEl, insertIndex, (isSnap) => {
     clearTrayMakeRoomAnimation();
-    applyMove();
+    _currentFly = null;
+    if (isSnap) {
+      applyMove(() => {});
+    } else {
+      enqueueApply(() => {
+        applyMove(applyQueueNext);
+      });
+    }
   });
+  _currentFly = handle;
 }
 
 function handleMatchingInTray() {
@@ -595,6 +689,10 @@ function clearTrayMakeRoomAnimation() {
   }
 }
 
+/**
+ * Animates a tile flying to the tray. Returns a handle with cancelSnap() to snap to end and run onComplete.
+ * onComplete(isSnap) is called when the fly ends: isSnap true when snapped, false when finished naturally.
+ */
 function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
   const boardRect = ui.board.getBoundingClientRect();
   const level = LEVELS[state.currentLevelIndex];
@@ -643,17 +741,33 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
 
   const endScale = trayTileSize / flySize;
 
-  fly.animate(
+  const animation = fly.animate(
     [
       { transform: 'translate(0, 0) scale(1)', opacity: 1 },
       { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(${endScale})`, opacity: 1 }
     ],
     { duration: FLY_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
-  ).finished.then(() => {
+  );
+
+  function finishFly(isSnap) {
     fly.remove();
     if (tileEl && tileEl.isConnected) tileEl.style.visibility = '';
-    onComplete();
+    onComplete(isSnap);
+  }
+
+  animation.finished.then(() => {
+    finishFly(false);
   });
+
+  return {
+    cancelSnap() {
+      if (animation.playState === 'finished' || animation.playState === 'idle') return;
+      animation.cancel();
+      finishFly(true);
+    },
+    tile,
+    type: tile.type
+  };
 }
 
 function animateMatchCombine(type, onComplete) {
@@ -743,46 +857,47 @@ function handleMatchingInTrayAnimated(onComplete) {
     return;
   }
 
-  function removeNextType() {
-    if (matchingTypes.length === 0) {
-      onComplete();
-      return;
-    }
-    const type = matchingTypes.shift();
-    animateMatchCombine(type, (removedSlotIndices) => {
-      if (removedSlotIndices.length > 0) {
-        startTrayCompactAnimation(removedSlotIndices);
-        setTimeout(() => {
-          applyMatchRemovalAndContinue(type, removeNextType);
-        }, TRAY_COMPACT_DURATION_MS);
-      } else {
-        applyMatchRemovalAndContinue(type, removeNextType);
-      }
-    });
-  }
+  _combiningTypes.push(...matchingTypes);
 
-  function applyMatchRemovalAndContinue(type, next) {
-    let removedCount = 0;
+  const combinePromises = matchingTypes.map(type => new Promise((resolve) => {
+    animateMatchCombine(type, (removedSlotIndices) => {
+      resolve(removedSlotIndices);
+    });
+  }));
+
+  Promise.all(combinePromises).then((arrayOfRemovedArrays) => {
+    const allRemovedIndices = [...new Set(arrayOfRemovedArrays.flat())].sort((a, b) => a - b);
+
+    const toRemove = {};
+    matchingTypes.forEach(type => { toRemove[type] = 3; });
     const newTray = [];
     for (let i = 0; i < state.trayTiles.length; i += 1) {
       const t = state.trayTiles[i];
-      if (t.type === type && removedCount < 3) {
-        removedCount += 1;
+      if (toRemove[t.type] > 0) {
+        toRemove[t.type] -= 1;
       } else {
         newTray.push(t);
       }
     }
     state.trayTiles = newTray;
-    state.score += 10 * 3;
-    state.stats.tilesClearedTotal += 3;
+    state.score += 10 * 3 * matchingTypes.length;
+    state.stats.tilesClearedTotal += 3 * matchingTypes.length;
     saveStats();
-    renderTray(true);
-    // Clear compacting state in same turn to avoid a separate repaint/blink
-    clearTrayCompactAnimation();
-    next();
-  }
 
-  removeNextType();
+    if (allRemovedIndices.length > 0) {
+      startTrayCompactAnimation(allRemovedIndices);
+      setTimeout(() => {
+        clearTrayCompactAnimation();
+        renderTray(true);
+        _combiningTypes = [];
+        onComplete();
+      }, TRAY_COMPACT_DURATION_MS);
+    } else {
+      renderTray(true);
+      _combiningTypes = [];
+      onComplete();
+    }
+  });
 }
 
 function checkWinCondition() {
