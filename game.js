@@ -491,7 +491,11 @@ function handleBoardTileClick(tileId) {
 
   let tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
-  if (isTileCovered(tile)) return;
+  if (isTileCovered(tile)) {
+    // Queue at front so we retry as soon as idle (preserves solution order when rapid clicks leave tile momentarily covered).
+    _waitingForRoom.unshift(tileId);
+    return;
+  }
 
   if (skipAnimationsForTests) {
     if (state.trayTiles.length >= 7) {
