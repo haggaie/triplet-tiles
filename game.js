@@ -758,7 +758,8 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
 
   function finishFly(isSnap) {
     fly.remove();
-    if (tileEl && tileEl.isConnected) tileEl.style.visibility = '';
+    // Do not restore tile visibility: applyMove -> renderBoard will remove the tile from the DOM.
+    // Restoring it here would make it flash briefly in its original spot before removal.
     onComplete(isSnap);
   }
 
