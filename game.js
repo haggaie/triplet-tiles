@@ -554,9 +554,14 @@ function handleBoardTileClick(tileId) {
   }
 
   updateBoardTappableState(tile.id);
+  // Capture fly target before shifting slots (make-room), so we animate to where the tile will land.
+  const slotEl = ui.tray && ui.tray.children[insertIndex];
+  const slotRect = slotEl ? slotEl.getBoundingClientRect() : null;
+  const flyTargetX = slotRect ? slotRect.left + slotRect.width / 2 : null;
+  const flyTargetY = slotRect ? slotRect.top + slotRect.height / 2 : null;
   startTrayMakeRoomAnimation(insertIndex);
 
-  const handle = animateTileToTray(tile, tileEl, insertIndex, (isSnap) => {
+  const handle = animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, (isSnap) => {
     clearTrayMakeRoomAnimation();
     _currentFly = null;
     if (isSnap) {
@@ -693,8 +698,9 @@ function clearTrayMakeRoomAnimation() {
 /**
  * Animates a tile flying to the tray. Returns a handle with cancelSnap() to snap to end and run onComplete.
  * onComplete(isSnap) is called when the fly ends: isSnap true when snapped, false when finished naturally.
+ * flyTargetX, flyTargetY: optional precomputed target (e.g. slot center before make-room shift); if omitted, read from slot.
  */
-function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
+function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete) {
   const boardRect = ui.board.getBoundingClientRect();
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
@@ -710,10 +716,14 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
   const tileCenterX = boardRect.left + layeredLeft;
   const tileCenterY = boardRect.top + layeredTop;
 
-  const slotEl = ui.tray.children[insertIndex];
-  const slotRect = slotEl ? slotEl.getBoundingClientRect() : null;
-  const targetX = slotRect ? slotRect.left + slotRect.width / 2 : boardRect.left + boardRect.width / 2;
-  const targetY = slotRect ? slotRect.top + slotRect.height / 2 : boardRect.bottom + 40;
+  let targetX = flyTargetX;
+  let targetY = flyTargetY;
+  if (targetX == null || targetY == null) {
+    const slotEl = ui.tray.children[insertIndex];
+    const slotRect = slotEl ? slotEl.getBoundingClientRect() : null;
+    targetX = slotRect ? slotRect.left + slotRect.width / 2 : boardRect.left + boardRect.width / 2;
+    targetY = slotRect ? slotRect.top + slotRect.height / 2 : boardRect.bottom + 40;
+  }
 
   const tileRect = tileEl ? tileEl.getBoundingClientRect() : null;
   const flySize = tileRect ? tileRect.width : cellSize;
