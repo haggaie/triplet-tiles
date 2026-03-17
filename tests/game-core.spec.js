@@ -272,5 +272,103 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     expect(state.trayTiles.length).toBe(expectedTrayLength);
     expect(state.isLevelOver).toBe(true);
   });
+
+  test('no flicker during tile interaction animations', async ({ page }) => {
+    test.setTimeout(30000);
+
+    const levels = loadGeneratedLevels();
+    expect(levels.length).toBeGreaterThanOrEqual(1);
+    const level = levels[0];
+    const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
+    expect(result.solvable).toBe(true);
+    expect(Array.isArray(result.solution)).toBe(true);
+    expect(result.solution.length).toBeGreaterThanOrEqual(2);
+
+    await page.goto('/');
+    await page.waitForSelector('#board');
+    await page.evaluate(() => window.__tripletTestHooks.resetAllProgress());
+    await page.waitForSelector('#board .tile');
+
+    const gameLevelIndex = 2;
+    await page.evaluate(idx => {
+      window.__tripletTestHooks.startLevel(idx);
+    }, gameLevelIndex);
+    await page.waitForSelector('#board .tile');
+
+    const solutionTileIds = result.solution.map(idx => `t_${gameLevelIndex}_${idx}`);
+
+    const flickerResult = await page.evaluate(async (tileIds) => {
+      const board = document.getElementById('board');
+      const tray = document.getElementById('tray');
+      if (!board || !tray) return { flickerDetected: false, error: 'missing board or tray' };
+
+      const mutationLog = [];
+      let currentFrameId = 0;
+      let rafId;
+
+      function getElementKey(el) {
+        const tileId = el.getAttribute && el.getAttribute('data-tile-id');
+        if (tileId) return `board:${tileId}`;
+        const slot = el.closest && el.closest('.tray-slot');
+        if (slot && tray.contains(slot)) {
+          const idx = Array.from(tray.querySelectorAll('.tray-slot')).indexOf(slot);
+          return `tray:${idx}`;
+        }
+        return null;
+      }
+
+      function tick() {
+        currentFrameId += 1;
+        rafId = requestAnimationFrame(tick);
+      }
+      rafId = requestAnimationFrame(tick);
+
+      const observer = new MutationObserver((records) => {
+        for (const r of records) {
+          if (!r.attributeName) continue;
+          const key = getElementKey(r.target);
+          if (key) mutationLog.push({ frameId: currentFrameId, elementKey: key, attribute: r.attributeName });
+        }
+      });
+
+      observer.observe(board, { attributes: true, attributeFilter: ['style', 'class'], subtree: true });
+      observer.observe(tray, { attributes: true, attributeFilter: ['style', 'class'], subtree: true });
+
+      const hooks = window.__tripletTestHooks;
+      hooks.setSkipAnimations(false);
+
+      await hooks.clickTileById(tileIds[0]);
+      await hooks.waitForActionComplete();
+      await hooks.clickTileById(tileIds[1]);
+      await hooks.waitForActionComplete();
+
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+
+      const byFrame = {};
+      for (const { frameId, elementKey, attribute } of mutationLog) {
+        const k = `${frameId}:${elementKey}:${attribute}`;
+        byFrame[k] = (byFrame[k] || 0) + 1;
+      }
+      // Flicker = same element had multiple style changes in one frame (visibility/opacity oscillation).
+      // Ignore class: renderBoard does many class toggles (tappable, blocked, tile-settle-in) per frame.
+      const styleKey = (k) => k.endsWith(':style');
+      const offending = Object.entries(byFrame).filter(([k, count]) => styleKey(k) && count > 1);
+      const flickerDetected = offending.length > 0;
+      return {
+        flickerDetected,
+        offending: offending.slice(0, 10),
+        totalMutations: mutationLog.length
+      };
+    }, solutionTileIds);
+
+    expect(flickerResult.error).toBeUndefined();
+    expect(
+      flickerResult.flickerDetected,
+      flickerResult.flickerDetected
+        ? `Flicker detected: same element had multiple style changes in one frame (visibility/opacity). Sample: ${JSON.stringify(flickerResult.offending)}`
+        : undefined
+    ).toBe(false);
+  });
 });
 
