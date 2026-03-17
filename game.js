@@ -388,13 +388,9 @@ function updateBoardTappableState(ignoreTileId = null) {
   for (const child of ui.board.children) {
     const id = child.dataset.tileId;
     if (!id) continue;
-    if (tappableIds.has(id)) {
-      child.classList.add('tappable');
-      child.classList.remove('blocked');
-    } else {
-      child.classList.add('blocked');
-      child.classList.remove('tappable');
-    }
+    const tappable = tappableIds.has(id);
+    const hasSettle = child.classList.contains('tile-settle-in');
+    child.className = 'tile' + (hasSettle ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
   }
 }
 
@@ -742,7 +738,13 @@ function animateTileToTray(tile, tileEl, insertIndex, onComplete) {
   `;
   document.body.appendChild(fly);
 
-  if (tileEl) tileEl.style.visibility = 'hidden';
+  // Defer hiding the board tile to the next frame so we don't get two style writes in one frame
+  // (renderBoard may have just run in the same frame, e.g. after previous fly completed).
+  if (tileEl) {
+    requestAnimationFrame(() => {
+      if (tileEl.isConnected) tileEl.style.visibility = 'hidden';
+    });
+  }
 
   const endScale = trayTileSize / flySize;
 
@@ -810,13 +812,9 @@ function animateMatchCombine(type, onComplete) {
     el.style.zIndex = String(zIndex);
   });
 
-  const combinePromises = startPositions.map(({ el, startX, startY }) => {
+  const combinePromises = startPositions.map(({ el, startX, startY, zIndex }) => {
     const half = el.getBoundingClientRect().width / 2;
-    el.style.position = 'fixed';
-    el.style.left = `${startX}px`;
-    el.style.top = `${startY}px`;
-    el.style.marginLeft = `-${half}px`;
-    el.style.marginTop = `-${half}px`;
+    el.style.cssText = `position:fixed;left:${startX}px;top:${startY}px;margin-left:-${half}px;margin-top:-${half}px;z-index:${zIndex}`;
     return el.animate(
       [
         { transform: 'translate(0, 0) scale(1)', opacity: 1 },
@@ -1252,32 +1250,20 @@ function renderBoard(withSettleAnimation = false) {
     let el = existingById.get(tile.id);
     if (!el) {
       el = document.createElement('div');
-      el.className = 'tile';
       el.dataset.tileId = tile.id;
       el.addEventListener('click', () => handleBoardTileClick(tile.id));
     } else {
       existingById.delete(tile.id);
     }
 
-    el.classList.toggle('tile-settle-in', withSettleAnimation);
-    if (tappableIds.has(tile.id)) {
-      el.classList.add('tappable');
-      el.classList.remove('blocked');
-    } else {
-      el.classList.add('blocked');
-      el.classList.remove('tappable');
-    }
+    const tappable = tappableIds.has(tile.id);
+    el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
     el.textContent = getTileVisual(tile.type);
-    el.style.width = '';
-    el.style.height = '';
     const baseLeft = (tile.x + 0.5) * cellSize;
     const baseTop = (tile.y + 0.5) * cellSize;
     const layeredLeft = baseLeft + tile.z * xPixelOffset;
     const layeredTop = baseTop - tile.z * yPixelOffset;
-    el.style.left = `${layeredLeft}px`;
-    el.style.top = `${layeredTop}px`;
-    el.style.transform = 'translate(-50%, -50%)';
-    el.style.zIndex = String(10 + tile.z);
+    el.style.cssText = `left:${layeredLeft}px;top:${layeredTop}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
     orderedElements.push(el);
   }
 
