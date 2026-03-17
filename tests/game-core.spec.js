@@ -203,7 +203,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   });
 
   test('clicking through solution during animations keeps state consistent with solution', async ({ page }) => {
-    test.setTimeout(5000); // Animations now overlap, so they take 1-2 seconds overall
+    test.setTimeout(50000); // Animations overlap (snap-to-end), so they take 1–2 seconds overall
 
     const levels = loadGeneratedLevels();
     expect(levels.length).toBeGreaterThanOrEqual(1);

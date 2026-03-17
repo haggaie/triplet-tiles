@@ -895,12 +895,12 @@ function handleMatchingInTrayAnimated(onComplete) {
       setTimeout(() => {
         clearTrayCompactAnimation();
         renderTray(true);
-        _combiningTypes = [];
+        _combiningTypes = _combiningTypes.filter(t => !matchingTypes.includes(t));
         onComplete();
       }, TRAY_COMPACT_DURATION_MS);
     } else {
       renderTray(true);
-      _combiningTypes = [];
+      _combiningTypes = _combiningTypes.filter(t => !matchingTypes.includes(t));
       onComplete();
     }
   });
