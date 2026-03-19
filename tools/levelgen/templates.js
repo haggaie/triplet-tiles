@@ -145,16 +145,26 @@ function letterTemplate({ letter, radius, thickness }, gridSize) {
   const t = clamp(thickness == null ? 2 : thickness, 1, 4);
 
   const cells = [];
+  // Instead of using dilation (which would tend to fill in S/C openings),
+  // explicitly thicken the bars in the perpendicular direction.
+  const thick = t; // tiles
+  const half = Math.floor((thick - 1) / 2);
+  const extra = thick - half - 1; // keeps total thickness = `thick`
+
   const addBarH = (y, x0, x1) => {
-    for (let dx = x0; dx <= x1; dx += 1) {
-      const { x, y: yy } = centeredToGrid(dx, y, gridSize);
-      if (inBounds(x, yy, gridSize)) cells.push({ x, y: yy });
+    for (let yy = y - half; yy <= y + extra; yy += 1) {
+      for (let dx = x0; dx <= x1; dx += 1) {
+        const { x, y: gy } = centeredToGrid(dx, yy, gridSize);
+        if (inBounds(x, gy, gridSize)) cells.push({ x, y: gy });
+      }
     }
   };
   const addBarV = (x, y0, y1) => {
-    for (let dy = y0; dy <= y1; dy += 1) {
-      const { x: xx, y } = centeredToGrid(x, dy, gridSize);
-      if (inBounds(xx, y, gridSize)) cells.push({ x: xx, y });
+    for (let xx = x - half; xx <= x + extra; xx += 1) {
+      for (let dy = y0; dy <= y1; dy += 1) {
+        const { x: gx, y } = centeredToGrid(xx, dy, gridSize);
+        if (inBounds(gx, y, gridSize)) cells.push({ x: gx, y });
+      }
     }
   };
 
@@ -185,7 +195,7 @@ function letterTemplate({ letter, radius, thickness }, gridSize) {
     return dilate(diamondTemplate({ radius: Math.floor(r * 0.6) }, gridSize), gridSize, t - 1);
   }
 
-  // Don't dilate letter shapes: dilation fills in the S/C openings and turns them into a blob.
+  // Note: we don't use dilation for letters because it fills in S/C openings.
   return uniqueCells(cells);
 }
 
