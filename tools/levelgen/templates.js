@@ -73,6 +73,116 @@ function diamondTemplate({ radius }, gridSize) {
   return uniqueCells(cells);
 }
 
+function circleTemplate({ radius }, gridSize) {
+  const r = Math.max(2, radius || Math.floor(gridSize * 0.35));
+  const cells = [];
+  for (let dy = -r; dy <= r; dy += 1) {
+    for (let dx = -r; dx <= r; dx += 1) {
+      if ((dx * dx) + (dy * dy) <= (r * r)) {
+        const { x, y } = centeredToGrid(dx, dy, gridSize);
+        if (inBounds(x, y, gridSize)) cells.push({ x, y });
+      }
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function triangleTemplate({ radius }, gridSize) {
+  const r = Math.max(3, radius || Math.floor(gridSize * 0.35));
+  const cells = [];
+  // Isosceles triangle pointing up; regular and easy to represent on grid.
+  for (let dy = -r; dy <= r; dy += 1) {
+    const width = Math.max(0, Math.floor(((dy + r) / Math.max(1, 2 * r)) * (2 * r)));
+    for (let dx = -width; dx <= width; dx += 1) {
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function hexagonTemplate({ radius }, gridSize) {
+  const r = Math.max(2, radius || Math.floor(gridSize * 0.3));
+  const cells = [];
+  // Axial hex approximation on integer lattice.
+  for (let dy = -r; dy <= r; dy += 1) {
+    const span = r - Math.floor(Math.abs(dy) / 2);
+    for (let dx = -span; dx <= span; dx += 1) {
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function crossTemplate({ radius, thickness }, gridSize) {
+  const r = Math.max(2, radius || Math.floor(gridSize * 0.35));
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+  const half = Math.floor(t / 2);
+  const cells = [];
+  for (let dy = -r; dy <= r; dy += 1) {
+    for (let dx = -r; dx <= r; dx += 1) {
+      const inVertical = Math.abs(dx) <= half;
+      const inHorizontal = Math.abs(dy) <= half;
+      if (!inVertical && !inHorizontal) continue;
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function ringTemplate({ radius, thickness }, gridSize) {
+  const r = Math.max(3, radius || Math.floor(gridSize * 0.35));
+  const w = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, r - 1));
+  const inner = Math.max(1, r - w);
+  const cells = [];
+  for (let dy = -r; dy <= r; dy += 1) {
+    for (let dx = -r; dx <= r; dx += 1) {
+      const d2 = (dx * dx) + (dy * dy);
+      if (d2 > (r * r)) continue;
+      if (d2 < (inner * inner)) continue;
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function tTemplate({ radius, thickness }, gridSize) {
+  const r = Math.max(3, radius || Math.floor(gridSize * 0.4));
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+  const half = Math.floor(t / 2);
+  const cells = [];
+  for (let dy = -r; dy <= r; dy += 1) {
+    for (let dx = -r; dx <= r; dx += 1) {
+      const inTopBar = dy <= -r + t && Math.abs(dx) <= r;
+      const inStem = Math.abs(dx) <= half && dy >= -r + t && dy <= r;
+      if (!inTopBar && !inStem) continue;
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
+function uTemplate({ radius, thickness }, gridSize) {
+  const r = Math.max(3, radius || Math.floor(gridSize * 0.4));
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+  const cells = [];
+  for (let dy = -r; dy <= r; dy += 1) {
+    for (let dx = -r; dx <= r; dx += 1) {
+      const inLeft = dx >= -r && dx <= (-r + t - 1) && dy <= r && dy >= -r;
+      const inRight = dx <= r && dx >= (r - t + 1) && dy <= r && dy >= -r;
+      const inBottom = dy >= (r - t + 1) && dy <= r && Math.abs(dx) <= r;
+      if (!inLeft && !inRight && !inBottom) continue;
+      const { x, y } = centeredToGrid(dx, dy, gridSize);
+      if (inBounds(x, y, gridSize)) cells.push({ x, y });
+    }
+  }
+  return uniqueCells(cells);
+}
+
 function heartTemplate({ radius, thickness }, gridSize) {
   const r = Math.max(3, radius || Math.floor(gridSize * 0.35));
   const cells = [];
@@ -211,6 +321,20 @@ function getTemplateCells(templateId, templateParams, gridSize) {
       return rectangleTemplate(params, gridSize);
     case 'diamond':
       return diamondTemplate(params, gridSize);
+    case 'circle':
+      return circleTemplate(params, gridSize);
+    case 'triangle':
+      return triangleTemplate(params, gridSize);
+    case 'hexagon':
+      return hexagonTemplate(params, gridSize);
+    case 'cross':
+      return crossTemplate(params, gridSize);
+    case 'ring':
+      return ringTemplate(params, gridSize);
+    case 't':
+      return tTemplate(params, gridSize);
+    case 'u':
+      return uTemplate(params, gridSize);
     case 'heart':
       return heartTemplate(params, gridSize);
     case 'spiral':
