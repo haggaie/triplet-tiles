@@ -11,8 +11,8 @@
 
 - **Board layout**
   - **Structure**: 2.5D/stacked layout of tiles in multiple layers, similar to mahjong.
-  - **Visual layering**: Tiles on higher layers are rendered slightly offset (diagonally and in depth) so they partially overlap the tiles below them while still leaving most of the lower tile’s shape visible when it is not logically covered.
-  - **Tile access rules**: A tile is tappable if no tile in a higher layer overlaps (“covers”) it. Due to the diagonal layer offset, coverage is not only “same (x,y)”; higher-layer tiles can cover tiles slightly down-right of them depending on the chosen overlap footprint.
+  - **Visual layering**: Tiles use a fixed grid position `(x, y)`; odd `z` shifts the drawn tile by half a cell along the board diagonal `(+x, −y)`; even `z` has no extra shift (so even layers align with each other, and odd layers align with each other). Depth is still conveyed via stacking order / z-index.
+  - **Tile access rules**: A tile is tappable if no tile in a higher layer overlaps (“covers”) it. Coverage matches **geometric overlap** of 1×1 cell squares centered at the same positions used for rendering: `other` covers `tile` when `other.z > tile.z` and those squares overlap in 2D (edge-touching does not count). This is shared with `tile-layering.js`, levelgen scoring, and the native solver.
   - **Level variants (all levels are multi-layer)**:
     - Every level uses 2+ layers from Level 1 onward; early levels use shallow stacks and light overlap so many tiles remain tappable.
     - Later levels increase overlap density and stack depth to create more dependencies (“unlocking”).

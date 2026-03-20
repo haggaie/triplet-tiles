@@ -5,6 +5,7 @@
   "files": [
     "index.html",
     "game.js",
+    "tile-layering.js",
     "style.css",
     "levels.generated.js"
   ],

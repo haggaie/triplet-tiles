@@ -17,6 +17,8 @@ When the user clicks a tile while another is already flying to the tray:
 
 So the next animation always has a well-defined target and correct slot index, without waiting for the previous fly to finish naturally.
 
+**Implementation note:** A snapped fly applies its move **synchronously** (not via the apply queue). The completion path must still call `applyMove(applyQueueNext)` so that, after `handleMatchingInTrayAnimated` finishes (sync or async), `applyQueueNext` runs and eventually `checkAllIdle()` clears `_isMoveAnimating`, resolves `waitForActionComplete`, and drains `_waitingForRoom`. Using an empty `onMatchingDone` after snap would skip that chain and leave the engine stuck “animating” with a full waiting queue.
+
 ## Projected tray
 
 **Projected tray** is the logical tray we use for “is there room?” and “where does the next tile go?”:
@@ -51,7 +53,7 @@ When a fly completes (without being snapped), we don’t apply the move immediat
 - Marks the tile removed, inserts it into the tray by shape, re-renders board and tray
 - Calls `handleMatchingInTrayAnimated`, which may start combine(s)
 
-This keeps state updates ordered and avoids races when multiple flies could complete close together. When we **snap** a fly, we run that move’s apply **synchronously** (no enqueue) so the next fly sees the updated tray immediately.
+This keeps state updates ordered and avoids races when multiple flies could complete close together. When we **snap** a fly, we run that move’s apply **synchronously** (no enqueue) so the next fly sees the updated tray immediately. The snapped apply still ends with the same `applyQueueNext` callback as a non-snapped apply so idle bookkeeping stays correct (see Snap-to-end above).
 
 ## Idle and tests
 

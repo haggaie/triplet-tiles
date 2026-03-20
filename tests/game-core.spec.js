@@ -196,12 +196,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     // Require that above is the ONLY tile covering below, so after removal below becomes tappable.
     const pair = await page.evaluate(() => {
       const hooks = window.__tripletTestHooks;
-      const covers = (other, tile) => {
-        if (other.z <= tile.z) return false;
-        const dx = other.x - tile.x;
-        const dy = other.y - tile.y;
-        return dx >= -1 && dx <= 0 && dy >= 0 && dy <= 1;
-      };
+      const covers = hooks.tileCovers;
       const maxLevelsToTry = 10;
       for (let levelIndex = 0; levelIndex < maxLevelsToTry; levelIndex += 1) {
         hooks.startLevel(levelIndex);
@@ -247,42 +242,55 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   });
 
   test('clicking through solution during animations keeps state consistent with solution', async ({ page }) => {
-    test.setTimeout(50000); // Animations overlap (snap-to-end), so they take 1–2 seconds overall
-
     const { result, expectedScore, expectedTrayLength } = loadFirstGeneratedLevelSolverExpectations();
+    const solutionSteps = result.solution.length;
+    // Animations on: do not await waitForActionComplete per move (see ANIMATIONS.md — clicks during fly use snap/queue).
+    // Yield the event loop between hook calls so timers / animation frames can run; strictly synchronous bursts can deadlock or mis-order vs the solver.
+    test.setTimeout(Math.max(120000, solutionSteps * 2000 + 30000));
+
     await resetAndStartFirstGeneratedLevel(page, { skipAnimations: false });
 
-    // Animations on: click through the full solution without waiting for animations to finish.
     const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
 
-    // When solution has at least 2 moves: briefly delay after first click so second click gets queued, then assert queued tile style.
-    if (solutionTileIds.length >= 2) {
-      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[0]);
-      await page.waitForTimeout(50);
-      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[1]);
-      const queuedStyleOk = await page.evaluate(() => {
-        const el = document.querySelector('#board .tile.tile-queued');
-        if (!el) return { found: false };
-        const cs = getComputedStyle(el);
-        const transform = cs.transform;
-        const hasLift = transform && transform !== 'none';
-        const hasShadow = !!(cs.boxShadow && cs.boxShadow !== 'none');
-        return { found: true, ok: hasLift && hasShadow, hasLift, hasShadow };
-      });
-      if (queuedStyleOk.found) {
-        expect(queuedStyleOk.ok, `queued tile should have lift and shadow: ${JSON.stringify(queuedStyleOk)}`).toBe(true);
-      }
+    const yieldMs = 0;
+    const probe = await page.evaluate(
+      async ({ ids, yieldDelay }) => {
+        const h = window.__tripletTestHooks;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        let queuedStyleOk = { found: false };
+        for (let i = 0; i < ids.length; i += 1) {
+          h.clickTileById(ids[i]);
+          if (i === 0 && ids.length >= 2) {
+            await sleep(50);
+            continue;
+          }
+          if (i === 1 && ids.length >= 2) {
+            const el = document.querySelector('#board .tile.tile-queued');
+            if (el) {
+              const cs = getComputedStyle(el);
+              const transform = cs.transform;
+              const hasLift = transform && transform !== 'none';
+              const hasShadow = !!(cs.boxShadow && cs.boxShadow !== 'none');
+              queuedStyleOk = { found: true, ok: hasLift && hasShadow, hasLift, hasShadow };
+            }
+          }
+          if (i < ids.length - 1) {
+            await sleep(yieldDelay);
+          }
+        }
+        return { queuedStyleOk };
+      },
+      { ids: solutionTileIds, yieldDelay: yieldMs }
+    );
+
+    if (probe.queuedStyleOk.found) {
+      expect(
+        probe.queuedStyleOk.ok,
+        `queued tile should have lift and shadow: ${JSON.stringify(probe.queuedStyleOk)}`
+      ).toBe(true);
     }
 
-    // Click all solution tiles in quick succession (same as original test); first 0–2 already clicked above if length >= 2.
-    const startIndex = solutionTileIds.length >= 2 ? 2 : 0;
-    for (let i = startIndex; i < solutionTileIds.length; i += 1) {
-      await page.evaluate(id => window.__tripletTestHooks.clickTileById(id), solutionTileIds[i]);
-      // Intentionally do not await waitForActionComplete() — click while animations may still be running.
-    }
-
-    // Wait for level to complete (win overlay). Each move's animations can be ~1–2s; allow enough time.
-    const solutionSteps = result.solution.length;
     const overlayTimeout = Math.max(60000, solutionSteps * 2500);
     await expectWinOverlayMatchesSolution(page, expectedScore, expectedTrayLength, overlayTimeout);
   });

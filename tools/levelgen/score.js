@@ -1,4 +1,5 @@
 const { solveLevel } = require('./solver');
+const { tileCovers } = require('../../tile-layering.js');
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, x));
@@ -11,10 +12,7 @@ function computeCoverers(layout) {
     for (let j = 0; j < layout.length; j += 1) {
       if (i === j) continue;
       const b = layout[j];
-      if (b.z <= a.z) continue;
-      const dx = b.x - a.x;
-      const dy = b.y - a.y;
-      if (dx >= -1 && dx <= 0 && dy >= 0 && dy <= 1) {
+      if (tileCovers(b, a)) {
         coverers[i].push(j);
       }
     }

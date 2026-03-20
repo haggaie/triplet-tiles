@@ -1,3 +1,6 @@
+const TL = globalThis.TripletTileLayering;
+if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
+
 const TILE_TYPES = [
   { id: 'leaf', emoji: '🍃' },
   { id: 'flower', emoji: '🌸' },
@@ -367,10 +370,7 @@ function startLevel(index) {
 
 function isTileCovered(tile, ignoreTileId = null) {
   return state.boardTiles.some(
-    other => other.id !== ignoreTileId && !other.removed && other.z > tile.z && (
-      -1 <= other.x - tile.x && other.x - tile.x <= 0 &&
-      0 <= other.y - tile.y && other.y - tile.y <= 1
-    )
+    other => other.id !== ignoreTileId && !other.removed && TL.tileCovers(other, tile)
   );
 }
 
@@ -490,7 +490,8 @@ function handleBoardTileClick(tileId) {
   // Ignore the flying tile when checking coverage (early clickability during fly; see getTappableTiles).
   const ignoreFlyingId = _currentFly ? _currentFly.tile.id : null;
   if (isTileCovered(tile, ignoreFlyingId)) {
-    _waitingForRoom.unshift(tileId);
+    // FIFO: first blocked tap should retry first when the board updates (matches solver order under rapid clicks).
+    _waitingForRoom.push(tileId);
     return;
   }
 
@@ -565,7 +566,9 @@ function handleBoardTileClick(tileId) {
     clearTrayMakeRoomAnimation();
     _currentFly = null;
     if (isSnap) {
-      applyMove(() => {});
+      // Must chain applyQueueNext like the non-snap path; otherwise onMatchingDone is empty,
+      // checkAllIdle never runs, and _isMoveAnimating stays true after snap + tray animations.
+      applyMove(applyQueueNext);
     } else {
       enqueueApply(() => {
         applyMove(applyQueueNext);
@@ -705,13 +708,11 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
   const cellSize = boardRect.width / (size + 2);
-  const yPixelOffset = cellSize * 0.5;
-  const xPixelOffset = cellSize * 0.5;
-
+  const frac = TL.layerDiagonalFraction(tile.z);
   const baseLeft = (tile.x + 0.5) * cellSize;
   const baseTop = (tile.y + 0.5) * cellSize;
-  const layeredLeft = baseLeft + tile.z * xPixelOffset;
-  const layeredTop = baseTop - tile.z * yPixelOffset;
+  const layeredLeft = baseLeft + frac * cellSize;
+  const layeredTop = baseTop - frac * cellSize;
 
   const tileCenterX = boardRect.left + layeredLeft;
   const tileCenterY = boardRect.top + layeredTop;
@@ -998,8 +999,6 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
   const total = size + padding;
   const miniSize = 80;
   const cellSize = miniSize / total;
-  const yPixelOffset = cellSize * 0.5;
-  const xPixelOffset = cellSize * 0.5;
 
   const tiles = (level.layout || [])
     .slice()
@@ -1020,8 +1019,9 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
     el.textContent = getTileVisual(tile.type);
     const baseLeft = (tile.x + 0.5) * cellSize;
     const baseTop = (tile.y + 0.5) * cellSize;
-    const layeredLeft = baseLeft + (tile.z || 0) * xPixelOffset;
-    const layeredTop = baseTop - (tile.z || 0) * yPixelOffset;
+    const frac = TL.layerDiagonalFraction(tile.z || 0);
+    const layeredLeft = baseLeft + frac * cellSize;
+    const layeredTop = baseTop - frac * cellSize;
     el.style.width = `${Math.max(6, cellSize * 0.7)}px`;
     el.style.height = `${Math.max(6, cellSize * 0.7)}px`;
     el.style.left = `${layeredLeft}px`;
@@ -1240,8 +1240,6 @@ function renderBoard(withSettleAnimation = false) {
   const boardRect = ui.board.getBoundingClientRect();
   const cellSize = boardRect.width / (size + 2);
   document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
-  const yPixelOffset = cellSize * 0.5;
-  const xPixelOffset = cellSize * 0.5;
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
 
@@ -1272,8 +1270,9 @@ function renderBoard(withSettleAnimation = false) {
     el.textContent = getTileVisual(tile.type);
     const baseLeft = (tile.x + 0.5) * cellSize;
     const baseTop = (tile.y + 0.5) * cellSize;
-    const layeredLeft = baseLeft + tile.z * xPixelOffset;
-    const layeredTop = baseTop - tile.z * yPixelOffset;
+    const frac = TL.layerDiagonalFraction(tile.z);
+    const layeredLeft = baseLeft + frac * cellSize;
+    const layeredTop = baseTop - frac * cellSize;
     el.style.cssText = `left:${layeredLeft}px;top:${layeredTop}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
     orderedElements.push(el);
   }
@@ -1370,6 +1369,23 @@ if (typeof window !== 'undefined') {
       state.powerups = { ...state.powerups, ...partialPowerups };
       renderHud();
       savePowerups();
+    },
+    tileCovers: TL.tileCovers,
+    /** For E2E / Playwright: internal animation queue state (not game design API). */
+    getEngineDebugSnapshot() {
+      return {
+        boardLeft: state.boardTiles.filter(t => !t.removed).length,
+        trayLen: state.trayTiles.length,
+        isLevelOver: state.isLevelOver,
+        waitingForRoomLen: _waitingForRoom.length,
+        moveQueueLen: _moveQueue.length,
+        hasCurrentFly: _currentFly != null,
+        applyRunning: _applyRunning,
+        applyQueueLen: _applyQueue.length,
+        combiningTypesLen: _combiningTypes.length,
+        combiningTypes: [..._combiningTypes],
+        isMoveAnimating: _isMoveAnimating
+      };
     }
   };
 }

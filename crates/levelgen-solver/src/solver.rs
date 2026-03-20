@@ -1,7 +1,8 @@
-//! DFS solver for Triplet Tiles. Same rules as game.js / solver.js:
+//! DFS solver for Triplet Tiles. Same rules as game.js / tile-layering.js:
 //! - Tray holds tiles; 3 of same type clear. Tray size max 7.
 //! - A tile is tappable iff not removed and no covering tile (higher z, overlapping footprint) remains.
-//! - Covering: other covers tile if other.z > tile.z and -1 <= other.x - tile.x <= 0 and 0 <= other.y - tile.y <= 1.
+//! - Covering: odd z shifts the tile center by 0.5 cell along (+x,-y); even z has no shift.
+//!   Unit squares (1x1 cells) at those centers overlap and other.z > tile.z => other covers tile.
 
 use bit_set::BitSet;
 use rustc_hash::FxHashSet;
@@ -23,6 +24,27 @@ struct StateKey {
     tray: Vec<u8>,
 }
 
+fn layer_diagonal_fraction(z: i32) -> f64 {
+    if z.rem_euclid(2) == 1 {
+        0.5
+    } else {
+        0.0
+    }
+}
+
+fn tile_center_cells(t: &Tile) -> (f64, f64) {
+    let f = layer_diagonal_fraction(t.z);
+    (t.x as f64 + 0.5 + f, t.y as f64 + 0.5 - f)
+}
+
+fn unit_squares_overlap(c1: (f64, f64), c2: (f64, f64)) -> bool {
+    (c1.0 - c2.0).abs() < 1.0 && (c1.1 - c2.1).abs() < 1.0
+}
+
+fn tile_covers(other: &Tile, tile: &Tile) -> bool {
+    other.z > tile.z && unit_squares_overlap(tile_center_cells(other), tile_center_cells(tile))
+}
+
 /// Build coverers: coverers[i] = list of tile indices j that cover tile i.
 fn compute_coverers(tiles: &[Tile]) -> Vec<Vec<usize>> {
     let n = tiles.len();
@@ -34,12 +56,7 @@ fn compute_coverers(tiles: &[Tile]) -> Vec<Vec<usize>> {
                 continue;
             }
             let b = &tiles[j];
-            if b.z <= a.z {
-                continue;
-            }
-            let dx = b.x - a.x;
-            let dy = b.y - a.y;
-            if (-1..=0).contains(&dx) && (0..=1).contains(&dy) {
+            if tile_covers(b, a) {
                 coverers[i].push(j);
             }
         }
