@@ -26,6 +26,23 @@
   --tile-radius: 28.125%;
   /* Icon size: same on board and tray when tile size matches */
   --tile-icon-size: 1.6rem;
+
+  /* Phase B: wooden tile face (shared by .tile, .tray-tile, mini preview) */
+  --tile-bg-plank: linear-gradient(
+    132deg,
+    var(--wood-highlight) 0%,
+    var(--wood-face) 46%,
+    var(--wood-shadow) 100%
+  );
+  --tile-bg-grain: repeating-linear-gradient(
+    95deg,
+    rgb(0 0 0 / 0) 0 6px,
+    var(--wood-grain) 6px 6.5px
+  );
+  --tile-inset-light: inset 1px 1px 3px rgb(255 255 255 / 0.38);
+  --tile-inset-dark: inset -2px -3px 6px rgb(0 0 0 / 0.28);
+  --tile-drop-board: 0 10px 20px rgb(22 14 10 / 0.72);
+  --tile-drop-tray: 0 8px 18px rgb(22 14 10 / 0.68);
 }
 
 *,
@@ -227,11 +244,13 @@ body {
   justify-content: center;
   font-size: var(--tile-icon-size);
   cursor: pointer;
-  background: radial-gradient(circle at top, #f9fafb, #d1d5db);
-  color: #111827;
+  background: var(--tile-bg-grain), var(--tile-bg-plank);
+  color: var(--ink);
   box-shadow:
-    0 10px 20px rgba(15, 23, 42, 0.75),
-    0 0 0 1px rgba(148, 163, 184, 0.9);
+    var(--tile-drop-board),
+    0 0 0 1px var(--wood-edge),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
   transform-origin: center center;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.1s ease, opacity 0.15s ease;
 }
@@ -239,8 +258,10 @@ body {
 .tile.tappable:hover {
   transform: translateY(-3px) scale(1.03);
   box-shadow:
-    0 16px 30px rgba(15, 23, 42, 1),
-    0 0 0 1px rgb(var(--accent-rgb) / 0.6);
+    0 16px 30px rgb(22 14 10 / 0.85),
+    0 0 0 1px rgb(var(--accent-rgb) / 0.55),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
 }
 
 .tile.blocked {
@@ -254,8 +275,10 @@ body {
   transform: translate(-50%, -50%) translateY(-10px);
   box-shadow:
     0 16px 32px rgba(0, 0, 0, 0.5),
-    0 6px 16px rgba(15, 23, 42, 0.8),
-    0 0 0 2px rgb(var(--accent-rgb) / 0.8);
+    0 6px 16px rgb(22 14 10 / 0.55),
+    0 0 0 2px rgb(var(--accent-rgb) / 0.8),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -362,26 +385,34 @@ body {
   align-items: center;
   justify-content: center;
   font-size: var(--tile-icon-size);
-  background: radial-gradient(circle at top, #f9fafb, #d1d5db);
-  color: #111827;
+  background: var(--tile-bg-grain), var(--tile-bg-plank);
+  color: var(--ink);
   box-shadow:
-    0 8px 18px rgba(15, 23, 42, 0.9),
-    0 0 0 1px rgba(148, 163, 184, 0.9);
+    var(--tile-drop-tray),
+    0 0 0 1px var(--wood-edge),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
   transform-origin: center center;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 .tray-tile.matching {
   box-shadow:
+    var(--tile-drop-tray),
     0 0 0 2px rgb(var(--accent-rgb) / 0.9),
-    0 0 30px rgb(var(--accent-rgb) / 0.7);
+    0 0 30px rgb(var(--accent-rgb) / 0.7),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
 }
 
 .tray-tile.selectable-type {
   cursor: pointer;
   box-shadow:
+    var(--tile-drop-tray),
     0 0 0 2px rgb(var(--accent-rgb) / 0.85),
-    0 0 20px rgb(var(--accent-rgb) / 0.55);
+    0 0 20px rgb(var(--accent-rgb) / 0.55),
+    var(--tile-inset-light),
+    var(--tile-inset-dark);
 }
 
 .overlay {
@@ -609,9 +640,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top, #f9fafb, #d1d5db);
-  color: #111827;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.6);
+  background: var(--tile-bg-grain), var(--tile-bg-plank);
+  color: var(--ink);
+  box-shadow:
+    0 2px 6px rgb(22 14 10 / 0.55),
+    0 0 0 1px var(--wood-edge),
+    inset 1px 1px 2px rgb(255 255 255 / 0.3),
+    inset -1px -2px 3px rgb(0 0 0 / 0.22);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
