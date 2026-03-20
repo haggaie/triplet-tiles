@@ -153,6 +153,7 @@ body {
 
 .board-wrapper {
   flex: 1;
+  min-height: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -161,8 +162,12 @@ body {
 
 .board {
   position: relative;
-  width: min(420px, 90vw);
-  height: min(420px, 90vw);
+  /* Square side capped by width and by dynamic viewport height so landscape phones still fit. */
+  width: min(420px, 90vw, calc(100dvh - 15rem));
+  max-width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  flex-shrink: 0;
   background: radial-gradient(circle at top, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.8));
   border-radius: 32px;
   box-shadow:
