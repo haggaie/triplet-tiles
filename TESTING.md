@@ -37,4 +37,11 @@ The Playwright configuration in `playwright.config.js` starts a simple static se
 - Core tray mechanics, matching rules, and overflow loss behavior (`tests/game-core.spec.js`).
 - Power-ups: undo, shuffle, and remove tile type, including button enable/disable logic (`tests/powerups.spec.js`).
 - Level progression, win/loss overlays, and `localStorage`-backed stats and progression (`tests/progression-stats.spec.js`).
+- Mobile layouts: several portrait/landscape viewports, level select overlay, and iPhone-style viewport/UA/DPR (`tests/mobile-viewport.spec.js`) — asserts **no horizontal page overflow** and that `#board` / `#tray` stay within the viewport width.
+
+Run only mobile layout checks:
+
+```bash
+npx playwright test tests/mobile-viewport.spec.js
+```
 
