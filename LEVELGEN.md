@@ -56,7 +56,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).
       - `overlap`: `'light' | 'medium' | 'heavy'` (bias towards reusing stacks).
       - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)` (one per z); auto-raised if needed so the silhouette can hold all tiles.
-      - `full`: if `true`, **every layer** is filled **in a deterministic row-by-row order** so each layer’s silhouette is clean and complete (see **Fill and layer-shape strategies** below).
+      - `full`: if `true`, placement uses deterministic fill order and greedy lower‑z‑first budgets; each layer may be **fully** tiled (row‑major) or **partially** tiled with cells spread along that order if the level runs out of tiles (see **Fill and layer-shape strategies** below).
       - `layerShape`: `'full' | 'pyramid' | 'shift' | 'randomErosion'` — how upper layers derive their silhouette from the base (default `'full'`).
       - `layerShapeOptions`: optional strategy params:
         - for `shift`: `{ shiftDx?, shiftDy? }` (per-layer delta; default 1, 0).
@@ -85,13 +85,13 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Converts `distribution` → exact tile counts per type (always multiples of 3).
       - Shuffles those types into a single sequence (**no** tray-feasibility or slack shaping).
       - Converts the sequence into a multi-layer layout over the template silhouette:
-        - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, **every layer** is filled in deterministic row-by-row order so each layer’s silhouette is fully and cleanly filled; tile counts per layer respect each layer’s cell capacity.
+        - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, layers fill in **increasing z**: base up to capacity, then the next layer up to capacity, and so on. Full layers use row-major order; **partial** layers use cells **spaced along** that order so coverage is spread over the silhouette (not clumped in low‑y rows). With `full` false, the same greedy z-order applies to tile budgets per layer.
         - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index; `'randomErosion'` = connected edge-erosion per layer with optional small random shifts.
         - Overlap density is controlled via `overlap` + `maxStackPerCell`.
         - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
     - Returns `{ levels, meta: { seed } }`.
-  - **Shapes**: `tools/levelgen/shapes.js` provides silhouette helpers: `getFillOrder`, `shrinkSilhouette`, `pyramidSilhouettes`, `shiftSilhouette`, `getLayerSilhouette`.
+  - **Shapes**: `tools/levelgen/shapes.js` provides silhouette helpers: `getFillOrder`, `subsetFillOrderEvenly` (partial-layer spread), `shrinkSilhouette`, `pyramidSilhouettes`, `shiftSilhouette`, `getLayerSilhouette`.
 
 - **Solver**: `tools/levelgen/solver.js` (Rust in `crates/levelgen-solver`, `npm run build:native`)
   - `solveLevel(level, options)`:

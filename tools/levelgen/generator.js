@@ -1,5 +1,5 @@
 const { getTemplateCells } = require('./templates');
-const { getFillOrder, getLayerSilhouette } = require('./shapes');
+const { getFillOrder, getLayerSilhouette, subsetFillOrderEvenly } = require('./shapes');
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -148,8 +148,8 @@ function overlapBias(overlap) {
 
 /**
  * Distribute tile indices to layers when using fill-bottom + per-layer silhouettes.
- * Base layer (layerIndex 0) gets nBase tiles; the rest are split across upper layers
- * respecting each layer's cell capacity.
+ * Base layer (layerIndex 0) gets nBase tiles; remaining tiles fill upper layers in order
+ * (lower z first): each layer is filled up to its capacity before any tiles go to the next.
  */
 function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
   const rest = seqLength - nBase;
@@ -160,10 +160,7 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
   let remaining = rest;
   for (let k = 0; k < layerCapacities.length; k += 1) {
     const cap = layerCapacities[k];
-    const want = k < layerCapacities.length - 1
-      ? Math.min(cap, Math.ceil(remaining / (layerCapacities.length - k)))
-      : remaining;
-    const n = Math.min(cap, Math.max(0, want));
+    const n = Math.min(cap, remaining);
     counts.push(n);
     remaining -= n;
   }
@@ -225,10 +222,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     layerCounts = [];
     for (let k = 0; k < numLayers; k += 1) {
       const cap = caps[k];
-      const want = k < numLayers - 1
-        ? Math.min(cap, Math.ceil(left / (numLayers - k)))
-        : left;
-      const n = Math.min(cap, Math.max(0, want));
+      const n = Math.min(cap, left);
       layerCounts.push(n);
       left -= n;
     }
@@ -263,6 +257,9 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
     if (useFullFill && fillOrder && n > 0) {
       const baseSeqIndex = seqIndex;
       seqIndex += n;
+      const placedCells = n >= fillOrder.length
+        ? fillOrder
+        : subsetFillOrderEvenly(fillOrder, n);
       let positionToSeqIndex;
       if (useInterleave && n > 1) {
         const indices = Array.from({ length: n }, (_, i) => i);
@@ -274,7 +271,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
       for (let j = 0; j < n; j += 1) {
         const seqIdx = positionToSeqIndex(j);
         const type = seq[seqIdx];
-        const cell = fillOrder[j];
+        const cell = placedCells[j];
         usedPositions.add(posKey(cell.x, cell.y, z));
         const k = `${cell.x},${cell.y}`;
         stackCount.set(k, (stackCount.get(k) || 0) + 1);

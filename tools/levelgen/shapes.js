@@ -25,6 +25,24 @@ function getFillOrder(cells) {
 }
 
 /**
+ * When only n &lt; m cells are placed, using the first n entries of row-major fill order
+ * clumps tiles at low y. Pick n indices spread along the sorted order instead.
+ * @param {Array<{x: number, y: number}>} sortedFillOrder result of {@link getFillOrder}
+ * @param {number} n how many cells to use (≤ sortedFillOrder.length)
+ */
+function subsetFillOrderEvenly(sortedFillOrder, n) {
+  const m = sortedFillOrder.length;
+  if (n <= 0) return [];
+  if (n >= m) return [...sortedFillOrder];
+  const out = [];
+  for (let j = 0; j < n; j += 1) {
+    const idx = Math.floor((j + 0.5) * m / n);
+    out.push(sortedFillOrder[idx]);
+  }
+  return out;
+}
+
+/**
  * Build a Set of "x,y" keys for fast membership.
  */
 function cellSet(cells) {
@@ -223,6 +241,7 @@ function getLayerSilhouette(baseCells, gridSize, layerShape, layerIndex, options
 
 module.exports = {
   getFillOrder,
+  subsetFillOrderEvenly,
   shrinkSilhouette,
   pyramidSilhouettes,
   shiftSilhouette,
