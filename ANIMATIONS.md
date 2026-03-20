@@ -21,6 +21,8 @@ So the next animation always has a well-defined target and correct slot index, w
 
 ## Projected tray
 
+Rule definitions and pure helpers live in [GAME_MODEL.md](GAME_MODEL.md) (`lib/game-model.js`).
+
 **Projected tray** is the logical tray we use for “is there room?” and “where does the next tile go?”:
 
 - Current `state.trayTiles` (matched triples are removed from state as soon as combine animations **start**, so logic matches the solver even while visuals are still animating)

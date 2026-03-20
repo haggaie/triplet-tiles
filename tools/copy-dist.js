@@ -6,6 +6,7 @@ const path = require('path');
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
 const deployables = ['index.html', 'game.js', 'tile-layering.js', 'style.css', 'levels.generated.js'];
+const deployLibDir = path.join(projectRoot, 'lib');
 
 fs.mkdirSync(distDir, { recursive: true });
 for (const name of deployables) {
@@ -16,4 +17,13 @@ for (const name of deployables) {
   }
   fs.copyFileSync(src, path.join(distDir, name));
 }
-console.log(`Copied ${deployables.length} files to dist/`);
+
+const distLib = path.join(distDir, 'lib');
+fs.mkdirSync(distLib, { recursive: true });
+for (const name of fs.readdirSync(deployLibDir)) {
+  const src = path.join(deployLibDir, name);
+  if (!fs.statSync(src).isFile()) continue;
+  fs.copyFileSync(src, path.join(distLib, name));
+}
+
+console.log(`Copied ${deployables.length} root files and lib/ to dist/`);

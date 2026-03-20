@@ -7,13 +7,16 @@
     "game.js",
     "tile-layering.js",
     "style.css",
-    "levels.generated.js"
+    "levels.generated.js",
+    "lib/game-model.js",
+    "lib/package.json"
   ],
   "scripts": {
     "build:native": "node scripts/build-native.js",
     "build": "npm run build:native && node tools/generate-levels.js",
     "prepare": "npm run build",
     "dist": "node tools/copy-dist.js",
+    "test:unit": "node --test tests/game-model.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed"
   },

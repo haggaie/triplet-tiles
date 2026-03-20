@@ -1,3 +1,15 @@
+import {
+  TRAY_MAX_TILES,
+  getTrayInsertIndexForType,
+  insertTrayTileByShape,
+  removeMatchingTriplesOneRound,
+  removeTriplesForTypesSequential,
+  getProjectedTray,
+  shouldQueueWaitForRoom,
+  shouldTriggerTrayOverflowLoss,
+  applyCommittedPick
+} from './lib/game-model.js';
+
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
 
@@ -394,49 +406,10 @@ function updateBoardTappableState(ignoreTileId = null) {
   }
 }
 
-/** Returns the tray slot index where a new tile of this type would be inserted (by shape grouping). */
-function getTrayInsertIndex(type) {
-  let insertIndex = state.trayTiles.length;
-  for (let i = state.trayTiles.length - 1; i >= 0; i -= 1) {
-    if (state.trayTiles[i].type === type) {
-      insertIndex = i + 1;
-      break;
-    }
-  }
-  return insertIndex;
-}
-
-function insertTrayTileByShape(trayTiles, newTile) {
-  const type = newTile.type;
-  let insertIndex = trayTiles.length;
-  for (let i = trayTiles.length - 1; i >= 0; i -= 1) {
-    if (trayTiles[i].type === type) {
-      insertIndex = i + 1;
-      break;
-    }
-  }
-  trayTiles.splice(insertIndex, 0, newTile);
-}
-
-/** Returns insert index for a type given a tray array (e.g. projected tray). */
-function getTrayInsertIndexForTray(trayTiles, type) {
-  let insertIndex = trayTiles.length;
-  for (let i = trayTiles.length - 1; i >= 0; i -= 1) {
-    if (trayTiles[i].type === type) {
-      insertIndex = i + 1;
-      break;
-    }
-  }
-  return insertIndex;
-}
-
-/** Builds logical tray: current state plus the in-flight fly tile (if any). Matched triples leave state immediately when combine animations start. */
-function getProjectedTray() {
-  const tray = state.trayTiles.map(t => ({ ...t }));
-  if (_currentFly) {
-    insertTrayTileByShape(tray, { id: _currentFly.tile.id, type: _currentFly.type });
-  }
-  return { tray, length: tray.length };
+/** Committed tray plus in-flight fly tile (if any). Matched triples leave committed tray when combine animations start. */
+function getProjectedTrayLive() {
+  const flying = _currentFly ? { id: _currentFly.tile.id, type: _currentFly.type } : null;
+  return getProjectedTray(state.trayTiles, flying);
 }
 
 /** Called when one apply (including its handleMatchingInTrayAnimated) is fully done. Process next or mark idle. */
@@ -487,17 +460,24 @@ function handleBoardTileClick(tileId) {
   }
 
   if (skipAnimationsForTests) {
-    if (state.trayTiles.length >= 7) {
-      triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
+    const pick = applyCommittedPick(
+      { boardTiles: state.boardTiles, trayTiles: state.trayTiles, score: state.score },
+      tileId
+    );
+    if (!pick.ok) {
+      if (pick.error === 'tray_full') {
+        triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
+      }
       return;
     }
     takeSnapshot();
-    const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
-    tile.removed = true;
-    insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
+    state.boardTiles = pick.boardTiles;
+    state.trayTiles = pick.trayTiles;
+    state.score = pick.score;
+    state.stats.tilesClearedTotal += pick.removedTypes.length * 3;
+    saveStats();
     renderBoard(true);
     renderTray();
-    handleMatchingInTray();
     renderHud();
     checkWinCondition();
     return;
@@ -513,12 +493,12 @@ function handleBoardTileClick(tileId) {
   tile = state.boardTiles.find(t => t.id === tileId);
   if (!tile || tile.removed) return;
 
-  const projected = getProjectedTray();
-  if (projected.length >= 7) {
-    if (_combiningTypes.length > 0) {
-      _waitingForRoom.push(tileId);
-      return;
-    }
+  const projected = getProjectedTrayLive();
+  if (shouldQueueWaitForRoom(projected.length, _combiningTypes.length)) {
+    _waitingForRoom.push(tileId);
+    return;
+  }
+  if (shouldTriggerTrayOverflowLoss(projected.length, _combiningTypes.length)) {
     triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
     return;
   }
@@ -526,11 +506,11 @@ function handleBoardTileClick(tileId) {
   takeSnapshot();
 
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
-  const insertIndex = getTrayInsertIndex(tile.type);
+  const insertIndex = getTrayInsertIndexForType(state.trayTiles, tile.type);
 
   function applyMove(onMatchingDone) {
     tile.removed = true;
-    insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
+    state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
     renderBoard(true);
     renderTray();
     handleMatchingInTrayAnimated(() => {
@@ -570,35 +550,12 @@ function handleBoardTileClick(tileId) {
 }
 
 function handleMatchingInTray() {
-  const counts = {};
-  state.trayTiles.forEach(t => {
-    counts[t.type] = (counts[t.type] || 0) + 1;
-  });
-
-  const toRemoveTypes = Object.keys(counts).filter(type => counts[type] >= 3);
-  if (toRemoveTypes.length === 0) {
-    return;
-  }
-
-  toRemoveTypes.forEach(type => {
-    let removedCount = 0;
-    const newTray = [];
-    for (let i = 0; i < state.trayTiles.length; i += 1) {
-      const t = state.trayTiles[i];
-      if (t.type === type && removedCount < 3) {
-        removedCount += 1;
-      } else {
-        newTray.push(t);
-      }
-    }
-    state.trayTiles = newTray;
-
-    const tilesMatched = 3;
-    const baseScore = 10;
-    state.score += baseScore * tilesMatched;
-    state.stats.tilesClearedTotal += tilesMatched;
-    saveStats();
-  });
+  const { trayTiles, scoreDelta, removedTypes } = removeMatchingTriplesOneRound(state.trayTiles);
+  if (removedTypes.length === 0) return;
+  state.trayTiles = trayTiles;
+  state.score += scoreDelta;
+  state.stats.tilesClearedTotal += removedTypes.length * 3;
+  saveStats();
 }
 
 /** Returns types that currently have 3+ in tray (for animation). */
@@ -853,22 +810,14 @@ function handleMatchingInTrayAnimated(onComplete) {
   }
 
   if (skipAnimationsForTests) {
-    matchingTypes.forEach(type => {
-      let removedCount = 0;
-      const newTray = [];
-      for (let i = 0; i < state.trayTiles.length; i += 1) {
-        const t = state.trayTiles[i];
-        if (t.type === type && removedCount < 3) {
-          removedCount += 1;
-        } else {
-          newTray.push(t);
-        }
-      }
-      state.trayTiles = newTray;
-      state.score += 10 * 3;
-      state.stats.tilesClearedTotal += 3;
-      saveStats();
-    });
+    const { trayTiles, scoreDelta, removedTypes } = removeTriplesForTypesSequential(
+      state.trayTiles,
+      matchingTypes
+    );
+    state.trayTiles = trayTiles;
+    state.score += scoreDelta;
+    state.stats.tilesClearedTotal += removedTypes.length * 3;
+    saveStats();
     renderTray();
     onComplete();
     return;
@@ -1274,7 +1223,7 @@ function renderBoard(withSettleAnimation = false) {
 }
 
 function renderTray(forceRebuild = false) {
-  const maxSlots = 7;
+  const maxSlots = TRAY_MAX_TILES;
 
   const canReuse = !forceRebuild && ui.tray.children.length === maxSlots;
   if (canReuse) {
