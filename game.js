@@ -504,6 +504,10 @@ function bindEvents() {
   ui.board.addEventListener('focusin', onBoardFocusIn);
   ui.board.addEventListener('focusout', onBoardFocusOut);
 
+  if (ui.boardScroll) {
+    ui.boardScroll.addEventListener('focusin', onBoardScrollRegionFocusIn);
+  }
+
   ui.tray.addEventListener('click', onTrayClick);
   ui.tray.addEventListener('keydown', onTrayKeydown);
   ui.tray.addEventListener('focusin', onTrayFocusIn);
@@ -983,6 +987,22 @@ function onBoardFocusOut(e) {
   const next = e.relatedTarget;
   if (next && ui.board.contains(next)) return;
   clearBoardKeyboardFocusVisual();
+}
+
+/** `.board-scroll-align` / `#board-scroll` must not hold focus; padding uses pointer-events: none, this catches stragglers. */
+function onBoardScrollRegionFocusIn(e) {
+  if (!ui.boardScroll) return;
+  const t = e.target;
+  if (t !== ui.boardScroll && !t.classList?.contains('board-scroll-align')) return;
+  requestAnimationFrame(() => {
+    if (state.isRemoveTypeMode && ui.tray && ui.tray.tabIndex === 0) {
+      focusElementIfStillMounted(ui.tray);
+      return;
+    }
+    if (ui.board && ui.board.tabIndex === 0) {
+      focusElementIfStillMounted(ui.board);
+    }
+  });
 }
 
 function onBoardClick(e) {

@@ -302,15 +302,14 @@ body {
   align-self: center;
   /* Room for board drop-shadow and tappable hover lift so panning does not clip against the scrollport */
   padding: 12px;
-}
-
-.board-scroll:focus-visible {
-  outline: 2px solid rgb(var(--accent-rgb) / 0.65);
-  outline-offset: 2px;
+  /* Clicks / focus on padding hit #board-scroll underneath; #board re-enables interaction */
+  pointer-events: none;
 }
 
 .board {
   position: relative;
+  /* Restore hit-testing for tiles and board focus (parent .board-scroll-align is pointer-events: none) */
+  pointer-events: auto;
   /* Intrinsic size is set in JS (fit cap × cell floor); fallback for no-JS / first paint. */
   box-sizing: border-box;
   /* Tighter chrome budget than 16.75rem; scrollport-sized cap when container queries run */
