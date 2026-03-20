@@ -118,6 +118,29 @@ function boardTileCenterPx(tile, cellSize) {
   };
 }
 
+/** Shift so tile bounding boxes (axis-aligned squares of side 2*half) are centered in the board. */
+function computeBoardContentOffsetPx(boardW, boardH, cellSize, tiles, halfExtentPx) {
+  const half = halfExtentPx ?? cellSize / 2;
+  if (!tiles.length) return { x: 0, y: 0 };
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const t of tiles) {
+    const { left: cx, top: cy } = boardTileCenterPx(t, cellSize);
+    minX = Math.min(minX, cx - half);
+    maxX = Math.max(maxX, cx + half);
+    minY = Math.min(minY, cy - half);
+    maxY = Math.max(maxY, cy + half);
+  }
+  const bw = maxX - minX;
+  const bh = maxY - minY;
+  return {
+    x: (boardW - bw) / 2 - minX,
+    y: (boardH - bh) / 2 - minY
+  };
+}
+
 function getTileVisual(typeId) {
   if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
     return TILE_TYPES[typeId].emoji;
@@ -675,10 +698,12 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
   const cellSize = boardRect.width / (size + 2);
+  const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
+  const off = computeBoardContentOffsetPx(boardRect.width, boardRect.height, cellSize, layoutFootprint);
   const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
 
-  const tileCenterX = boardRect.left + layeredLeft;
-  const tileCenterY = boardRect.top + layeredTop;
+  const tileCenterX = boardRect.left + layeredLeft + off.x;
+  const tileCenterY = boardRect.top + layeredTop + off.y;
 
   let targetX = flyTargetX;
   let targetY = flyTargetY;
@@ -967,6 +992,11 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
   board.style.width = `${miniSize}px`;
   board.style.height = `${miniSize}px`;
 
+  const miniTilePx = Math.max(6, cellSize * 0.7);
+  const miniHalf = miniTilePx / 2;
+  const tileModels = tiles.map((t) => ({ x: t.x, y: t.y, z: t.z || 0 }));
+  const off = computeBoardContentOffsetPx(miniSize, miniSize, cellSize, tileModels, miniHalf);
+
   tiles.forEach((tile) => {
     const el = document.createElement('div');
     el.className = 'level-select-mini-tile';
@@ -975,10 +1005,10 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
       { x: tile.x, y: tile.y, z: tile.z || 0 },
       cellSize
     );
-    el.style.width = `${Math.max(6, cellSize * 0.7)}px`;
-    el.style.height = `${Math.max(6, cellSize * 0.7)}px`;
-    el.style.left = `${layeredLeft}px`;
-    el.style.top = `${layeredTop}px`;
+    el.style.width = `${miniTilePx}px`;
+    el.style.height = `${miniTilePx}px`;
+    el.style.left = `${layeredLeft + off.x}px`;
+    el.style.top = `${layeredTop + off.y}px`;
     el.style.fontSize = `${Math.max(8, cellSize * 0.5)}px`;
     el.style.zIndex = String(10 + (tile.z || 0));
     board.appendChild(el);
@@ -1201,6 +1231,14 @@ function renderBoard(withSettleAnimation = false) {
     .slice()
     .sort((a, b) => a.z - b.z);
 
+  const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
+  const layoutOffset = computeBoardContentOffsetPx(
+    boardRect.width,
+    boardRect.height,
+    cellSize,
+    layoutFootprint
+  );
+
   const existingById = new Map();
   for (const child of ui.board.children) {
     const id = child.dataset.tileId;
@@ -1222,7 +1260,9 @@ function renderBoard(withSettleAnimation = false) {
     el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
     el.textContent = getTileVisual(tile.type);
     const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
-    el.style.cssText = `left:${layeredLeft}px;top:${layeredTop}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
+    const lx = layeredLeft + layoutOffset.x;
+    const ly = layeredTop + layoutOffset.y;
+    el.style.cssText = `left:${lx}px;top:${ly}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
     orderedElements.push(el);
   }
 
