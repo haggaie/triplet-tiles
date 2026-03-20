@@ -1,4 +1,5 @@
 const { solveLevel, computeForcedRatioK } = require('./solver');
+const forcedLookaheadDefaults = require('./forced-lookahead-defaults');
 const { tileCovers } = require('../../tile-layering.js');
 
 function clamp01(x) {
@@ -269,9 +270,9 @@ function scoreLevel(level, options = {}) {
   const fl = options.forcedLookahead;
   if (fl != null && typeof fl === 'object') {
     const scan = computeForcedRatioK(level, exact.solution, {
-      lookaheadDepth: fl.lookaheadDepth ?? 3,
-      maxMovesPerNode: fl.maxMovesPerNode ?? 8,
-      marginDelta: fl.marginDelta ?? 100
+      lookaheadDepth: fl.lookaheadDepth ?? forcedLookaheadDefaults.lookaheadDepth,
+      maxMovesPerNode: fl.maxMovesPerNode ?? forcedLookaheadDefaults.maxMovesPerNode,
+      marginDelta: fl.marginDelta ?? forcedLookaheadDefaults.marginDelta
     });
     if (scan.ok) {
       forcedExtras.forcedRatioK = scan.forcedRatioK;

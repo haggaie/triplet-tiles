@@ -44,7 +44,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `outFile`: typically `levels.generated.js`.
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
       - `reportFile`: if set (e.g. `levelgen-report.md`), writes a difficulty report with metrics and easy/medium/hard statistics to that path.
-    - `forcedLookahead` (optional): `{ lookaheadDepth, maxMovesPerNode, marginDelta }` enables **`forcedRatioK`** in `scoreLevel` and extra rows in the difficulty report. Omit the key to skip native lookahead work (faster builds).
+    - `forcedLookahead` (optional): use `{}` to enable **`forcedRatioK`** (defaults from [`tools/levelgen/forced-lookahead-defaults.js`](tools/levelgen/forced-lookahead-defaults.js)—edit **`lookaheadDepth` there** for forced-move depth). Override per-field in config if needed. Omit `forcedLookahead` entirely to skip (faster builds). Large depth is expensive.
   - `levels`: array of “batches” describing how to generate groups of levels:
     - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).

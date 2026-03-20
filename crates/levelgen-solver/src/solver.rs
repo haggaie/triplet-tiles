@@ -151,6 +151,10 @@ impl Default for HeuristicOptions {
     }
 }
 
+/// Fallback if N-API omits `lookaheadDepth`. **Keep in sync with**
+/// `tools/levelgen/forced-lookahead-defaults.js` (`lookaheadDepth`).
+pub const DEFAULT_FORCED_LOOKAHEAD_DEPTH: u8 = 7;
+
 /// Soft forcing: count taps with value in [v* - margin_delta, v*]; forced if that count <= 1.
 #[derive(Clone, Debug)]
 pub struct ForcedScanOptions {
@@ -162,7 +166,7 @@ pub struct ForcedScanOptions {
 impl Default for ForcedScanOptions {
     fn default() -> Self {
         Self {
-            lookahead_depth: 3,
+            lookahead_depth: DEFAULT_FORCED_LOOKAHEAD_DEPTH,
             max_moves_per_node: 8,
             margin_delta: 100,
         }

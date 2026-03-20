@@ -11,6 +11,7 @@ const nativePath = path.resolve(
 );
 
 const native = require(nativePath);
+const forcedLookaheadDefaults = require('./forced-lookahead-defaults');
 
 /**
  * @param {object} level - { layout: [...], gridSize?, id? }
@@ -37,17 +38,17 @@ function solveLevel(level, options = {}) {
  * @param {object} level
  * @param {number[]} solution - tile indices from exact solve
  * @param {object} [options]
- * @param {number} [options.lookaheadDepth=3]
- * @param {number} [options.maxMovesPerNode=8]
- * @param {number} [options.marginDelta=100] - soft tie band in eval units
+ * @param {number} [options.lookaheadDepth] - default: forced-lookahead-defaults.js
+ * @param {number} [options.maxMovesPerNode]
+ * @param {number} [options.marginDelta] - soft tie band in eval units
  * @returns {{ ok: boolean, forcedRatioK?: number, forcedStepsK?: number, steps?: number, lookaheadNodes?: number, stepForcedK?: number[], reason?: string }}
  */
 function computeForcedRatioK(level, solution, options = {}) {
   const opts = {
     solution,
-    lookaheadDepth: options.lookaheadDepth ?? 3,
-    maxMovesPerNode: options.maxMovesPerNode ?? 8,
-    marginDelta: options.marginDelta ?? 100
+    lookaheadDepth: options.lookaheadDepth ?? forcedLookaheadDefaults.lookaheadDepth,
+    maxMovesPerNode: options.maxMovesPerNode ?? forcedLookaheadDefaults.maxMovesPerNode,
+    marginDelta: options.marginDelta ?? forcedLookaheadDefaults.marginDelta
   };
   return native.computeForcedRatioK(level, opts);
 }

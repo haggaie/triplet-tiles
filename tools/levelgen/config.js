@@ -28,7 +28,7 @@
  *       - maxZ: number (inclusive)
  *       - overlap: "light" | "medium" | "heavy"
  *       - maxStackPerCell: number
- * - forcedLookahead (optional): { lookaheadDepth?, maxMovesPerNode?, marginDelta? } — native depth-k forced metric for reports
+ * - forcedLookahead (optional): `{}` or partial overrides — depth-k forced metric; defaults from `forced-lookahead-defaults.js`
  * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
  */
 const ALL_TILE_TYPES = [
@@ -52,13 +52,10 @@ module.exports = {
     reportFile: 'levelgen-report.md'
   },
   /**
-   * Optional native depth-k lookahead forced-move metric (`forcedRatioK` in reports). Omit this key to skip (faster generation).
+   * Enable `forcedRatioK` in reports (slower). Depth / branching / margin: edit `forced-lookahead-defaults.js`,
+   * or set fields here to override only what you need (e.g. `{ maxMovesPerNode: 6 }`).
    */
-  forcedLookahead: {
-    lookaheadDepth: 2,
-    maxMovesPerNode: 8,
-    marginDelta: 100
-  },
+  forcedLookahead: {},
   levels: [
     // Easy: regular silhouettes, shallow depth, fewer types.
     {

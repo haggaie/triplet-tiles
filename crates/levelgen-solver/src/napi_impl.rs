@@ -4,7 +4,7 @@ use napi::{CallContext, JsNumber, JsObject, JsUnknown, Result};
 use napi_derive::{js_function, module_exports};
 use crate::solver::{
     forced_ratio_scan, solve, solve_heuristic, ForcedScanOptions, HeuristicOptions, SolveResult,
-    SolveStatus, Tile,
+    SolveStatus, Tile, DEFAULT_FORCED_LOOKAHEAD_DEPTH,
 };
 
 const DEFAULT_MAX_NODES: u32 = 200_000;
@@ -164,7 +164,7 @@ fn compute_forced_ratio_k(ctx: CallContext) -> Result<JsObject> {
         .get_named_property::<JsNumber>("lookaheadDepth")
         .ok()
         .and_then(|n| n.get_uint32().ok())
-        .unwrap_or(3) as u8;
+        .unwrap_or(u32::from(DEFAULT_FORCED_LOOKAHEAD_DEPTH)) as u8;
     let max_moves_per_node = options
         .get_named_property::<JsNumber>("maxMovesPerNode")
         .ok()
