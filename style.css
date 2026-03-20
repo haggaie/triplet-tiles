@@ -43,6 +43,55 @@
   --tile-inset-dark: inset -2px -3px 6px rgb(0 0 0 / 0.28);
   --tile-drop-board: 0 10px 20px rgb(22 14 10 / 0.72);
   --tile-drop-tray: 0 8px 18px rgb(22 14 10 / 0.68);
+
+  /* Phase C: board mat + tray trough (warm, desaturated — family of --wood-shadow) */
+  --board-felt: radial-gradient(
+    ellipse 100% 88% at 50% -8%,
+    rgb(58 50 44) 0%,
+    rgb(38 32 28) 52%,
+    rgb(24 20 17) 100%
+  );
+  --board-felt-inset:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 -6px 18px rgb(0 0 0 / 0.42);
+  --board-guide: rgb(235 213 184 / 0.14);
+  --tray-rail: linear-gradient(
+    175deg,
+    rgb(68 58 48 / 0.98) 0%,
+    rgb(44 37 32 / 0.97) 45%,
+    rgb(26 22 18 / 0.96) 100%
+  );
+  --tray-rail-inset:
+    inset 0 1px 0 rgb(255 255 255 / 0.11),
+    inset 0 -4px 12px rgb(0 0 0 / 0.38);
+  --tray-pocket-face: linear-gradient(145deg, rgb(56 47 40) 0%, rgb(36 30 26) 100%);
+  --tray-pocket-shadow: inset 0 3px 6px rgb(0 0 0 / 0.45);
+
+  /* Phase D: UI chrome (page shell, header, dialogs) — warm brown glass, wood-adjacent */
+  --chrome-bg-page: radial-gradient(
+    circle at top,
+    rgb(52 44 38) 0%,
+    rgb(22 18 15) 45%,
+    rgb(5 4 3) 100%
+  );
+  --chrome-bar-bg: linear-gradient(to right, rgb(36 30 26 / 0.96), rgb(24 20 17 / 0.94));
+  --chrome-bar-border: rgb(235 213 184 / 0.12);
+  --chrome-scrim: rgb(8 6 5 / 0.88);
+  --chrome-panel-bg: linear-gradient(
+    to bottom right,
+    rgb(42 36 30 / 0.98),
+    rgb(26 22 18 / 0.98)
+  );
+  --chrome-panel-edge: var(--wood-edge);
+  --chrome-panel-inset: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --chrome-panel-shadow: 0 24px 60px rgb(6 4 3 / 0.86);
+  --chrome-line: rgb(235 213 184 / 0.16);
+  --chrome-line-soft: rgb(235 213 184 / 0.22);
+  --chrome-ghost-hover: rgb(32 28 24 / 0.88);
+  --btn-ring: 0 0 0 1px rgb(48 38 30 / 0.65);
+  --btn-drop: 0 10px 18px rgb(12 8 6 / 0.6);
+  --btn-drop-hover: 0 14px 28px rgb(10 7 5 / 0.72);
+  --btn-drop-active: 0 8px 14px rgb(12 8 6 / 0.55);
 }
 
 *,
@@ -55,7 +104,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, #1e293b 0, #020617 50%, #000 100%);
+  background: var(--chrome-bg-page);
   color: var(--text);
 }
 
@@ -70,8 +119,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1rem;
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(17, 24, 39, 0.9));
-  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  background: var(--chrome-bar-bg);
+  border-bottom: 1px solid var(--chrome-bar-border);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.2);
   backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
@@ -149,20 +199,29 @@ body {
   font-size: 0.85rem;
   cursor: pointer;
   background: var(--accent);
-  color: #0f172a;
+  color: var(--ink);
   font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6), 0 10px 18px rgba(15, 23, 42, 0.9);
+  box-shadow:
+    var(--btn-ring),
+    var(--btn-drop),
+    inset 0 1px 0 rgb(255 255 255 / 0.35);
   transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease, opacity 0.1s ease;
 }
 
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 1);
+  box-shadow:
+    var(--btn-ring),
+    var(--btn-drop-hover),
+    inset 0 1px 0 rgb(255 255 255 / 0.42);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.9);
+  box-shadow:
+    var(--btn-ring),
+    var(--btn-drop-active),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
 }
 
 .btn:disabled {
@@ -175,11 +234,12 @@ body {
   color: var(--muted);
   border-radius: 999px;
   box-shadow: none;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--chrome-line);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--chrome-ghost-hover);
+  border-color: var(--chrome-line-soft);
 }
 
 .btn-small {
@@ -216,11 +276,12 @@ body {
   aspect-ratio: 1;
   height: auto;
   flex-shrink: 0;
-  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.8));
+  background: var(--board-felt);
   border-radius: 22px;
   box-shadow:
-    0 18px 48px rgba(15, 23, 42, 1),
-    inset 0 0 0 1px rgba(148, 163, 184, 0.4);
+    0 18px 48px rgb(12 8 6 / 0.82),
+    0 0 0 1px var(--wood-edge),
+    var(--board-felt-inset);
   /* Clip tiles and shadows to the rounded playfield; positioning uses insetY so content fits. */
   overflow: hidden;
 }
@@ -230,7 +291,7 @@ body {
   position: absolute;
   inset: 5px;
   border-radius: 17px;
-  border: 1px dashed rgba(148, 163, 184, 0.2);
+  border: 1px dashed var(--board-guide);
   pointer-events: none;
 }
 
@@ -305,12 +366,13 @@ body {
 
 .tray-wrapper {
   width: min(520px, 100vw);
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.4));
+  background: var(--tray-rail);
   border-radius: 999px;
   padding: 0.6rem 1rem 0.8rem;
   box-shadow:
-    0 18px 40px rgba(15, 23, 42, 1),
-    0 0 0 1px rgba(148, 163, 184, 0.3);
+    0 18px 40px rgb(12 8 6 / 0.78),
+    0 0 0 1px var(--wood-edge),
+    var(--tray-rail-inset);
 }
 
 .tray-label {
@@ -326,10 +388,10 @@ body {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.3rem;
   /* Shared empty-slot look: inner fill and ring match .tray-slot-inner inset */
-  --tray-slot-inner-bg: rgba(15, 23, 42, 0.9);
+  --tray-slot-inner-bg: rgb(20 17 14 / 0.94);
   --tray-slot-ring: 6px;
-  --tray-slot-ring-color: rgba(31, 41, 55, 0.9);
-  --tray-slot-highlight: inset 0 1px 0 rgba(248, 250, 252, 0.05);
+  --tray-slot-ring-color: rgb(45 38 32 / 0.96);
+  --tray-slot-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 .tray-making-room .tray-slot-shift-right .tray-slot-inner {
@@ -360,8 +422,11 @@ body {
   z-index: 0;
   border-radius: 999px;
   height: calc(var(--tile-size) + 12px);
-  background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.5), var(--tray-slot-ring-color));
-  box-shadow: var(--tray-slot-highlight);
+  background: var(--tray-pocket-face);
+  box-shadow:
+    var(--tray-slot-highlight),
+    var(--tray-pocket-shadow),
+    0 0 0 1px rgb(0 0 0 / 0.25);
   overflow: visible;
 }
 
@@ -418,7 +483,8 @@ body {
 .overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.96));
+  background: radial-gradient(circle at 50% 0%, rgb(24 20 17 / 0.82), var(--chrome-scrim));
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -430,14 +496,15 @@ body {
 }
 
 .overlay-content {
-  background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.98));
+  background: var(--chrome-panel-bg);
   border-radius: 24px;
   padding: 1.5rem 1.7rem;
   max-width: min(340px, 92vw);
   width: 90vw;
   box-shadow:
-    0 24px 60px rgba(15, 23, 42, 1),
-    0 0 0 1px rgba(148, 163, 184, 0.35);
+    var(--chrome-panel-shadow),
+    0 0 0 1px var(--chrome-panel-edge),
+    var(--chrome-panel-inset);
 }
 
 .overlay-content h2 {
@@ -472,7 +539,7 @@ body {
 .level-select-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.85);
+  background: var(--chrome-scrim);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -485,14 +552,15 @@ body {
 }
 
 .level-select-panel {
-  background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.98));
+  background: var(--chrome-panel-bg);
   border-radius: 24px;
   padding: 1.25rem 1.5rem;
   max-width: 520px;
   width: 92vw;
   box-shadow:
-    0 24px 60px rgba(15, 23, 42, 1),
-    0 0 0 1px rgba(148, 163, 184, 0.35);
+    var(--chrome-panel-shadow),
+    0 0 0 1px var(--chrome-panel-edge),
+    var(--chrome-panel-inset);
 }
 
 .level-select-header {
@@ -537,8 +605,8 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--chrome-line-soft);
+  background: rgb(30 26 22 / 0.95);
   color: var(--text);
   font-size: 1.5rem;
   line-height: 1;
@@ -546,6 +614,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -576,8 +645,8 @@ body {
   gap: 0.35rem;
   padding: 0.5rem;
   border-radius: 12px;
-  border: 2px solid rgba(148, 163, 184, 0.25);
-  background: rgba(2, 6, 23, 0.5);
+  border: 2px solid rgb(235 213 184 / 0.14);
+  background: rgb(24 20 17 / 0.55);
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease,
     transform 0.28s cubic-bezier(0.25, 0.1, 0.25, 1),
@@ -625,8 +694,10 @@ body {
   flex-shrink: 0;
   border-radius: 10px;
   overflow: hidden;
-  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.7));
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+  background: var(--board-felt);
+  box-shadow:
+    inset 0 0 0 1px var(--wood-edge),
+    var(--board-felt-inset);
 }
 
 .level-select-mini-board {

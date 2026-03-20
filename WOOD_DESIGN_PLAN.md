@@ -58,8 +58,8 @@ Ensure **keyboard focus** stays visible: extend `.tile.tappable:focus-visible` w
 
 1. **Phase A — Tokens** — **Done** in [`style.css`](style.css) `:root`: `--wood-*`, `--ink`, `--accent-warm`, `--accent-rgb`, and `--accent` / `--accent-soft` wired to them; interactive glows use `rgb(var(--accent-rgb) / …)`.
 2. **Phase B — Tiles** — **Done** in [`style.css`](style.css): `.tile`, `.tray-tile`, and `.level-select-mini-tile` use `--tile-bg-plank`, `--tile-bg-grain`, bevel shadows (`--tile-inset-*`), and `--ink`; tray match/selectable states preserve depth + accent glow. Animations unchanged ([ANIMATIONS.md](ANIMATIONS.md)).
-3. **Phase C — Board & tray** — Harmonize `.board`, `.board::before`, `.tray-wrapper`, `.tray-slot*` with table/trough language.
-4. **Phase D — Chrome & overlays** — Buttons, `.overlay-content`, top bar so they don’t clash with wood-first scene.
+3. **Phase C — Board & tray** — **Done** in [`style.css`](style.css): `--board-felt*`, `--tray-rail*`, `--tray-pocket*` on `.board`, `.board::before`, `.tray-wrapper`, `.tray` slot tokens, `.tray-slot`; level carousel `.level-select-mini-wrap` matches playfield felt.
+4. **Phase D — Chrome & overlays** — **Done** in [`style.css`](style.css): `--chrome-*` tokens; warm page shell (`body`), `.top-bar`, `.btn` / `.btn-ghost`, `.overlay` / `.overlay-content`, level-select scrim + panel + carousel chrome (`.carousel-nav`, `.level-select-card`).
 5. **Phase E — QA** — Manual + tests in `tests/` (contrast, modals, mobile viewport); tune grain asset weight if added.
 
 ## Success criteria
