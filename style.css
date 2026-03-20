@@ -167,7 +167,8 @@ body {
   box-shadow:
     0 24px 60px rgba(15, 23, 42, 1),
     inset 0 0 0 1px rgba(148, 163, 184, 0.4);
-  overflow: visible;
+  /* Clip tiles and shadows to the rounded playfield; positioning uses insetY so content fits. */
+  overflow: hidden;
 }
 
 .board::before {

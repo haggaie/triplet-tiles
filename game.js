@@ -102,6 +102,22 @@ const STORAGE_KEYS = {
   POWERUPS: 'triplet_tiles_powerups'
 };
 
+/**
+ * Pixel position of a tile's center on the board (before translate(-50%,-50%)).
+ * Odd z shifts the footprint by half a cell along (+x,-y); without a Y inset, y=0 odd-z
+ * tiles would be centered on the top edge and half the tile draws above the frame.
+ */
+function boardTileCenterPx(tile, cellSize) {
+  const frac = TL.layerDiagonalFraction(tile.z);
+  const insetY = 0.5 * cellSize;
+  const baseLeft = (tile.x + 0.5) * cellSize;
+  const baseTop = (tile.y + 0.5) * cellSize;
+  return {
+    left: baseLeft + frac * cellSize,
+    top: baseTop - frac * cellSize + insetY
+  };
+}
+
 function getTileVisual(typeId) {
   if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
     return TILE_TYPES[typeId].emoji;
@@ -143,7 +159,7 @@ const defaultStats = {
 const defaultPowerups = {
   undo: 1,
   shuffle: 1,
-  removeType: 0
+  removeType: 1
 };
 
 const state = {
@@ -366,6 +382,9 @@ function startLevel(index) {
   state.isLevelOver = false;
   state.isRemoveTypeMode = false;
   state.lastSnapshot = null;
+
+  state.powerups = { ...defaultPowerups };
+  savePowerups();
 
   if (ui.board) {
     ui.board.classList.remove('board-win');
@@ -656,11 +675,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
   const cellSize = boardRect.width / (size + 2);
-  const frac = TL.layerDiagonalFraction(tile.z);
-  const baseLeft = (tile.x + 0.5) * cellSize;
-  const baseTop = (tile.y + 0.5) * cellSize;
-  const layeredLeft = baseLeft + frac * cellSize;
-  const layeredTop = baseTop - frac * cellSize;
+  const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
 
   const tileCenterX = boardRect.left + layeredLeft;
   const tileCenterY = boardRect.top + layeredTop;
@@ -956,11 +971,10 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
     const el = document.createElement('div');
     el.className = 'level-select-mini-tile';
     el.textContent = getTileVisual(tile.type);
-    const baseLeft = (tile.x + 0.5) * cellSize;
-    const baseTop = (tile.y + 0.5) * cellSize;
-    const frac = TL.layerDiagonalFraction(tile.z || 0);
-    const layeredLeft = baseLeft + frac * cellSize;
-    const layeredTop = baseTop - frac * cellSize;
+    const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(
+      { x: tile.x, y: tile.y, z: tile.z || 0 },
+      cellSize
+    );
     el.style.width = `${Math.max(6, cellSize * 0.7)}px`;
     el.style.height = `${Math.max(6, cellSize * 0.7)}px`;
     el.style.left = `${layeredLeft}px`;
@@ -1207,11 +1221,7 @@ function renderBoard(withSettleAnimation = false) {
     const tappable = tappableIds.has(tile.id);
     el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
     el.textContent = getTileVisual(tile.type);
-    const baseLeft = (tile.x + 0.5) * cellSize;
-    const baseTop = (tile.y + 0.5) * cellSize;
-    const frac = TL.layerDiagonalFraction(tile.z);
-    const layeredLeft = baseLeft + frac * cellSize;
-    const layeredTop = baseTop - frac * cellSize;
+    const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
     el.style.cssText = `left:${layeredLeft}px;top:${layeredTop}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
     orderedElements.push(el);
   }
