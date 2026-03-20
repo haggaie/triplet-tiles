@@ -32,6 +32,12 @@ npx playwright test --headed
 
 The Playwright configuration in `playwright.config.js` starts a simple static server that serves `index.html` and related assets from the project root before the tests execute.
 
+## Keyboard and focus (manual)
+
+- **Tab order**: Header (Levels, Restart) → score (not focusable) → power-up buttons → **`#board`** (one tab stop for the whole grid) → browser default after main. Tray tiles remain **mouse/touch only** (no tab stops).
+- **Board**: With `#board` focused, **Arrow keys** move the highlight among exposed tiles in **reading order** (row by row: top to bottom, left to right; ties broken by lower `z`). **Enter** or **Space** collects the highlighted tile (same as click). **Shift+Tab** moves backward through the same chrome as Tab.
+- **Screen readers**: Active tile is exposed via `aria-activedescendant` on `#board` while the board has focus.
+
 ## What is covered
 
 - Core tray mechanics, matching rules, and overflow loss behavior (`tests/game-core.spec.js`).

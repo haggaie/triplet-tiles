@@ -144,6 +144,7 @@
 
 - **Input model**
   - Single-tap to select a board tile and send it to tray.
+  - **Keyboard (web)**: Board tiles are **not** individual tab stops. **`#board`** is a single roving-`tabindex` group: **Tab** focuses the board, **arrow keys** move among exposed tiles in **(y, x, z)** order (top-to-bottom, left-to-right, then lower layer), **Enter / Space** collects the active tile. **Tab / Shift+Tab** move through header and power-ups only; tray stays pointer-first unless we add a dedicated mode later.
   - Long-press or dedicated UI (optional later) to show hints or remaining count per tile type.
   - Drag support (optional) for accessibility but not required.
 - **Feedback & clarity**

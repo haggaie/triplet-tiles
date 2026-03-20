@@ -146,14 +146,31 @@ function rootRemToPx(rem) {
   return rem * fs;
 }
 
+/** Matches `.board-scroll-align` horizontal + vertical padding (12px × 2). */
+const BOARD_SCROLL_ALIGN_PAD_PX = 24;
+
 /**
- * Largest square side that fits the “no scroll” cap (matches legacy `.board` CSS):
- * min(448px, 92vw, 100dvh − 16.75rem). innerHeight approximates dynamic viewport for JS.
+ * Largest square side for the “comfortable” cap: min(448px, 92vw, scrollport inner square).
+ * Uses #board-scroll’s box so the fit cap matches the real playfield (not a coarse vh − chrome guess).
+ * Fallback ~matches tightened `.board` CSS (100dvh − ~14.25rem) when scrollport isn’t ready.
  */
 function getBoardFitSquareSidePx() {
   const vw = document.documentElement.clientWidth;
   const vh = window.innerHeight;
-  return Math.max(120, Math.min(448, vw * 0.92, vh - rootRemToPx(16.75)));
+  let cap = Math.min(448, vw * 0.92);
+  const scroll = ui.boardScroll;
+  if (scroll && scroll.clientWidth > 0 && scroll.clientHeight > 0) {
+    const innerW = scroll.clientWidth - BOARD_SCROLL_ALIGN_PAD_PX;
+    const innerH = scroll.clientHeight - BOARD_SCROLL_ALIGN_PAD_PX;
+    if (innerW > 0 && innerH > 0) {
+      cap = Math.min(cap, innerW, innerH);
+    } else {
+      cap = Math.min(cap, vh - rootRemToPx(14.25));
+    }
+  } else {
+    cap = Math.min(cap, vh - rootRemToPx(14.25));
+  }
+  return Math.max(120, cap);
 }
 
 function readBoardCellMinPx() {
@@ -480,15 +497,10 @@ function bindEvents() {
     ui.levelSelectHard.addEventListener('click', () => levelSelectGoToDifficulty('hard'));
   }
 
-  ui.board.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const t = e.target;
-    if (!t?.classList?.contains('tile') || !t.classList.contains('tappable')) return;
-    const id = t.dataset.tileId;
-    if (!id) return;
-    e.preventDefault();
-    handleBoardTileClick(id);
-  });
+  ui.board.addEventListener('click', onBoardClick);
+  ui.board.addEventListener('keydown', onBoardKeydown);
+  ui.board.addEventListener('focusin', onBoardFocusIn);
+  ui.board.addEventListener('focusout', onBoardFocusOut);
 
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -578,6 +590,7 @@ function startLevel(index) {
     z: tile.z,
     removed: false
   }));
+  _boardKeyboardFocusTileId = null;
   state.trayTiles = [];
   state.score = 0;
   state.isLevelOver = false;
@@ -613,6 +626,130 @@ function getTappableTiles(ignoreTileId = null) {
   );
 }
 
+/**
+ * Reading-order list of exposed tiles for keyboard navigation (top-to-bottom, left-to-right, then lower z first).
+ * Matches visual grid order more closely than stacking (z-index) paint order.
+ */
+function getTappableTilesSortedForKeyboard(ignoreTileId = null) {
+  const tap = getTappableTiles(ignoreTileId);
+  return tap.slice().sort((a, b) => {
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.x !== b.x) return a.x - b.x;
+    return a.z - b.z;
+  });
+}
+
+function boardTileActiveDescendantId(tileId) {
+  return `board-tile-${tileId}`;
+}
+
+/** Roving tabindex: one logical focus on #board; this id is the active tile for arrows / Enter. */
+let _boardKeyboardFocusTileId = null;
+
+function ensureBoardKeyboardFocusTileId(ignoreTileId = null) {
+  const sorted = getTappableTilesSortedForKeyboard(ignoreTileId);
+  if (sorted.length === 0) {
+    _boardKeyboardFocusTileId = null;
+    return;
+  }
+  const stillOk =
+    _boardKeyboardFocusTileId && sorted.some(t => t.id === _boardKeyboardFocusTileId);
+  if (!stillOk) {
+    _boardKeyboardFocusTileId = sorted[0].id;
+  }
+}
+
+function syncBoardKeyboardFocusVisual() {
+  if (!ui.board) return;
+  for (const child of ui.board.children) {
+    if (!child.dataset.tileId) continue;
+    const isKb =
+      child.dataset.tileId === _boardKeyboardFocusTileId && child.classList.contains('tappable');
+    child.classList.toggle('tile-keyboard-focus', isKb);
+  }
+  const boardFocused = document.activeElement === ui.board;
+  const activeEl =
+    _boardKeyboardFocusTileId &&
+    ui.board.querySelector(`[data-tile-id="${_boardKeyboardFocusTileId}"]`);
+  const showDesc =
+    boardFocused &&
+    activeEl &&
+    activeEl.classList.contains('tappable') &&
+    activeEl.id;
+  if (showDesc) {
+    ui.board.setAttribute('aria-activedescendant', activeEl.id);
+  } else if (boardFocused) {
+    ui.board.removeAttribute('aria-activedescendant');
+  }
+}
+
+function clearBoardKeyboardFocusVisual() {
+  if (!ui.board) return;
+  ui.board.removeAttribute('aria-activedescendant');
+  for (const child of ui.board.children) {
+    child.classList.remove('tile-keyboard-focus');
+  }
+}
+
+function scrollKeyboardFocusedTileIntoView() {
+  if (!ui.board || !_boardKeyboardFocusTileId) return;
+  const el = ui.board.querySelector(`[data-tile-id="${_boardKeyboardFocusTileId}"]`);
+  el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function onBoardKeydown(e) {
+  if (!ui.board || e.target !== ui.board) return;
+
+  const nextKeys = new Set(['ArrowRight', 'ArrowDown']);
+  const prevKeys = new Set(['ArrowLeft', 'ArrowUp']);
+  if (nextKeys.has(e.key) || prevKeys.has(e.key)) {
+    e.preventDefault();
+    const sorted = getTappableTilesSortedForKeyboard();
+    if (sorted.length === 0) return;
+    ensureBoardKeyboardFocusTileId();
+    let idx = sorted.findIndex(t => t.id === _boardKeyboardFocusTileId);
+    if (idx < 0) idx = 0;
+    const delta = nextKeys.has(e.key) ? 1 : -1;
+    idx = (idx + delta + sorted.length) % sorted.length;
+    _boardKeyboardFocusTileId = sorted[idx].id;
+    syncBoardKeyboardFocusVisual();
+    scrollKeyboardFocusedTileIntoView();
+    return;
+  }
+
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    ensureBoardKeyboardFocusTileId();
+    if (_boardKeyboardFocusTileId) {
+      handleBoardTileClick(_boardKeyboardFocusTileId);
+    }
+  }
+}
+
+function onBoardFocusIn(e) {
+  if (!ui.board || e.target !== ui.board) return;
+  ensureBoardKeyboardFocusTileId();
+  syncBoardKeyboardFocusVisual();
+}
+
+function onBoardFocusOut(e) {
+  if (!ui.board) return;
+  const next = e.relatedTarget;
+  if (next && ui.board.contains(next)) return;
+  clearBoardKeyboardFocusVisual();
+}
+
+function onBoardClick(e) {
+  if (!ui.board) return;
+  const t = e.target.closest('.tile');
+  if (!t || !ui.board.contains(t) || !t.classList.contains('tappable')) return;
+  const id = t.dataset.tileId;
+  if (!id) return;
+  _boardKeyboardFocusTileId = id;
+  syncBoardKeyboardFocusVisual();
+  handleBoardTileClick(id);
+}
+
 /** Updates only tappable/blocked classes on board tiles (e.g. during fly so newly uncovered tiles become clickable). */
 function updateBoardTappableState(ignoreTileId = null) {
   if (!ui.board) return;
@@ -623,7 +760,19 @@ function updateBoardTappableState(ignoreTileId = null) {
     const tappable = tappableIds.has(id);
     const hasSettle = child.classList.contains('tile-settle-in');
     child.className = 'tile' + (hasSettle ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
+    const tile = state.boardTiles.find(t => t.id === id);
+    if (tappable && tile) {
+      child.tabIndex = -1;
+      child.setAttribute('role', 'button');
+      child.setAttribute('aria-label', `${getTileTypeLabel(tile.type)}, exposed tile`);
+    } else {
+      child.tabIndex = -1;
+      child.removeAttribute('role');
+      child.removeAttribute('aria-label');
+    }
   }
+  ensureBoardKeyboardFocusTileId(ignoreTileId);
+  syncBoardKeyboardFocusVisual();
 }
 
 /** Committed tray plus in-flight fly tile (if any). Matched triples leave committed tray when combine animations start. */
@@ -1443,6 +1592,8 @@ function renderBoard(withSettleAnimation = false) {
   document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
+  const boardCanFocus = !state.isLevelOver && tappableIds.size > 0;
+  ui.board.tabIndex = boardCanFocus ? 0 : -1;
 
   const tilesToRender = state.boardTiles
     .filter(tile => !tile.removed)
@@ -1464,20 +1615,19 @@ function renderBoard(withSettleAnimation = false) {
     if (!el) {
       el = document.createElement('div');
       el.dataset.tileId = tile.id;
-      el.addEventListener('click', () => handleBoardTileClick(tile.id));
     } else {
       existingById.delete(tile.id);
     }
 
+    el.id = boardTileActiveDescendantId(tile.id);
     const tappable = tappableIds.has(tile.id);
     el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
     el.textContent = getTileVisual(tile.type);
+    el.tabIndex = -1;
     if (tappable) {
-      el.tabIndex = 0;
       el.setAttribute('role', 'button');
       el.setAttribute('aria-label', `${getTileTypeLabel(tile.type)}, exposed tile`);
     } else {
-      el.tabIndex = -1;
       el.removeAttribute('role');
       el.removeAttribute('aria-label');
     }
@@ -1492,6 +1642,9 @@ function renderBoard(withSettleAnimation = false) {
   for (const el of orderedElements) {
     if (el.parentNode !== ui.board) ui.board.appendChild(el);
   }
+
+  ensureBoardKeyboardFocusTileId();
+  syncBoardKeyboardFocusVisual();
 }
 
 function renderTray(forceRebuild = false) {
