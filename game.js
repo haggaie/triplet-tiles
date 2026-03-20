@@ -153,6 +153,42 @@ function getTileVisual(typeId) {
   return found ? found.emoji : '?';
 }
 
+const scoreFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
+function formatScore(n) {
+  return scoreFormatter.format(Number(n) || 0);
+}
+
+/** Readable tile type for ARIA labels (English id from data). */
+function getTileTypeLabel(typeId) {
+  if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
+    return TILE_TYPES[typeId].id;
+  }
+  if (typeof typeId === 'string' && /^\d+$/.test(typeId)) {
+    return TILE_TYPES[parseInt(typeId, 10)]?.id ?? 'tile';
+  }
+  const found = TILE_TYPES.find(t => t.id === typeId);
+  return found ? found.id : 'tile';
+}
+
+function focusElementIfStillMounted(el) {
+  if (el && typeof el.focus === 'function' && el.isConnected) {
+    try {
+      el.focus({ preventScroll: true });
+    } catch {
+      // Some browsers reject preventScroll in edge cases
+      try {
+        el.focus();
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+let _focusBeforeLevelSelect = null;
+let _focusBeforeGameOverlay = null;
+
 function loadLocal(key, defaultValue) {
   try {
     const raw = window.localStorage.getItem(key);
@@ -364,6 +400,24 @@ function bindEvents() {
   if (ui.levelSelectHard) {
     ui.levelSelectHard.addEventListener('click', () => levelSelectGoToDifficulty('hard'));
   }
+
+  ui.board.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const t = e.target;
+    if (!t?.classList?.contains('tile') || !t.classList.contains('tappable')) return;
+    const id = t.dataset.tileId;
+    if (!id) return;
+    e.preventDefault();
+    handleBoardTileClick(id);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) {
+      e.preventDefault();
+      hideLevelSelect();
+    }
+  });
 }
 
 function takeSnapshot() {
@@ -654,6 +708,20 @@ const TRAY_SHIFT_DURATION_MS = 320;
 const COMBINE_DURATION_MS = 600;
 const TRAY_COMPACT_DURATION_MS = 320;
 
+function prefersReducedMotionUi() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
+
+/** Full animation delay/duration, or ~none when the user prefers reduced motion (see style.css). */
+function motionMs(fullMs) {
+  return prefersReducedMotionUi() ? 0 : fullMs;
+}
+
 function startTrayCompactAnimation(removedSlotIndices) {
   if (!ui.tray || !ui.tray.children.length || removedSlotIndices.length === 0) return;
   const firstRemoved = Math.min(...removedSlotIndices);
@@ -792,7 +860,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
       { transform: 'translate(0, 0) scale(1)', opacity: 1 },
       { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(${endScale})`, opacity: 1 }
     ],
-    { duration: FLY_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+    { duration: motionMs(FLY_DURATION_MS), easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
   );
 
   function finishFly(isSnap) {
@@ -863,7 +931,7 @@ function animateMatchCombine(type, onComplete) {
         { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(1.2)`, opacity: 1 },
         { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(0)`, opacity: 0 }
       ],
-      { duration: COMBINE_DURATION_MS, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+      { duration: motionMs(COMBINE_DURATION_MS), easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
     ).finished;
   });
 
@@ -926,7 +994,7 @@ function handleMatchingInTrayAnimated(onComplete) {
         renderTray(true);
         _combiningTypes = _combiningTypes.filter(t => !matchingTypes.includes(t));
         onComplete();
-      }, TRAY_COMPACT_DURATION_MS);
+      }, motionMs(TRAY_COMPACT_DURATION_MS));
     } else {
       renderTray(true);
       _combiningTypes = _combiningTypes.filter(t => !matchingTypes.includes(t));
@@ -952,10 +1020,12 @@ function triggerWin() {
 
   const level = LEVELS[state.currentLevelIndex];
   ui.overlayTitle.textContent = 'Level Complete';
-  ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${state.score}.`;
+  ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
   ui.overlayPrimary.textContent =
     state.currentLevelIndex < LEVELS.length - 1 ? 'Next Level' : 'Restart from Level 1';
+  _focusBeforeGameOverlay = document.activeElement;
   ui.overlay.classList.remove('hidden');
+  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
 }
 
 function triggerLoss(reason) {
@@ -966,11 +1036,15 @@ function triggerLoss(reason) {
   ui.overlayTitle.textContent = 'Level Failed';
   ui.overlayMessage.textContent = reason || 'The tray overflowed.';
   ui.overlayPrimary.textContent = 'Try Again';
+  _focusBeforeGameOverlay = document.activeElement;
   ui.overlay.classList.remove('hidden');
+  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
 }
 
 function hideOverlay() {
   ui.overlay.classList.add('hidden');
+  focusElementIfStillMounted(_focusBeforeGameOverlay);
+  _focusBeforeGameOverlay = null;
 }
 
 // --- Level selection carousel ---
@@ -1088,9 +1162,21 @@ function buildLevelSelectCarousel(enterDirection = null) {
     diff.textContent = getDifficultyForIndex(i);
     card.appendChild(diff);
 
-    card.addEventListener('click', () => {
+    const pickLevel = () => {
       startLevel(i);
       hideLevelSelect();
+    };
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute(
+      'aria-label',
+      `Level ${level.id}: ${level.name}, ${getDifficultyForIndex(i)} difficulty`
+    );
+    card.addEventListener('click', pickLevel);
+    card.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      pickLevel();
     });
     ui.levelSelectCarousel.appendChild(card);
   }
@@ -1107,6 +1193,7 @@ function buildLevelSelectCarousel(enterDirection = null) {
 }
 
 const CAROUSEL_ANIMATION_MS = 280;
+const CAROUSEL_FALLBACK_MS = CAROUSEL_ANIMATION_MS + 50;
 
 function levelSelectCarouselPrev() {
   if (levelSelectCarouselIndex <= 0) return;
@@ -1129,7 +1216,7 @@ function levelSelectCarouselPrev() {
     }
   };
   carousel.addEventListener('transitionend', onTransitionEnd);
-  setTimeout(onDone, CAROUSEL_ANIMATION_MS + 50);
+  setTimeout(onDone, motionMs(CAROUSEL_FALLBACK_MS));
 }
 
 function levelSelectCarouselNext() {
@@ -1156,7 +1243,7 @@ function levelSelectCarouselNext() {
     }
   };
   carousel.addEventListener('transitionend', onTransitionEnd);
-  setTimeout(onDone, CAROUSEL_ANIMATION_MS + 50);
+  setTimeout(onDone, motionMs(CAROUSEL_FALLBACK_MS));
 }
 
 function levelSelectGoToDifficulty(difficulty) {
@@ -1168,6 +1255,7 @@ function levelSelectGoToDifficulty(difficulty) {
 
 function showLevelSelect() {
   if (!ui.levelSelectOverlay) return;
+  _focusBeforeLevelSelect = document.activeElement;
   ui.levelSelectOverlay.classList.remove('hidden');
   requestAnimationFrame(() => {
     const visibleCount = getLevelSelectVisibleCount();
@@ -1176,11 +1264,14 @@ function showLevelSelect() {
       Math.max(0, LEVELS.length - visibleCount)
     );
     buildLevelSelectCarousel();
+    requestAnimationFrame(() => focusElementIfStillMounted(ui.levelSelectClose));
   });
 }
 
 function hideLevelSelect() {
   if (ui.levelSelectOverlay) ui.levelSelectOverlay.classList.add('hidden');
+  focusElementIfStillMounted(_focusBeforeLevelSelect);
+  _focusBeforeLevelSelect = null;
 }
 
 function highlightTraySelectableTypes() {
@@ -1220,7 +1311,7 @@ function performRemoveType(type) {
 function renderHud() {
   const level = LEVELS[state.currentLevelIndex];
   ui.levelLabel.textContent = `Level ${level.id}: ${level.name}`;
-  ui.scoreValue.textContent = String(state.score);
+  ui.scoreValue.textContent = formatScore(state.score);
   ui.undoCount.textContent = String(state.powerups.undo);
   ui.shuffleCount.textContent = String(state.powerups.shuffle);
   ui.removeTypeCount.textContent = String(state.powerups.removeType);
@@ -1286,6 +1377,15 @@ function renderBoard(withSettleAnimation = false) {
     const tappable = tappableIds.has(tile.id);
     el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
     el.textContent = getTileVisual(tile.type);
+    if (tappable) {
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', `${getTileTypeLabel(tile.type)}, exposed tile`);
+    } else {
+      el.tabIndex = -1;
+      el.removeAttribute('role');
+      el.removeAttribute('aria-label');
+    }
     const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
     const lx = layeredLeft + layoutOffset.x;
     const ly = layeredTop + layoutOffset.y;

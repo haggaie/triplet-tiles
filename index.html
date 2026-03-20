@@ -20,7 +20,7 @@
         <div class="top-bar-right">
           <div class="score-info">
             <span>Score</span>
-            <span id="score-value">0</span>
+            <span id="score-value" aria-live="polite" aria-atomic="true">0</span>
           </div>
         </div>
       </header>
@@ -38,7 +38,7 @@
           </button>
         </div>
         <section class="board-wrapper">
-          <div id="board" class="board"></div>
+          <div id="board" class="board" role="group" aria-label="Game board, match exposed tiles"></div>
         </section>
         <section class="tray-wrapper">
           <div class="tray-label">Tray</div>
@@ -46,7 +46,13 @@
         </section>
       </main>
 
-      <div id="overlay" class="overlay hidden">
+      <div
+        id="overlay"
+        class="overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="overlay-title"
+      >
         <div class="overlay-content">
           <h2 id="overlay-title">Level Complete</h2>
           <p id="overlay-message"></p>
@@ -57,10 +63,16 @@
         </div>
       </div>
 
-      <div id="level-select-overlay" class="level-select-overlay hidden">
+      <div
+        id="level-select-overlay"
+        class="level-select-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="level-select-heading"
+      >
         <div class="level-select-panel">
           <div class="level-select-header">
-            <h2>Choose Level</h2>
+            <h2 id="level-select-heading">Choose Level</h2>
             <button id="level-select-close" class="btn btn-ghost" aria-label="Close">✕</button>
           </div>
           <div class="level-select-difficulty">
