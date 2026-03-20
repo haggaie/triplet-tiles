@@ -65,6 +65,50 @@ function simulateSolutionScore(level, solution) {
   return { score, trayLength: tray.length };
 }
 
+/** First entry in `levels.generated.js` is played at this game level index (after tutorials). */
+const FIRST_GENERATED_GAME_LEVEL_INDEX = 2;
+
+function loadFirstGeneratedLevelSolverExpectations() {
+  const levels = loadGeneratedLevels();
+  expect(levels.length).toBeGreaterThanOrEqual(1);
+  const level = levels[0];
+  const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
+  expect(result.solvable).toBe(true);
+  expect(Array.isArray(result.solution)).toBe(true);
+  expect(result.solution.length).toBeGreaterThan(0);
+  const { score: expectedScore, trayLength: expectedTrayLength } = simulateSolutionScore(level, result.solution);
+  return { result, expectedScore, expectedTrayLength };
+}
+
+function solutionTileIdsForGameLevel(gameLevelIndex, solution) {
+  return solution.map(idx => `t_${gameLevelIndex}_${idx}`);
+}
+
+async function resetAndStartFirstGeneratedLevel(page, { skipAnimations }) {
+  await page.goto('/');
+  await page.waitForSelector('#board');
+  await page.evaluate(skip => {
+    window.__tripletTestHooks.resetAllProgress();
+    window.__tripletTestHooks.setSkipAnimations(skip);
+  }, skipAnimations);
+  await page.waitForSelector('#board .tile');
+  await page.evaluate(idx => {
+    window.__tripletTestHooks.startLevel(idx);
+  }, FIRST_GENERATED_GAME_LEVEL_INDEX);
+  await page.waitForSelector('#board .tile');
+}
+
+async function expectWinOverlayMatchesSolution(page, expectedScore, expectedTrayLength, overlayTimeout) {
+  const visibleOpts = overlayTimeout != null ? { timeout: overlayTimeout } : {};
+  await expect(page.locator('#overlay')).toBeVisible(visibleOpts);
+  await expect(page.locator('#overlay-title')).toHaveText('Level Complete');
+  const actualScore = parseInt(await page.locator('#score-value').textContent(), 10);
+  expect(actualScore).toBe(expectedScore);
+  const state = await page.evaluate(() => window.__tripletTestHooks.getState());
+  expect(state.trayTiles.length).toBe(expectedTrayLength);
+  expect(state.isLevelOver).toBe(true);
+}
+
 async function resetToLevel1(page) {
   await page.goto('/');
   await page.waitForSelector('#board');
@@ -205,33 +249,11 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
   test('clicking through solution during animations keeps state consistent with solution', async ({ page }) => {
     test.setTimeout(50000); // Animations overlap (snap-to-end), so they take 1–2 seconds overall
 
-    const levels = loadGeneratedLevels();
-    expect(levels.length).toBeGreaterThanOrEqual(1);
-    const level = levels[0];
-    const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
-    expect(result.solvable).toBe(true);
-    expect(Array.isArray(result.solution)).toBe(true);
-    expect(result.solution.length).toBeGreaterThan(0);
+    const { result, expectedScore, expectedTrayLength } = loadFirstGeneratedLevelSolverExpectations();
+    await resetAndStartFirstGeneratedLevel(page, { skipAnimations: false });
 
-    const { score: expectedScore, trayLength: expectedTrayLength } = simulateSolutionScore(level, result.solution);
-
-    await page.goto('/');
-    await page.waitForSelector('#board');
-    await page.evaluate(() => {
-      window.__tripletTestHooks.resetAllProgress();
-    });
-    await page.waitForSelector('#board .tile');
-
-    // First generated level is at game level index 2 (0 and 1 are tutorial).
-    const gameLevelIndex = 2;
-    await page.evaluate(idx => {
-      window.__tripletTestHooks.startLevel(idx);
-    }, gameLevelIndex);
-    await page.waitForSelector('#board .tile');
-
-    // Do NOT set skipAnimationsForTests — we want animations on. Click through the full solution
-    // without waiting for animations to finish, to assert that state stays consistent.
-    const solutionTileIds = result.solution.map(idx => `t_${gameLevelIndex}_${idx}`);
+    // Animations on: click through the full solution without waiting for animations to finish.
+    const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
 
     // When solution has at least 2 moves: briefly delay after first click so second click gets queued, then assert queued tile style.
     if (solutionTileIds.length >= 2) {
@@ -262,15 +284,22 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     // Wait for level to complete (win overlay). Each move's animations can be ~1–2s; allow enough time.
     const solutionSteps = result.solution.length;
     const overlayTimeout = Math.max(60000, solutionSteps * 2500);
-    await expect(page.locator('#overlay')).toBeVisible({ timeout: overlayTimeout });
-    await expect(page.locator('#overlay-title')).toHaveText('Level Complete');
+    await expectWinOverlayMatchesSolution(page, expectedScore, expectedTrayLength, overlayTimeout);
+  });
 
-    const actualScore = parseInt(await page.locator('#score-value').textContent(), 10);
-    expect(actualScore).toBe(expectedScore);
+  test('full solver solution with animations skipped completes with matching score', async ({ page }) => {
+    const { result, expectedScore, expectedTrayLength } = loadFirstGeneratedLevelSolverExpectations();
+    await resetAndStartFirstGeneratedLevel(page, { skipAnimations: true });
 
-    const state = await page.evaluate(() => window.__tripletTestHooks.getState());
-    expect(state.trayTiles.length).toBe(expectedTrayLength);
-    expect(state.isLevelOver).toBe(true);
+    const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
+    for (const id of solutionTileIds) {
+      await page.evaluate(tileId => {
+        window.__tripletTestHooks.clickTileById(tileId);
+      }, id);
+      await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
+    }
+
+    await expectWinOverlayMatchesSolution(page, expectedScore, expectedTrayLength);
   });
 
   test('no flicker during tile interaction animations', async ({ page }) => {
