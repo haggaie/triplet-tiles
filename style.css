@@ -92,7 +92,13 @@ body {
 
 .powerups {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
+  align-self: center;
+  width: 100%;
+  max-width: min(448px, 92vw);
+  flex-shrink: 0;
 }
 
 .btn {
@@ -163,7 +169,8 @@ body {
 .board {
   position: relative;
   /* Slightly larger cap + tighter outer margins (main-layout) so phones keep a bigger square. */
-  width: min(448px, 92vw, calc(100dvh - 14rem));
+  /* Reserve header, tray, gaps, and the power-up row above the board */
+  width: min(448px, 92vw, calc(100dvh - 16.75rem));
   max-width: 100%;
   aspect-ratio: 1;
   height: auto;
@@ -633,8 +640,9 @@ body {
     padding: 0.4rem 0.65rem;
   }
 
-  .powerups {
-    display: none;
+  .powerups .btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
   }
 
   .main-layout {
@@ -646,6 +654,13 @@ body {
     width: 100%;
     border-radius: 24px;
     padding: 0.5rem 0.85rem 0.65rem;
+  }
+}
+
+/* Narrow + short: still no room above the board without clipping — match mobile-first clarity */
+@media (max-width: 600px) and (max-height: 560px) {
+  .powerups {
+    display: none;
   }
 }
 

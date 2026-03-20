@@ -22,21 +22,21 @@
             <span>Score</span>
             <span id="score-value">0</span>
           </div>
-          <div class="powerups">
-            <button id="undo-button" class="btn btn-small" title="Undo last move">
-              Undo (<span id="undo-count">0</span>)
-            </button>
-            <button id="shuffle-button" class="btn btn-small" title="Shuffle tray tiles">
-              Shuffle (<span id="shuffle-count">0</span>)
-            </button>
-            <button id="remove-type-button" class="btn btn-small" title="Remove all of one tile type">
-              Remove Type (<span id="remove-type-count">0</span>)
-            </button>
-          </div>
         </div>
       </header>
 
       <main class="main-layout">
+        <div class="powerups" aria-label="Power-ups">
+          <button id="undo-button" class="btn btn-small" title="Undo last move">
+            Undo (<span id="undo-count">0</span>)
+          </button>
+          <button id="shuffle-button" class="btn btn-small" title="Shuffle tray tiles">
+            Shuffle (<span id="shuffle-count">0</span>)
+          </button>
+          <button id="remove-type-button" class="btn btn-small" title="Remove all of one tile type">
+            Remove Type (<span id="remove-type-count">0</span>)
+          </button>
+        </div>
         <section class="board-wrapper">
           <div id="board" class="board"></div>
         </section>
