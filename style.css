@@ -47,16 +47,19 @@
   --tile-drop-tray: 0 8px 18px rgb(22 14 10 / 0.68);
 
   /* Phase C: board mat + tray trough (warm, desaturated — family of --wood-shadow) */
+  /* Felt mid-tones lifted vs --chrome-bg-page; top ellipse slightly cooler for separation without a new hue. */
   --board-felt: radial-gradient(
     ellipse 100% 88% at 50% -8%,
-    rgb(58 50 44) 0%,
-    rgb(38 32 28) 52%,
-    rgb(24 20 17) 100%
+    rgb(72 62 58) 0%,
+    rgb(46 40 36) 52%,
+    rgb(30 26 23) 100%
   );
   --board-felt-inset:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
-    inset 0 -6px 18px rgb(0 0 0 / 0.42);
-  --board-guide: rgb(235 213 184 / 0.14);
+    inset 0 1px 0 rgb(255 255 255 / 0.11),
+    inset 0 -6px 18px rgb(0 0 0 / 0.38);
+  --board-guide: rgb(235 213 184 / 0.24);
+  /* Soft outer ring so the playfield reads as a mat against the page gradient */
+  --board-mat-ambient: 0 0 44px 14px rgb(0 0 0 / 0.28);
   --tray-rail: linear-gradient(
     175deg,
     rgb(68 58 48 / 0.98) 0%,
@@ -308,9 +311,11 @@ body {
   background: var(--board-felt);
   border-radius: 22px;
   box-shadow:
-    0 18px 48px rgb(12 8 6 / 0.82),
+    0 20px 52px rgb(12 8 6 / 0.78),
     0 0 0 1px var(--wood-edge),
-    var(--board-felt-inset);
+    0 0 0 3px rgb(235 213 184 / 0.14),
+    var(--board-felt-inset),
+    var(--board-mat-ambient);
   /* Clip tiles and shadows to the rounded playfield; positioning uses insetY so content fits. */
   overflow: hidden;
 }
@@ -321,6 +326,7 @@ body {
   inset: 5px;
   border-radius: 17px;
   border: 1px dashed var(--board-guide);
+  box-shadow: inset 0 0 0 1px rgb(235 213 184 / 0.06);
   pointer-events: none;
 }
 
