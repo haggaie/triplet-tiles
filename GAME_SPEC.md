@@ -125,7 +125,7 @@
 
 - **In-level power-ups**
   - **Undo Last Move**: Revert last tile placed into the tray.
-  - **Shuffle Tray**: Reorder tiles in the tray optimally (group similar types together).
+  - **Shuffle Board Types**: Randomly permute which icon appears on each **board** tile; grid positions and layering stay the same (tray unchanged).
   - **Remove Tile Type**: Eliminate all tiles of a selected icon from both tray and board.
 - **Acquisition**
   - Granted as level-completion rewards or occasional milestone bonuses.

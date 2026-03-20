@@ -41,45 +41,53 @@ test.describe('Triplet Tiles - Power-ups', () => {
     await expect(page.locator('#undo-button')).toBeDisabled();
   });
 
-  test('shuffle groups identical tiles together without changing counts', async ({ page }) => {
-    // Ensure we have a known tray configuration via test hooks.
+  test('shuffle permutes board tile types without moving positions', async ({ page }) => {
     await page.evaluate(() => {
       const hooks = window.__tripletTestHooks;
-      hooks.setTrayTilesForTest([
-        { type: 'typeA' },
-        { type: 'typeB' },
-        { type: 'typeA' },
-        { type: 'typeB' },
-        { type: 'typeB' }
-      ]);
-      // Ensure we have at least one shuffle charge.
+      let i = 0;
+      const seq = [0.93, 0.11, 0.72, 0.05, 0.61, 0.38, 0.84, 0.22];
+      hooks.setShuffleRandomForTest(() => seq[i++ % seq.length]);
       hooks.setPowerupsForTest({ shuffle: 1 });
     });
 
-    // Before shuffle: record the multiset of types.
-    const beforeTypes = await page.evaluate(() => {
-      return window.__tripletTestHooks.getState().trayTiles.map(t => t.type);
+    const before = await page.evaluate(() => {
+      const state = window.__tripletTestHooks.getState();
+      return state.boardTiles
+        .filter(t => !t.removed)
+        .map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, type: t.type }))
+        .sort((a, b) => a.id.localeCompare(b.id));
     });
 
-    // Click shuffle.
     await page.locator('#shuffle-button').click();
 
-    const afterTypes = await page.evaluate(() => {
-      return window.__tripletTestHooks.getState().trayTiles.map(t => t.type);
+    const after = await page.evaluate(() => {
+      const state = window.__tripletTestHooks.getState();
+      return state.boardTiles
+        .filter(t => !t.removed)
+        .map(t => ({ id: t.id, x: t.x, y: t.y, z: t.z, type: t.type }))
+        .sort((a, b) => a.id.localeCompare(b.id));
     });
 
-    // Type counts should be the same before and after.
-    const count = arr =>
-      arr.reduce((map, t) => {
-        map[t] = (map[t] || 0) + 1;
+    const count = rows =>
+      rows.reduce((map, t) => {
+        map[t.type] = (map[t.type] || 0) + 1;
         return map;
       }, {});
-    expect(count(afterTypes)).toEqual(count(beforeTypes));
+    expect(count(after)).toEqual(count(before));
 
-    // After shuffle, tiles should be grouped by type: the type with 3 occurrences comes first.
-    // Our configuration has typeB 3 times and typeA 2 times.
-    expect(afterTypes.slice(0, 3)).toEqual(['typeB', 'typeB', 'typeB']);
-    expect(afterTypes.slice(3)).toEqual(['typeA', 'typeA']);
+    for (let i = 0; i < before.length; i += 1) {
+      expect(after[i].id).toBe(before[i].id);
+      expect(after[i].x).toBe(before[i].x);
+      expect(after[i].y).toBe(before[i].y);
+      expect(after[i].z).toBe(before[i].z);
+    }
+
+    expect(after.some((t, i) => t.type !== before[i].type)).toBeTruthy();
+
+    const shuffleLeft = await page.locator('#shuffle-count').textContent();
+    expect(Number(shuffleLeft || '0')).toBe(0);
+
+    await page.evaluate(() => window.__tripletTestHooks.setShuffleRandomForTest(null));
   });
 
   test('remove tile type removes that type from both tray and board and decrements charges', async ({ page }) => {

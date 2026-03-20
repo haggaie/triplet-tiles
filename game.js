@@ -204,6 +204,40 @@ let _actionCompleteResolve = null;
 /** When true, tile fly/combine/compact animations are skipped (used only by tests that play a full level). */
 let skipAnimationsForTests = false;
 
+/** Optional `() => number in [0,1)` for deterministic shuffle in tests; otherwise `Math.random`. */
+let _shuffleRandom = null;
+function shuffle01() {
+  const fn = _shuffleRandom;
+  return fn ? fn() : Math.random();
+}
+
+function shuffleArrayInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(shuffle01() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function isShuffleInteractionBlocked() {
+  return (
+    _currentFly != null ||
+    _applyRunning ||
+    _combiningTypes.length > 0 ||
+    _isMoveAnimating
+  );
+}
+
+/** Randomly permutes types among non-removed board tiles; positions and ids unchanged. */
+function shuffleBoardTileTypesInPlace() {
+  const active = state.boardTiles.filter(t => !t.removed);
+  if (active.length < 2) return;
+  const types = active.map(t => t.type);
+  shuffleArrayInPlace(types);
+  active.forEach((t, i) => {
+    t.type = types[i];
+  });
+}
+
 /** Queue of tile IDs to process when a click happens during an ongoing move animation. Ensures moves apply in click order. */
 let _moveQueue = [];
 let _isMoveAnimating = false;
@@ -280,11 +314,17 @@ function bindEvents() {
   });
 
   ui.shuffleButton.addEventListener('click', () => {
-    if (state.powerups.shuffle > 0 && state.trayTiles.length > 1 && !state.isLevelOver) {
-      shuffleTrayOptimally();
+    const onBoard = state.boardTiles.filter(t => !t.removed).length;
+    if (
+      state.powerups.shuffle > 0 &&
+      onBoard >= 2 &&
+      !state.isLevelOver &&
+      !isShuffleInteractionBlocked()
+    ) {
+      shuffleBoardTileTypesInPlace();
       state.powerups.shuffle -= 1;
       savePowerups();
-      renderTray();
+      renderBoard();
       renderHud();
     }
   });
@@ -1143,23 +1183,6 @@ function hideLevelSelect() {
   if (ui.levelSelectOverlay) ui.levelSelectOverlay.classList.add('hidden');
 }
 
-function shuffleTrayOptimally() {
-  const groups = {};
-  state.trayTiles.forEach(tile => {
-    if (!groups[tile.type]) groups[tile.type] = [];
-    groups[tile.type].push(tile);
-  });
-
-  const orderedTypes = Object.keys(groups).sort(
-    (a, b) => groups[b].length - groups[a].length
-  );
-  const newTray = [];
-  orderedTypes.forEach(type => {
-    newTray.push(...groups[type]);
-  });
-  state.trayTiles = newTray;
-}
-
 function highlightTraySelectableTypes() {
   const trayTiles = Array.from(ui.tray.querySelectorAll('.tray-tile'));
   trayTiles.forEach(el => {
@@ -1203,8 +1226,12 @@ function renderHud() {
   ui.removeTypeCount.textContent = String(state.powerups.removeType);
 
   ui.undoButton.disabled = state.powerups.undo <= 0 || !state.lastSnapshot || state.isLevelOver;
+  const boardShuffleable = state.boardTiles.filter(t => !t.removed).length >= 2;
   ui.shuffleButton.disabled =
-    state.powerups.shuffle <= 0 || state.trayTiles.length <= 1 || state.isLevelOver;
+    state.powerups.shuffle <= 0 ||
+    !boardShuffleable ||
+    state.isLevelOver ||
+    isShuffleInteractionBlocked();
   ui.removeTypeButton.disabled = state.powerups.removeType <= 0 || state.isLevelOver;
 }
 
@@ -1358,6 +1385,10 @@ if (typeof window !== 'undefined') {
       state.powerups = { ...state.powerups, ...partialPowerups };
       renderHud();
       savePowerups();
+    },
+    /** `fn` returns a value in [0,1); pass null to use Math.random again. */
+    setShuffleRandomForTest(fn) {
+      _shuffleRandom = typeof fn === 'function' ? fn : null;
     },
     tileCovers: TL.tileCovers,
     /** For E2E / Playwright: internal animation queue state (not game design API). */
