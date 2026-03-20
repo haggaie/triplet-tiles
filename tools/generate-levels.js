@@ -6,6 +6,18 @@ const fs = require('fs');
 const { generateOneLevel, generateOneRandomLevel, mulberry32 } = require('./levelgen/generator');
 const { scoreLevel } = require('./levelgen/score');
 
+function scoreOptionsFromConfig(config, seed) {
+  const o = {
+    maxSolveNodes: 250000,
+    rollouts: 30,
+    rolloutSeed: seed
+  };
+  if (config.forcedLookahead != null && typeof config.forcedLookahead === 'object') {
+    o.forcedLookahead = config.forcedLookahead;
+  }
+  return o;
+}
+
 function main() {
   const projectRoot = path.resolve(__dirname, '..');
   const configPath = path.resolve(projectRoot, 'tools/levelgen/config.js');
@@ -19,6 +31,7 @@ function main() {
   const seed = Number.isFinite(config.seed) ? config.seed : 1;
   const rng = mulberry32(seed);
   let nextId = 1;
+  const scoreOpts = scoreOptionsFromConfig(config, seed);
 
   const useRandomPool = config.generationMode === 'randomPool' && config.pool && Number.isInteger(config.pool.count);
 
@@ -40,11 +53,7 @@ function main() {
         rejected += 1;
         continue;
       }
-      const scoredLevel = scoreLevel(level, {
-        maxSolveNodes: 250000,
-        rollouts: 30,
-        rolloutSeed: seed
-      });
+      const scoredLevel = scoreLevel(level, scoreOpts);
       if (!scoredLevel.solvable) {
         rejected += 1;
         continue;
@@ -94,11 +103,7 @@ function main() {
         const level = generateOneLevel(levelRng, batch, nextId);
         nextId += 1;
 
-        const scoredLevel = scoreLevel(level, {
-          maxSolveNodes: 250000,
-          rollouts: 30,
-          rolloutSeed: seed
-        });
+        const scoredLevel = scoreLevel(level, scoreOpts);
         if (!scoredLevel.solvable) {
           rejected += 1;
           continue;
@@ -232,6 +237,7 @@ function buildDifficultyReport(levels, seed, rejected) {
     const scoreS = stats(m, l => l.difficultyScore);
     const minSlackS = stats(m, l => l._reportMetrics.minSlack);
     const forcedRatioS = stats(m, l => l._reportMetrics.forcedRatio);
+    const forcedRatioKS = stats(m, l => l._reportMetrics.forcedRatioK);
     const failureRateS = stats(m, l => l._reportMetrics.failureRate);
     const avgTappableS = stats(m, l => l._reportMetrics.avgTappable);
     const minTappableS = stats(m, l => l._reportMetrics.minTappable);
@@ -253,6 +259,7 @@ function buildDifficultyReport(levels, seed, rejected) {
     out += `| Difficulty score | ${format(scoreS.min)} | ${format(scoreS.max)} | ${format(scoreS.mean)} |\n`;
     out += `| Min tray slack (7 - tray size) | ${format(minSlackS.min)} | ${format(minSlackS.max)} | ${format(minSlackS.mean)} |\n`;
     out += `| Forced-move ratio | ${format(forcedRatioS.min)} | ${format(forcedRatioS.max)} | ${format(forcedRatioS.mean)} |\n`;
+    out += `| Forced-move ratio (depth-k) | ${format(forcedRatioKS.min)} | ${format(forcedRatioKS.max)} | ${format(forcedRatioKS.mean)} |\n`;
     out += `| Dead-end (rollout) failure rate | ${format(failureRateS.min)} | ${format(failureRateS.max)} | ${format(failureRateS.mean)} |\n`;
     out += `| Avg tappable tiles per step | ${format(avgTappableS.min)} | ${format(avgTappableS.max)} | ${format(avgTappableS.mean)} |\n`;
     out += `| Min tappable tiles (bottleneck) | ${format(minTappableS.min)} | ${format(minTappableS.max)} | ${format(minTappableS.mean)} |\n`;
@@ -303,6 +310,10 @@ function buildDifficultyReport(levels, seed, rejected) {
   );
   md += overallTargetsRow('Min tray slack', formatRangeMean(overallMinSlack));
   md += overallTargetsRow('Mean forced-move ratio', format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean));
+  md += overallTargetsRow(
+    'Mean forced-move ratio (depth-k lookahead)',
+    format(stats(withMetrics, l => l._reportMetrics.forcedRatioK).mean)
+  );
   md += overallTargetsRow('Mean rollout failure rate', format(stats(withMetrics, l => l._reportMetrics.failureRate).mean));
   md += overallTargetsRow('Mean solution steps', format(stats(withMetrics, l => l._reportMetrics.steps).mean));
   md += overallTargetsRow(

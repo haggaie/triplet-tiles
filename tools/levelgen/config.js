@@ -28,6 +28,7 @@
  *       - maxZ: number (inclusive)
  *       - overlap: "light" | "medium" | "heavy"
  *       - maxStackPerCell: number
+ * - forcedLookahead (optional): { lookaheadDepth?, maxMovesPerNode?, marginDelta? } — native depth-k forced metric for reports
  * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
  */
 const ALL_TILE_TYPES = [
@@ -49,6 +50,14 @@ module.exports = {
     includeSolverStats: false,
     /** If set, write a difficulty report (metrics and easy/medium/hard stats) to this path (relative to project root). */
     reportFile: 'levelgen-report.md'
+  },
+  /**
+   * Optional native depth-k lookahead forced-move metric (`forcedRatioK` in reports). Omit this key to skip (faster generation).
+   */
+  forcedLookahead: {
+    lookaheadDepth: 2,
+    maxMovesPerNode: 8,
+    marginDelta: 100
   },
   levels: [
     // Easy: regular silhouettes, shallow depth, fewer types.

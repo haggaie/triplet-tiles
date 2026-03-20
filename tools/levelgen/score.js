@@ -1,4 +1,4 @@
-const { solveLevel } = require('./solver');
+const { solveLevel, computeForcedRatioK } = require('./solver');
 const { tileCovers } = require('../../tile-layering.js');
 
 function clamp01(x) {
@@ -265,6 +265,20 @@ function scoreLevel(level, options = {}) {
   }
 
   const pathMetrics = simulatePathMetrics(level, exact.solution);
+  const forcedExtras = {};
+  const fl = options.forcedLookahead;
+  if (fl != null && typeof fl === 'object') {
+    const scan = computeForcedRatioK(level, exact.solution, {
+      lookaheadDepth: fl.lookaheadDepth ?? 3,
+      maxMovesPerNode: fl.maxMovesPerNode ?? 8,
+      marginDelta: fl.marginDelta ?? 100
+    });
+    if (scan.ok) {
+      forcedExtras.forcedRatioK = scan.forcedRatioK;
+      forcedExtras.forcedStepsK = scan.forcedStepsK;
+      forcedExtras.forcedLookaheadNodes = scan.lookaheadNodes;
+    }
+  }
   const rng = mulberry32((options.rolloutSeed || 9001) ^ (level.id * 2654435761));
   const failureRate = rolloutFailureRate(level, options.rollouts || 30, rng);
 
@@ -291,6 +305,7 @@ function scoreLevel(level, options = {}) {
     difficultyScore,
     metrics: {
       ...pathMetrics,
+      ...forcedExtras,
       failureRate,
       nodesExpanded: exact.stats.nodesExpanded,
       memoSize: exact.stats.memoSize

@@ -5,13 +5,18 @@ edition = "2021"
 description = "Native DFS solver for Triplet Tiles level generator"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["napi"]
+# Use `cargo test --no-default-features` for solver unit tests without Node N-API.
+napi = ["dep:napi", "dep:napi-derive"]
 
 [dependencies]
 bit-set = "0.5"
-napi = "2"
-napi-derive = "2"
 rustc-hash = "1"
+napi = { version = "2", optional = true }
+napi-derive = { version = "2", optional = true }
 
 [build-dependencies]
 napi-build = "2"

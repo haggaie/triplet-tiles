@@ -44,6 +44,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `outFile`: typically `levels.generated.js`.
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
       - `reportFile`: if set (e.g. `levelgen-report.md`), writes a difficulty report with metrics and easy/medium/hard statistics to that path.
+    - `forcedLookahead` (optional): `{ lookaheadDepth, maxMovesPerNode, marginDelta }` enables **`forcedRatioK`** in `scoreLevel` and extra rows in the difficulty report. Omit the key to skip native lookahead work (faster builds).
   - `levels`: array of “batches” describing how to generate groups of levels:
     - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
@@ -92,17 +93,12 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - Returns `{ levels, meta: { seed } }`.
   - **Shapes**: `tools/levelgen/shapes.js` provides silhouette helpers: `getFillOrder`, `shrinkSilhouette`, `pyramidSilhouettes`, `shiftSilhouette`, `getLayerSilhouette`.
 
-- **Solver**: `tools/levelgen/solver.js`
-  - `solveLevel(level, { mode, maxNodes })`:
-    - `mode: 'exact'`:
-      - DFS with memoization over:
-        - Remaining board tiles (`removed` bitset).
-        - Tray state (type counts mod 3, tray size).
-      - Uses the same coverage footprint as `game.js`:
-        - A tile is covered if any higher-`z` tile overlaps it in the MahJong-like footprint.
-      - Returns `{ solvable, status, solution, stats }`.
-    - `mode: 'beam'`:
-      - Beam search / capped best-first for approximate checks (not currently used in the CLI).
+- **Solver**: `tools/levelgen/solver.js` (Rust in `crates/levelgen-solver`, `npm run build:native`)
+  - `solveLevel(level, options)`:
+    - `mode: 'exact'` (default): memoized DFS; returns `{ solvable, status, solution, stats, mode }`. Use this for generation and any correctness-critical checks.
+    - `mode: 'heuristic'`: depth-limited **maximax** with a leaf evaluation (tray slack, tappable count, removal progress), branching capped with `maxMovesPerNode` (top moves by tray heuristic). Greedy replay: each step picks the first tap with best lookahead value to build a path. **Not** a proof of solvability—may fail on solvable levels. Options: `searchDepth` (default 3), `maxMovesPerNode` (8), `maxSteps` (200).
+  - `computeForcedRatioK(level, solution, options)` (native): walks the **exact** solution; at each step scores every tappable first tap with the same lookahead as the heuristic solver (`lookaheadDepth`, `maxMovesPerNode`), then marks a step as **soft forced** when at most one tap falls in the top value band \([v^\* - \texttt{marginDelta}, v^\*]\). Returns `{ ok, forcedRatioK, forcedStepsK, steps, lookaheadNodes, stepForcedK }`. Still an **estimate**, not “unique exact-solvable child.”
+  - Rust tests: `cargo test --no-default-features` in `crates/levelgen-solver` (no Node N-API required).
 
 - **Difficulty scoring**: `tools/levelgen/score.js`
   - `scoreLevel(level, options)`:
@@ -111,8 +107,9 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Extract a solution path (sequence of tile indices).
     - Simulates the solution path to derive:
       - Average and minimum number of tappable tiles (branching factor).
-      - Approximate forced-move ratio (how often only one “safe” move exists).
+      - Approximate forced-move ratio (how often only one “safe” move exists under the immediate tray heuristic).
       - Minimum tray slack (how close tray size gets to overflow).
+    - Optional `options.forcedLookahead`: if set (e.g. from `config.js` → `forcedLookahead`), adds **`forcedRatioK`** and related tallies via `computeForcedRatioK`. **Difficulty score** still uses the original `forcedRatio` weights; `forcedRatioK` is for reporting and tuning.
     - Runs multiple heuristic rollouts from the start state to estimate:
       - Dead-end susceptibility (fraction of runs that fail).
     - Combines metrics into a single `difficultyScore` in roughly \[0,1\):

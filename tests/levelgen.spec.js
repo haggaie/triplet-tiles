@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
-const { solveLevel } = require('../tools/levelgen/solver');
+const { solveLevel, computeForcedRatioK } = require('../tools/levelgen/solver');
 
 function loadGeneratedLevels() {
   const projectRoot = path.resolve(__dirname, '..');
@@ -63,6 +63,49 @@ test.describe('Generated levels', () => {
       const res = solveLevel(lvl, { mode: 'exact', maxNodes: 250000 });
       expect(res.solvable).toBeTruthy();
     }
+  });
+
+  test('heuristic solver wins on a flat triple', async () => {
+    const lvl = {
+      id: 999,
+      gridSize: 3,
+      layout: [
+        { type: 't0', x: 0, y: 0, z: 0 },
+        { type: 't0', x: 1, y: 0, z: 0 },
+        { type: 't0', x: 2, y: 0, z: 0 }
+      ]
+    };
+    const res = solveLevel(lvl, {
+      mode: 'heuristic',
+      searchDepth: 2,
+      maxMovesPerNode: 8,
+      maxSteps: 10
+    });
+    expect(res.solvable).toBeTruthy();
+    expect(res.solution).toHaveLength(3);
+  });
+
+  test('computeForcedRatioK returns bounded ratio for exact path', async () => {
+    const lvl = {
+      id: 998,
+      gridSize: 3,
+      layout: [
+        { type: 't0', x: 0, y: 0, z: 0 },
+        { type: 't0', x: 1, y: 0, z: 0 },
+        { type: 't0', x: 2, y: 0, z: 0 }
+      ]
+    };
+    const ex = solveLevel(lvl, { mode: 'exact', maxNodes: 50000 });
+    expect(ex.solvable).toBeTruthy();
+    const scan = computeForcedRatioK(lvl, ex.solution, {
+      lookaheadDepth: 2,
+      maxMovesPerNode: 8,
+      marginDelta: 100
+    });
+    expect(scan.ok).toBeTruthy();
+    expect(scan.forcedRatioK).toBeGreaterThanOrEqual(0);
+    expect(scan.forcedRatioK).toBeLessThanOrEqual(1);
+    expect(scan.stepForcedK).toHaveLength(ex.solution.length);
   });
 });
 
