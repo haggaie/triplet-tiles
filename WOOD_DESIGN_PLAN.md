@@ -28,7 +28,7 @@ Add or map these in `:root` (alongside existing `--bg`, `--accent`, `--tile-size
 
 ## Tile skeuomorph (recipe)
 
-Applied to `.tile` and `.tray-tile` in `style.css` (shared radius via `--tile-radius`).
+Applied to `.tile` and `.tray-tile` in `style.css` (shared absolute radius via `--tile-corner-radius`, derived from `--tile-size`; tray pocket inner matches).
 
 1. **Plank body** — Replace cool gray radial with a **linear gradient** (e.g. 125–135°): highlight → face → shadow.
 2. **Micro-bevel** — Layer **inset** highlight (top-left) and **inset** shadow (bottom-right) plus existing **outer drop shadow**.

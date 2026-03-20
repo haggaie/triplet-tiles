@@ -24,12 +24,12 @@
   --tile-size: 64px;
   /* Floor for board cell = board width / (gridSize + 2); keeps tiles legible / tappable on wide grids (see GAME_SPEC §4.1). */
   --board-cell-min: 40px;
-  /* Same roundness for board and tray tiles (18/64 ≈ 28.125%) */
-  --tile-radius: 28.125%;
+  /* Rounded-square silhouette: 28.125% of side (18/64). Absolute length tracks JS-updated --tile-size; tray pocket inner matches. */
+  --tile-corner-radius: calc(var(--tile-size) * 0.28125);
   /* Icon size: same on board and tray when tile size matches */
   --tile-icon-size: 1.6rem;
 
-  /* Phase B: wooden tile face (shared by .tile, .tray-tile, mini preview) */
+  /* Phase B: wooden tile face (shared by .tile face, .tray-tile) */
   --tile-bg-plank: linear-gradient(
     132deg,
     var(--wood-highlight) 0%,
@@ -328,7 +328,7 @@ body {
   position: absolute;
   width: var(--tile-size);
   height: var(--tile-size);
-  border-radius: var(--tile-radius);
+  border-radius: var(--tile-corner-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -421,6 +421,8 @@ body {
   --tray-slot-ring: 6px;
   --tray-slot-ring-color: rgb(45 38 32 / 0.96);
   --tray-slot-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  /* Pocket shell slightly rounder than tile (inner opening uses --tile-corner-radius). */
+  --tray-slot-outer-radius: min(999px, calc(var(--tile-corner-radius) + var(--tray-slot-ring)));
 }
 
 .tray-making-room .tray-slot-shift-right .tray-slot-inner {
@@ -449,7 +451,7 @@ body {
 .tray-slot {
   position: relative;
   z-index: 0;
-  border-radius: 999px;
+  border-radius: var(--tray-slot-outer-radius);
   height: calc(var(--tile-size) + 12px);
   background: var(--tray-pocket-face);
   box-shadow:
@@ -462,7 +464,7 @@ body {
 .tray-slot-inner {
   position: absolute;
   inset: var(--tray-slot-ring);
-  border-radius: 999px;
+  border-radius: var(--tile-corner-radius);
   background: var(--tray-slot-inner-bg);
   display: flex;
   align-items: center;
@@ -474,7 +476,7 @@ body {
 .tray-tile {
   width: var(--tile-size);
   height: var(--tile-size);
-  border-radius: var(--tile-radius);
+  border-radius: var(--tile-corner-radius);
   display: flex;
   align-items: center;
   justify-content: center;
