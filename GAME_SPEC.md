@@ -144,7 +144,7 @@
 
 - **Input model**
   - Single-tap to select a board tile and send it to tray.
-  - **Keyboard (web)**: Board tiles are **not** individual tab stops. **`#board`** is a single roving-`tabindex` group: **Tab** focuses the board, **arrow keys** move among exposed tiles in **(y, x, z)** order (top-to-bottom, left-to-right, then lower layer), **Enter / Space** collects the active tile. **Tab / Shift+Tab** move through header and power-ups only; tray stays pointer-first unless we add a dedicated mode later.
+  - **Keyboard (web)**: Board tiles are **not** individual tab stops. **`#board`** is a single roving-`tabindex` group: on **level start**, focus **defaults to the board** (when the level is playable). **Tab** also reaches the board. **Arrow keys** move in **screen space** with **edge wrap** (e.g. **Left** from the leftmost exposed column jumps to the **rightmost** column on the board, with row alignment as tie-breaker; same idea for right/up/down). **Enter / Space** collects the active tile; after a pick, focus updates **immediately** (not after the fly animation) to a tappable **below** the removed tile when possible, otherwise the **nearest** remaining tappable. While **Remove Type** is active, **`#board`** is not tab-focusable; **`#tray`** becomes the roving group (arrow keys among occupied slots left-to-right, **Enter / Space** confirms, **Escape** cancels without spending a charge). **Tab / Shift+Tab** move through header and power-ups, then board or tray depending on mode.
   - Long-press or dedicated UI (optional later) to show hints or remaining count per tile type.
   - Drag support (optional) for accessibility but not required.
 - **Feedback & clarity**

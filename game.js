@@ -102,6 +102,8 @@ const STORAGE_KEYS = {
   POWERUPS: 'triplet_tiles_powerups'
 };
 
+const TRAY_ARIA_LABEL_DEFAULT = 'Tray';
+
 /**
  * Pixel position of a tile's center on the board (before translate(-50%,-50%)).
  * Odd z shifts the footprint by half a cell along (+x,-y); without a Y inset, y=0 odd-z
@@ -502,6 +504,11 @@ function bindEvents() {
   ui.board.addEventListener('focusin', onBoardFocusIn);
   ui.board.addEventListener('focusout', onBoardFocusOut);
 
+  ui.tray.addEventListener('click', onTrayClick);
+  ui.tray.addEventListener('keydown', onTrayKeydown);
+  ui.tray.addEventListener('focusin', onTrayFocusIn);
+  ui.tray.addEventListener('focusout', onTrayFocusOut);
+
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) {
@@ -512,6 +519,13 @@ function bindEvents() {
     if (ui.overlay && !ui.overlay.classList.contains('hidden')) {
       e.preventDefault();
       ui.overlayPrimary?.click();
+      return;
+    }
+    if (state.isRemoveTypeMode) {
+      e.preventDefault();
+      state.isRemoveTypeMode = false;
+      clearRemoveTypeTrayUi();
+      renderBoard();
     }
   });
 }
@@ -533,6 +547,7 @@ function restoreSnapshot() {
   state.isLevelOver = false;
   state.isRemoveTypeMode = false;
   state.lastSnapshot = null;
+  _boardKeyboardPickAnchor = null;
   renderBoard();
   renderTray();
   renderHud();
@@ -591,6 +606,7 @@ function startLevel(index) {
     removed: false
   }));
   _boardKeyboardFocusTileId = null;
+  _boardKeyboardPickAnchor = null;
   state.trayTiles = [];
   state.score = 0;
   state.isLevelOver = false;
@@ -611,6 +627,7 @@ function startLevel(index) {
   renderHud();
   renderBoard();
   renderTray();
+  tryFocusBoardOnLevelStart();
 }
 
 function isTileCovered(tile, ignoreTileId = null) {
@@ -645,6 +662,230 @@ function boardTileActiveDescendantId(tileId) {
 
 /** Roving tabindex: one logical focus on #board; this id is the active tile for arrows / Enter. */
 let _boardKeyboardFocusTileId = null;
+
+/** After a pick, `{ x, y, z }` of the removed tile — used once in the next `renderBoard` to place focus near/below. */
+let _boardKeyboardPickAnchor = null;
+
+/** Remove-type mode: focused tray slot index (left-to-right among occupied slots). */
+let _trayRemoveTypeFocusSlotIndex = -1;
+
+function getBoardKeyboardLayoutMetrics() {
+  const level = LEVELS[state.currentLevelIndex];
+  const { cellSize, sidePx } = measureBoardLayout(level.gridSize);
+  const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
+  const layoutOffset = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
+  return { cellSize, layoutOffset };
+}
+
+function boardTileCenterInBoardSpace(tile, cellSize, layoutOffset) {
+  const { left, top } = boardTileCenterPx(tile, cellSize);
+  return { cx: left + layoutOffset.x, cy: top + layoutOffset.y };
+}
+
+/**
+ * Tappable tiles as if `removeId` were already gone (excluded from covering others).
+ * Used to place keyboard focus immediately when a pick starts animating, before `renderBoard`.
+ */
+function getTappableTilesAsIfTileRemoved(removeId) {
+  return state.boardTiles.filter(tile => {
+    if (tile.removed || tile.id === removeId) return false;
+    return !state.boardTiles.some(
+      other =>
+        other.id !== removeId &&
+        other.id !== tile.id &&
+        !other.removed &&
+        TL.tileCovers(other, tile)
+    );
+  });
+}
+
+/**
+ * Board pixel space (down = +cy).
+ * Forward: nearest tappable in the arrow half-plane.
+ * Wrap: jump to the far edge of the opposite side (e.g. left from column 1 → rightmost column), then row/column alignment, then distance.
+ * Side / fallback: perpendicular band, then nearest.
+ */
+function pickTappableByArrowKey(fromId, key, tappableList, cellSize, layoutOffset) {
+  const vec =
+    key === 'ArrowRight'
+      ? { vx: 1, vy: 0 }
+      : key === 'ArrowLeft'
+        ? { vx: -1, vy: 0 }
+        : key === 'ArrowDown'
+          ? { vx: 0, vy: 1 }
+          : key === 'ArrowUp'
+            ? { vx: 0, vy: -1 }
+            : null;
+  if (!vec || tappableList.length === 0) return null;
+
+  const fromTile =
+    tappableList.find(t => t.id === fromId) ||
+    state.boardTiles.find(t => t.id === fromId && !t.removed);
+  if (!fromTile) return null;
+
+  const { cx: fx, cy: fy } = boardTileCenterInBoardSpace(fromTile, cellSize, layoutOffset);
+  const PLANE_EPS = 2;
+
+  function bestInHalfPlane(pred) {
+    let bestT = null;
+    let bestD = Infinity;
+    for (const t of tappableList) {
+      if (t.id === fromId) continue;
+      const { cx, cy } = boardTileCenterInBoardSpace(t, cellSize, layoutOffset);
+      const wx = cx - fx;
+      const wy = cy - fy;
+      const dot = wx * vec.vx + wy * vec.vy;
+      if (!pred(dot)) continue;
+      const dist2 = wx * wx + wy * wy;
+      if (dist2 < bestD) {
+        bestD = dist2;
+        bestT = t;
+      }
+    }
+    return bestT;
+  }
+
+  const forward = bestInHalfPlane(dot => dot > PLANE_EPS);
+  if (forward) return forward.id;
+
+  const scored = tappableList
+    .filter(t => t.id !== fromId)
+    .map(t => {
+      const { cx, cy } = boardTileCenterInBoardSpace(t, cellSize, layoutOffset);
+      const wx = cx - fx;
+      const wy = cy - fy;
+      const dist2 = wx * wx + wy * wy;
+      return { t, cx, cy, wx, wy, dist2 };
+    });
+
+  function compareRowsFirst(a, b) {
+    const ay = Math.abs(a.cy - fy);
+    const by = Math.abs(b.cy - fy);
+    if (ay !== by) return ay - by;
+    return a.dist2 - b.dist2;
+  }
+
+  function compareColsFirst(a, b) {
+    const ax = Math.abs(a.cx - fx);
+    const bx = Math.abs(b.cx - fx);
+    if (ax !== bx) return ax - bx;
+    return a.dist2 - b.dist2;
+  }
+
+  let wrapCand = null;
+  if (key === 'ArrowLeft') {
+    const cands = scored.filter(s => s.cx > fx + PLANE_EPS);
+    if (cands.length) {
+      cands.sort((a, b) => {
+        if (b.cx !== a.cx) return b.cx - a.cx;
+        return compareRowsFirst(a, b);
+      });
+      wrapCand = cands[0].t;
+    }
+  } else if (key === 'ArrowRight') {
+    const cands = scored.filter(s => s.cx < fx - PLANE_EPS);
+    if (cands.length) {
+      cands.sort((a, b) => {
+        if (a.cx !== b.cx) return a.cx - b.cx;
+        return compareRowsFirst(a, b);
+      });
+      wrapCand = cands[0].t;
+    }
+  } else if (key === 'ArrowUp') {
+    const cands = scored.filter(s => s.cy > fy + PLANE_EPS);
+    if (cands.length) {
+      cands.sort((a, b) => {
+        if (b.cy !== a.cy) return b.cy - a.cy;
+        return compareColsFirst(a, b);
+      });
+      wrapCand = cands[0].t;
+    }
+  } else if (key === 'ArrowDown') {
+    const cands = scored.filter(s => s.cy < fy - PLANE_EPS);
+    if (cands.length) {
+      cands.sort((a, b) => {
+        if (a.cy !== b.cy) return a.cy - b.cy;
+        return compareColsFirst(a, b);
+      });
+      wrapCand = cands[0].t;
+    }
+  }
+  if (wrapCand) return wrapCand.id;
+
+  const side = bestInHalfPlane(dot => Math.abs(dot) <= PLANE_EPS);
+  if (side) return side.id;
+
+  let best = null;
+  let bestDist = Infinity;
+  for (const t of tappableList) {
+    if (t.id === fromId) continue;
+    const { cx, cy } = boardTileCenterInBoardSpace(t, cellSize, layoutOffset);
+    const wx = cx - fx;
+    const wy = cy - fy;
+    const dist2 = wx * wx + wy * wy;
+    if (dist2 < bestDist) {
+      bestDist = dist2;
+      best = t;
+    }
+  }
+  return best ? best.id : null;
+}
+
+/** Prefer tappable tiles visually below the anchor, else nearest by pixel distance. */
+function pickNearestTappableAfterPick(anchor, cellSize, layoutOffset, tappableList) {
+  if (!anchor || tappableList.length === 0) return null;
+  const anchorTile = { x: anchor.x, y: anchor.y, z: anchor.z };
+  const { cx: acx, cy: acy } = boardTileCenterInBoardSpace(anchorTile, cellSize, layoutOffset);
+  const BELOW_EPS = 2;
+
+  const scored = tappableList.map(t => {
+    const { cx, cy } = boardTileCenterInBoardSpace(t, cellSize, layoutOffset);
+    const dist2 = (cx - acx) ** 2 + (cy - acy) ** 2;
+    return { t, cx, cy, dist2, below: cy > acy + BELOW_EPS };
+  });
+
+  const below = scored.filter(s => s.below).sort((a, b) => a.dist2 - b.dist2);
+  if (below.length) return below[0].t.id;
+
+  scored.sort((a, b) => a.dist2 - b.dist2);
+  return scored[0].t.id;
+}
+
+function finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset) {
+  const tappable = getTappableTiles();
+  if (_boardKeyboardPickAnchor && tappable.length > 0) {
+    const pickedId = pickNearestTappableAfterPick(
+      _boardKeyboardPickAnchor,
+      cellSize,
+      layoutOffset,
+      tappable
+    );
+    _boardKeyboardPickAnchor = null;
+    if (pickedId && tappable.some(t => t.id === pickedId)) {
+      _boardKeyboardFocusTileId = pickedId;
+      syncBoardKeyboardFocusVisual();
+      scrollKeyboardFocusedTileIntoView();
+      return;
+    }
+  }
+  _boardKeyboardPickAnchor = null;
+  ensureBoardKeyboardFocusTileId();
+  syncBoardKeyboardFocusVisual();
+}
+
+function tryFocusBoardOnLevelStart() {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!ui.board) return;
+      if (state.isLevelOver || state.isRemoveTypeMode) return;
+      if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) return;
+      if (ui.overlay && !ui.overlay.classList.contains('hidden')) return;
+      if (getTappableTiles().length === 0) return;
+      if (ui.board.tabIndex !== 0) return;
+      ui.board.focus({ preventScroll: true });
+    });
+  });
+}
 
 function ensureBoardKeyboardFocusTileId(ignoreTileId = null) {
   const sorted = getTappableTilesSortedForKeyboard(ignoreTileId);
@@ -700,20 +941,25 @@ function scrollKeyboardFocusedTileIntoView() {
 function onBoardKeydown(e) {
   if (!ui.board || e.target !== ui.board) return;
 
-  const nextKeys = new Set(['ArrowRight', 'ArrowDown']);
-  const prevKeys = new Set(['ArrowLeft', 'ArrowUp']);
-  if (nextKeys.has(e.key) || prevKeys.has(e.key)) {
+  const arrowKeys = new Set(['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']);
+  if (arrowKeys.has(e.key)) {
     e.preventDefault();
-    const sorted = getTappableTilesSortedForKeyboard();
-    if (sorted.length === 0) return;
+    const tappable = getTappableTilesSortedForKeyboard();
+    if (tappable.length === 0) return;
     ensureBoardKeyboardFocusTileId();
-    let idx = sorted.findIndex(t => t.id === _boardKeyboardFocusTileId);
-    if (idx < 0) idx = 0;
-    const delta = nextKeys.has(e.key) ? 1 : -1;
-    idx = (idx + delta + sorted.length) % sorted.length;
-    _boardKeyboardFocusTileId = sorted[idx].id;
-    syncBoardKeyboardFocusVisual();
-    scrollKeyboardFocusedTileIntoView();
+    const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
+    const nextId = pickTappableByArrowKey(
+      _boardKeyboardFocusTileId,
+      e.key,
+      tappable,
+      cellSize,
+      layoutOffset
+    );
+    if (nextId) {
+      _boardKeyboardFocusTileId = nextId;
+      syncBoardKeyboardFocusVisual();
+      scrollKeyboardFocusedTileIntoView();
+    }
     return;
   }
 
@@ -750,6 +996,167 @@ function onBoardClick(e) {
   handleBoardTileClick(id);
 }
 
+function getOccupiedTraySlotIndices() {
+  const out = [];
+  for (let i = 0; i < TRAY_MAX_TILES; i += 1) {
+    if (state.trayTiles[i]) out.push(i);
+  }
+  return out;
+}
+
+function trayPickDomId(slotIndex) {
+  return `tray-pick-slot-${slotIndex}`;
+}
+
+function clearRemoveTypeTrayUi() {
+  if (!ui.tray) return;
+  ui.tray.tabIndex = -1;
+  ui.tray.removeAttribute('aria-activedescendant');
+  ui.tray.setAttribute('aria-label', TRAY_ARIA_LABEL_DEFAULT);
+  for (const slot of ui.tray.children) {
+    const t = slot.querySelector?.('.tray-tile');
+    if (!t) continue;
+    t.classList.remove('selectable-type', 'tray-keyboard-focus');
+    t.removeAttribute('id');
+    t.removeAttribute('role');
+    t.removeAttribute('aria-label');
+    t.tabIndex = -1;
+  }
+  _trayRemoveTypeFocusSlotIndex = -1;
+}
+
+function ensureTrayRemoveTypeFocusSlot() {
+  const occ = getOccupiedTraySlotIndices();
+  if (occ.length === 0) {
+    _trayRemoveTypeFocusSlotIndex = -1;
+    return;
+  }
+  if (_trayRemoveTypeFocusSlotIndex < 0 || !occ.includes(_trayRemoveTypeFocusSlotIndex)) {
+    _trayRemoveTypeFocusSlotIndex = occ[0];
+  }
+}
+
+function syncTrayRemoveTypeVisual() {
+  if (!ui.tray) return;
+  for (const slot of ui.tray.children) {
+    const t = slot.querySelector?.('.tray-tile');
+    if (t) t.classList.remove('tray-keyboard-focus');
+  }
+  const slotEl = ui.tray.children[_trayRemoveTypeFocusSlotIndex];
+  const el = slotEl?.querySelector?.('.tray-tile');
+  const valid =
+    el &&
+    el.classList.contains('selectable-type') &&
+    state.trayTiles[_trayRemoveTypeFocusSlotIndex];
+  if (valid) {
+    el.classList.add('tray-keyboard-focus');
+  }
+  const trayFocused = document.activeElement === ui.tray;
+  if (trayFocused && valid && el.id) {
+    ui.tray.setAttribute('aria-activedescendant', el.id);
+  } else if (trayFocused) {
+    ui.tray.removeAttribute('aria-activedescendant');
+  }
+}
+
+function applyRemoveTypeTrayUi() {
+  if (!ui.tray || !state.isRemoveTypeMode) return;
+  const occ = getOccupiedTraySlotIndices();
+  if (occ.length === 0) {
+    state.isRemoveTypeMode = false;
+    clearRemoveTypeTrayUi();
+    return;
+  }
+  ui.tray.setAttribute(
+    'aria-label',
+    'Choose a tile type to remove from the board and tray. Arrow keys to move, Enter or Space to confirm, Escape to cancel.'
+  );
+  ui.tray.tabIndex = 0;
+  for (let i = 0; i < ui.tray.children.length; i += 1) {
+    const tileEl = ui.tray.children[i].querySelector?.('.tray-tile');
+    const tile = state.trayTiles[i];
+    if (!tileEl || !tile) {
+      if (tileEl) {
+        tileEl.classList.remove('selectable-type', 'tray-keyboard-focus');
+        tileEl.removeAttribute('id');
+        tileEl.removeAttribute('role');
+        tileEl.removeAttribute('aria-label');
+        tileEl.tabIndex = -1;
+      }
+      continue;
+    }
+    tileEl.id = trayPickDomId(i);
+    tileEl.classList.add('selectable-type');
+    tileEl.tabIndex = -1;
+    tileEl.setAttribute('role', 'button');
+    tileEl.setAttribute(
+      'aria-label',
+      `${getTileTypeLabel(tile.type)} in tray — remove this type from board and tray`
+    );
+  }
+  ensureTrayRemoveTypeFocusSlot();
+  syncTrayRemoveTypeVisual();
+}
+
+function onTrayClick(e) {
+  if (!state.isRemoveTypeMode || state.powerups.removeType <= 0) return;
+  const t = e.target.closest('.tray-tile');
+  if (!t || !ui.tray.contains(t) || !t.classList.contains('selectable-type')) return;
+  const slot = t.closest('.tray-slot');
+  if (!slot) return;
+  const slotIndex = Array.from(ui.tray.children).indexOf(slot);
+  if (slotIndex < 0 || !state.trayTiles[slotIndex]) return;
+  _trayRemoveTypeFocusSlotIndex = slotIndex;
+  syncTrayRemoveTypeVisual();
+  performRemoveType(state.trayTiles[slotIndex].type);
+}
+
+function onTrayKeydown(e) {
+  if (!ui.tray || e.target !== ui.tray || !state.isRemoveTypeMode) return;
+  const occ = getOccupiedTraySlotIndices();
+  if (occ.length === 0) return;
+
+  const nextKeys = new Set(['ArrowRight', 'ArrowDown']);
+  const prevKeys = new Set(['ArrowLeft', 'ArrowUp']);
+  if (nextKeys.has(e.key) || prevKeys.has(e.key)) {
+    e.preventDefault();
+    ensureTrayRemoveTypeFocusSlot();
+    let idx = occ.indexOf(_trayRemoveTypeFocusSlotIndex);
+    if (idx < 0) idx = 0;
+    const delta = nextKeys.has(e.key) ? 1 : -1;
+    idx = (idx + delta + occ.length) % occ.length;
+    _trayRemoveTypeFocusSlotIndex = occ[idx];
+    syncTrayRemoveTypeVisual();
+    const inner = ui.tray.children[_trayRemoveTypeFocusSlotIndex]?.querySelector('.tray-tile');
+    inner?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    return;
+  }
+
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    ensureTrayRemoveTypeFocusSlot();
+    const tile = state.trayTiles[_trayRemoveTypeFocusSlotIndex];
+    if (tile) performRemoveType(tile.type);
+  }
+}
+
+function onTrayFocusIn(e) {
+  if (!ui.tray || e.target !== ui.tray || !state.isRemoveTypeMode) return;
+  ensureTrayRemoveTypeFocusSlot();
+  syncTrayRemoveTypeVisual();
+}
+
+function onTrayFocusOut(e) {
+  if (!ui.tray) return;
+  const next = e.relatedTarget;
+  if (next && ui.tray.contains(next)) return;
+  ui.tray.removeAttribute('aria-activedescendant');
+  for (const slot of ui.tray.children) {
+    const t = slot.querySelector?.('.tray-tile');
+    t?.classList.remove('tray-keyboard-focus');
+  }
+}
+
 /** Updates only tappable/blocked classes on board tiles (e.g. during fly so newly uncovered tiles become clickable). */
 function updateBoardTappableState(ignoreTileId = null) {
   if (!ui.board) return;
@@ -771,6 +1178,26 @@ function updateBoardTappableState(ignoreTileId = null) {
       child.removeAttribute('aria-label');
     }
   }
+
+  if (_boardKeyboardPickAnchor != null && ignoreTileId != null) {
+    const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
+    const hypothetical = getTappableTilesAsIfTileRemoved(ignoreTileId);
+    const nextId = pickNearestTappableAfterPick(
+      _boardKeyboardPickAnchor,
+      cellSize,
+      layoutOffset,
+      hypothetical
+    );
+    _boardKeyboardPickAnchor = null;
+    if (nextId && hypothetical.some(t => t.id === nextId)) {
+      _boardKeyboardFocusTileId = nextId;
+    } else {
+      ensureBoardKeyboardFocusTileId(ignoreTileId);
+    }
+    syncBoardKeyboardFocusVisual();
+    return;
+  }
+
   ensureBoardKeyboardFocusTileId(ignoreTileId);
   syncBoardKeyboardFocusVisual();
 }
@@ -839,6 +1266,7 @@ function handleBoardTileClick(tileId) {
       }
       return;
     }
+    _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
     takeSnapshot();
     state.boardTiles = pick.boardTiles;
     state.trayTiles = pick.trayTiles;
@@ -872,6 +1300,7 @@ function handleBoardTileClick(tileId) {
     return;
   }
 
+  _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
   takeSnapshot();
 
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
@@ -1523,23 +1952,24 @@ function hideLevelSelect() {
 }
 
 function highlightTraySelectableTypes() {
-  const trayTiles = Array.from(ui.tray.querySelectorAll('.tray-tile'));
-  trayTiles.forEach(el => {
-    el.classList.add('selectable-type');
-    el.addEventListener(
-      'click',
-      () => {
-        if (!state.isRemoveTypeMode || state.powerups.removeType <= 0) return;
-        const type = el.dataset.type;
-        performRemoveType(type);
-      },
-      { once: true }
-    );
+  const occupied = getOccupiedTraySlotIndices();
+  if (occupied.length === 0) {
+    state.isRemoveTypeMode = false;
+    clearRemoveTypeTrayUi();
+    renderHud();
+    return;
+  }
+  applyRemoveTypeTrayUi();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (state.isRemoveTypeMode && ui.tray) ui.tray.focus();
+    });
   });
 }
 
 function performRemoveType(type) {
   state.isRemoveTypeMode = false;
+  clearRemoveTypeTrayUi();
   state.trayTiles = state.trayTiles.filter(t => t.type !== type);
   state.boardTiles.forEach(tile => {
     if (!tile.removed && tile.type === type) {
@@ -1592,7 +2022,8 @@ function renderBoard(withSettleAnimation = false) {
   document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
-  const boardCanFocus = !state.isLevelOver && tappableIds.size > 0;
+  const boardCanFocus =
+    !state.isLevelOver && tappableIds.size > 0 && !state.isRemoveTypeMode;
   ui.board.tabIndex = boardCanFocus ? 0 : -1;
 
   const tilesToRender = state.boardTiles
@@ -1643,8 +2074,7 @@ function renderBoard(withSettleAnimation = false) {
     if (el.parentNode !== ui.board) ui.board.appendChild(el);
   }
 
-  ensureBoardKeyboardFocusTileId();
-  syncBoardKeyboardFocusVisual();
+  finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
 }
 
 function renderTray(forceRebuild = false) {
@@ -1675,6 +2105,11 @@ function renderTray(forceRebuild = false) {
         existingTileEl.remove();
       }
     }
+    if (state.isRemoveTypeMode) {
+      applyRemoveTypeTrayUi();
+    } else {
+      clearRemoveTypeTrayUi();
+    }
     return;
   }
 
@@ -1687,6 +2122,11 @@ function renderTray(forceRebuild = false) {
     html += `<div class="tray-slot"><div class="tray-slot-inner">${tileContent}</div></div>`;
   }
   ui.tray.innerHTML = html;
+  if (state.isRemoveTypeMode) {
+    applyRemoveTypeTrayUi();
+  } else {
+    clearRemoveTypeTrayUi();
+  }
 }
 
 // Test hooks for automated E2E tests (Playwright)
@@ -1700,6 +2140,20 @@ if (typeof window !== 'undefined') {
     getTappableTiles,
     clickTileById(tileId) {
       handleBoardTileClick(tileId);
+    },
+    getBoardKeyboardFocusTileId() {
+      return _boardKeyboardFocusTileId;
+    },
+    getBoardKeyboardArrowTarget(fromId, key) {
+      const tappable = getTappableTilesSortedForKeyboard();
+      const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
+      return pickTappableByArrowKey(fromId, key, tappable, cellSize, layoutOffset);
+    },
+    getBoardTileCenterBoardPx(tileId) {
+      const tile = state.boardTiles.find(t => t.id === tileId);
+      if (!tile || tile.removed) return null;
+      const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
+      return boardTileCenterInBoardSpace(tile, cellSize, layoutOffset);
     },
     /** Returns a promise that resolves when the current move's animations (fly + any match-3) have finished. */
     waitForActionComplete() {

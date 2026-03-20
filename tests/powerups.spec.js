@@ -142,5 +142,64 @@ test.describe('Triplet Tiles - Power-ups', () => {
     expect(removeTypeCount).toBe(0);
     await expect(page.locator('#remove-type-button')).toBeDisabled();
   });
+
+  test('remove type: tray is focused and keyboard confirms second slot', async ({ page }) => {
+    await page.evaluate(() => {
+      window.__tripletTestHooks.setSkipAnimations(true);
+      window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }, { type: 'flower' }]);
+    });
+
+    await page.locator('#remove-type-button').click();
+    await expect(page.locator('#tray')).toBeFocused();
+
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+
+    const trayTypes = await page.evaluate(() =>
+      window.__tripletTestHooks.getState().trayTiles.map((t) => t.type)
+    );
+    expect(trayTypes).toEqual(['leaf']);
+
+    const removeLeft = await page.locator('#remove-type-count').textContent();
+    expect(Number(removeLeft || '0')).toBe(0);
+  });
+
+  test('remove type: Escape cancels without spending charge', async ({ page }) => {
+    await page.evaluate(() => {
+      window.__tripletTestHooks.setSkipAnimations(true);
+      window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }]);
+    });
+
+    await page.locator('#remove-type-button').click();
+    await expect(page.locator('#tray')).toBeFocused();
+    await page.keyboard.press('Escape');
+
+    const stillOne = await page.evaluate(() => window.__tripletTestHooks.getState().powerups.removeType);
+    expect(stillOne).toBe(1);
+    const inMode = await page.evaluate(() => window.__tripletTestHooks.getState().isRemoveTypeMode);
+    expect(inMode).toBe(false);
+    await expect(page.locator('.tray-tile.selectable-type')).toHaveCount(0);
+  });
+
+  test('remove type mode sets board tabindex -1; Escape restores board focusability', async ({ page }) => {
+    await page.evaluate(() => {
+      window.__tripletTestHooks.setSkipAnimations(true);
+      window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }]);
+    });
+
+    await page.locator('#remove-type-button').click();
+    await expect(page.locator('#tray')).toBeFocused();
+
+    const tabWhileMode = await page.evaluate(() => document.getElementById('board').tabIndex);
+    expect(tabWhileMode).toBe(-1);
+
+    await page.keyboard.press('Escape');
+
+    const tabAfter = await page.evaluate(() => document.getElementById('board').tabIndex);
+    expect(tabAfter).toBe(0);
+  });
 });
 

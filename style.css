@@ -549,6 +549,12 @@ body {
     var(--tile-inset-dark);
 }
 
+/* Remove-type mode: roving focus on #tray */
+#tray:focus-visible .tray-tile.tray-keyboard-focus.selectable-type {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .overlay {
   position: fixed;
   inset: 0;

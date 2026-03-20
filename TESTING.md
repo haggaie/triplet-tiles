@@ -34,14 +34,16 @@ The Playwright configuration in `playwright.config.js` starts a simple static se
 
 ## Keyboard and focus (manual)
 
-- **Tab order**: Header (Levels, Restart) → score (not focusable) → power-up buttons → **`#board`** (one tab stop for the whole grid) → browser default after main. Tray tiles remain **mouse/touch only** (no tab stops).
-- **Board**: With `#board` focused, **Arrow keys** move the highlight among exposed tiles in **reading order** (row by row: top to bottom, left to right; ties broken by lower `z`). **Enter** or **Space** collects the highlighted tile (same as click). **Shift+Tab** moves backward through the same chrome as Tab.
-- **Screen readers**: Active tile is exposed via `aria-activedescendant` on `#board` while the board has focus.
+- **Tab order**: Header (Levels, Restart) → score (not focusable) → power-up buttons → **`#board`** (one tab stop when not in Remove Type mode) → **`#tray`** only after activating **Remove Type** with tiles in the tray (then `#board` is `tabindex="-1"` until the mode ends). Empty slots are skipped.
+- **Board**: When a level loads (and after choosing a level from the carousel), **`#board` is focused automatically** if there are moves to make. **Arrow keys** move in **left / right / up / down** screen directions: first the nearest tappable **in** that direction; if none, **wrap** to the **far edge** of the opposite side (e.g. **Left** from the leftmost column jumps to the **rightmost** column, tie-broken by row alignment); then perpendicular straddles; last resort, nearest tappable. **Enter** or **Space** collects the highlighted tile; after a pick, focus jumps immediately (no need to wait for the fly animation) to a tile **below** the one you took when possible, else the nearest remaining tappable. **Shift+Tab** moves backward through the same chrome as Tab.
+- **Remove Type**: Click **Remove Type** → focus moves to **`#tray`**; **Arrow keys** move among filled slots; **Enter** / **Space** removes that tile’s type from board and tray; **Escape** cancels without using a charge.
+- **Screen readers**: Active tile is exposed via `aria-activedescendant` on `#board` or `#tray` while that region has focus.
 
 ## What is covered
 
 - Core tray mechanics, matching rules, and overflow loss behavior (`tests/game-core.spec.js`).
-- Power-ups: undo, shuffle, and remove tile type, including button enable/disable logic (`tests/powerups.spec.js`).
+- Board keyboard: auto-focus on load, spatial arrow movement, post-pick focus id (`tests/board-keyboard.spec.js`).
+- Power-ups: undo, shuffle, and remove tile type, including button enable/disable logic (`tests/powerups.spec.js`) — plus **Remove Type** tray focus, **arrow + Enter** confirmation, **Escape** cancel, and board `tabIndex` while the mode is active.
 - Level progression, win/loss overlays, and `localStorage`-backed stats and progression (`tests/progression-stats.spec.js`).
 - Mobile layouts: several portrait/landscape viewports, level select overlay, and iPhone-style viewport/UA/DPR (`tests/mobile-viewport.spec.js`) — asserts **no horizontal page overflow**, **tiles fully inside** `#board` (not clipped by `overflow: hidden`), **square playfield** (`width ≈ height`), **full board visible** in the viewport after scroll, and that `#board` / `#tray` stay within the viewport width.
 

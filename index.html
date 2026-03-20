@@ -43,13 +43,18 @@
               id="board"
               class="board"
               role="group"
-              aria-label="Game board, match exposed tiles. Tab to focus the board, arrow keys to move between exposed tiles, Enter or Space to collect."
+              aria-label="Game board, match exposed tiles. Focus moves here when a level starts; arrow keys move in four directions and wrap to the far edge (e.g. left from the first column jumps to the rightmost column); Enter or Space to collect."
             ></div>
           </div>
         </section>
         <section class="tray-wrapper">
           <div class="tray-label">Tray</div>
-          <div id="tray" class="tray"></div>
+          <div
+            id="tray"
+            class="tray"
+            role="group"
+            aria-label="Tray"
+          ></div>
         </section>
       </main>
 
