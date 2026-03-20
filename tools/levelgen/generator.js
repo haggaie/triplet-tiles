@@ -26,6 +26,48 @@ function shuffleInPlace(rng, arr) {
   return arr;
 }
 
+function weightedTripletsToCounts(totalTriplets, weights, tileTypes, options = {}) {
+  if (!Number.isInteger(totalTriplets) || totalTriplets <= 0) {
+    throw new Error(`totalTriplets must be a positive integer (got ${totalTriplets})`);
+  }
+  const wSum = tileTypes.reduce((sum, t) => sum + (weights[t] || 0), 0);
+  if (wSum <= 0) throw new Error('weights must sum to > 0');
+
+  const minTripletsPerType = Number.isInteger(options.minTripletsPerType) ? options.minTripletsPerType : 0;
+  const minNeeded = minTripletsPerType * tileTypes.length;
+  if (minNeeded > totalTriplets) {
+    throw new Error(`minTripletsPerType=${minTripletsPerType} is too high for totalTriplets=${totalTriplets}`);
+  }
+
+  const triplets = {};
+  tileTypes.forEach(t => {
+    triplets[t] = minTripletsPerType;
+  });
+
+  let allocated = 0;
+  const distributableTriplets = totalTriplets - minNeeded;
+  tileTypes.forEach(t => {
+    const w = weights[t] || 0;
+    const n = Math.floor((w / wSum) * distributableTriplets);
+    triplets[t] += n;
+    allocated += n;
+  });
+
+  const remaining = distributableTriplets - allocated;
+  const ordered = tileTypes
+    .slice()
+    .sort((a, b) => (weights[b] || 0) - (weights[a] || 0));
+  for (let i = 0; i < remaining; i += 1) {
+    triplets[ordered[i % ordered.length]] += 1;
+  }
+
+  const counts = {};
+  tileTypes.forEach(t => {
+    counts[t] = triplets[t] * 3;
+  });
+  return counts;
+}
+
 function distributionToCounts(distribution, tileTypes) {
   if (!distribution || typeof distribution !== 'object') {
     throw new Error('distribution is required');
@@ -47,42 +89,29 @@ function distributionToCounts(distribution, tileTypes) {
   }
 
   if (distribution.mode === 'weightedTriplets') {
-    const totalTriplets = distribution.totalTriplets;
-    if (!Number.isInteger(totalTriplets) || totalTriplets <= 0) {
-      throw new Error(`totalTriplets must be a positive integer (got ${totalTriplets})`);
-    }
     const weights = distribution.weights || {};
-    const wSum = tileTypes.reduce((sum, t) => sum + (weights[t] || 0), 0);
-    if (wSum <= 0) throw new Error('weights must sum to > 0');
+    return weightedTripletsToCounts(distribution.totalTriplets, weights, tileTypes);
+  }
 
-    // Allocate triplets then convert to tile counts.
-    const triplets = {};
-    tileTypes.forEach(t => {
-      triplets[t] = 0;
-    });
-
-    // Initial proportional allocation.
-    let allocated = 0;
-    tileTypes.forEach(t => {
-      const w = weights[t] || 0;
-      const n = Math.floor((w / wSum) * totalTriplets);
-      triplets[t] = n;
-      allocated += n;
-    });
-    // Distribute remaining triplets by highest weight.
-    const remaining = totalTriplets - allocated;
-    const ordered = tileTypes
-      .slice()
-      .sort((a, b) => (weights[b] || 0) - (weights[a] || 0));
-    for (let i = 0; i < remaining; i += 1) {
-      triplets[ordered[i % ordered.length]] += 1;
+  if (distribution.mode === 'zipf') {
+    const totalTriplets = distribution.totalTriplets;
+    const exponent = typeof distribution.exponent === 'number' ? distribution.exponent : 1;
+    if (!Number.isFinite(exponent) || exponent < 0) {
+      throw new Error(`zipf.exponent must be a finite number >= 0 (got ${distribution.exponent})`);
     }
-
-    const counts = {};
-    tileTypes.forEach(t => {
-      counts[t] = triplets[t] * 3;
+    const order = Array.isArray(distribution.order) && distribution.order.length > 0
+      ? distribution.order
+      : tileTypes;
+    const rankWeights = {};
+    order.forEach((t, idx) => {
+      if (!tileTypes.includes(t)) return;
+      rankWeights[t] = 1 / ((idx + 1) ** exponent);
     });
-    return counts;
+    tileTypes.forEach(t => {
+      if (rankWeights[t] == null) rankWeights[t] = 1e-9;
+    });
+    const minTripletsPerType = totalTriplets >= tileTypes.length ? 1 : 0;
+    return weightedTripletsToCounts(totalTriplets, rankWeights, tileTypes, { minTripletsPerType });
   }
 
   throw new Error(`Unknown distribution mode "${distribution.mode}"`);
@@ -307,7 +336,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   const layerCellsByIndex = [];
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     layerCellsByIndex.push(
-      getLayerSilhouette(templateCells, gridSize, shapeStrategy, layerIdx, shapeOpts)
+      getLayerSilhouette(templateCells, gridSize, shapeStrategy, layerIdx, shapeOpts, rng)
     );
   }
 
@@ -500,18 +529,20 @@ function generateLevelsFromConfig(config) {
 }
 
 const DEFAULT_POOL_PARAM_RANGES = {
-  templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter'],
-  gridSizes: [11, 13, 15],
-  numTypesMin: 4,
+  templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter', 'circle', 'triangle', 'hexagon', 'cross', 'ring', 't', 'u'],
+  gridSizes: [7, 8, 9, 10],
+  numTypesMin: 6,
   numTypesMax: 12,
   totalTripletsMin: 15,
-  totalTripletsMax: 40,
-  maxZMin: 2,
-  maxZMax: 3,
-  overlaps: ['light', 'medium', 'heavy'],
-  layerShapes: ['full', 'pyramid', 'shift'],
+  totalTripletsMax: 45,
+  maxZMin: 3,
+  maxZMax: 9,
+  overlaps: ['medium', 'heavy'],
+  layerShapes: ['full', 'pyramid', 'shift', 'randomErosion'],
   maxStackPerCellMin: 3,
-  maxStackPerCellMax: 4
+  maxStackPerCellMax: 6,
+  zipfExponentMin: 0.3,
+  zipfExponentMax: 2
 };
 
 function sampleTemplateParams(templateId, gridSize, rng) {
@@ -529,6 +560,20 @@ function sampleTemplateParams(templateId, gridSize, rng) {
       return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
     case 'spiral':
       return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+    case 'circle':
+      return { radius: 3 + Math.floor(rng() * 3) };
+    case 'triangle':
+      return { radius: 3 + Math.floor(rng() * 3) };
+    case 'hexagon':
+      return { radius: 3 + Math.floor(rng() * 2) };
+    case 'cross':
+      return { radius: 3 + Math.floor(rng() * 3), thickness: 1 + Math.floor(rng() * 3) };
+    case 'ring':
+      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+    case 't':
+      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+    case 'u':
+      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
     case 'letter':
       return {
         letter: rng() < 0.5 ? 'S' : 'C',
@@ -566,14 +611,16 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const tripletsMax = Math.min(50, ranges.totalTripletsMax ?? 40);
   const totalTriplets = tripletsMin + Math.floor(rng() * (tripletsMax - tripletsMin + 1));
 
-  const weights = {};
-  tileTypes.forEach(t => {
-    weights[t] = 0.5 + rng();
-  });
+  const zipfExponentMin = ranges.zipfExponentMin ?? 0.3;
+  const zipfExponentMax = ranges.zipfExponentMax ?? 2.0;
+  const exponent = zipfExponentMin + (rng() * (zipfExponentMax - zipfExponentMin));
+  const order = tileTypes.slice();
+  shuffleInPlace(rng, order);
   const distribution = {
-    mode: 'weightedTriplets',
+    mode: 'zipf',
     totalTriplets,
-    weights
+    exponent,
+    order
   };
 
   const maxZMin = Math.max(1, ranges.maxZMin ?? 2);
@@ -591,7 +638,12 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
     overlap,
     maxStackPerCell,
     full: true,
-    layerShape
+    layerShape,
+    layerShapeOptions: {
+      erosionRate: 0.15 + rng() * 0.2,
+      minCellFraction: 0.08 + rng() * 0.1,
+      allowShift: rng() < 0.65
+    }
   };
 
   try {

@@ -1,6 +1,6 @@
 ## Level Generation & Difficulty Pipeline
 
-This document describes how the Triplet Tiles level generator and solver work, how to use them, and how a future Zipf-based tile distribution mode could fit in.
+This document describes how the Triplet Tiles level generator and solver work, how to use them, and how the current scheme is tuned.
 
 ---
 
@@ -20,6 +20,17 @@ This document describes how the Triplet Tiles level generator and solver work, h
 
 All of this runs at **build time**. At runtime, the game simply loads `levels.generated.js` and plays those levels.
 
+### Level configuration
+
+| Metric | Target range | Current generation target |
+| --- | --- | --- |
+| Grid size | 7-10 | 7-10 |
+| Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ |
+| Layers/depth | 4-10 (most levels) | 4-10 |
+| Tile type count | mostly 12 | 7-12 with medium/hard at 12 |
+| Difficulty score | ~0.34-0.76 | intentionally pushed upward via deeper stacks and tighter slack constraints |
+| Min tray slack | mostly 1 | medium/hard batches require solver minSlack <= 1 |
+
 ---
 
 ### 2. Data flow & files
@@ -34,7 +45,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
       - `reportFile`: if set (e.g. `levelgen-report.md`), writes a difficulty report with metrics and easy/medium/hard statistics to that path.
   - `levels`: array of “batches” describing how to generate groups of levels:
-    - `templateId`: name of a shape template (`heart`, `spiral`, `letter`, `rectangle`, `diamond`).
+    - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
     - `gridSize`: board size used by the template (odd values like 11, 13, 15 recommended).
     - `count`: how many levels to generate for this batch.
@@ -45,8 +56,10 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `overlap`: `'light' | 'medium' | 'heavy'` (bias towards reusing stacks).
       - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)` (one per z); auto-raised if needed so the silhouette can hold all tiles.
       - `full`: if `true`, **every layer** is filled **in a deterministic row-by-row order** so each layer’s silhouette is clean and complete (see **Fill and layer-shape strategies** below).
-      - `layerShape`: `'full' | 'pyramid' | 'shift'` — how upper layers derive their silhouette from the base (default `'full'`).
-      - `layerShapeOptions`: optional `{ shiftDx?, shiftDy? }` for `layerShape: 'shift'` (per-layer delta; default 1, 0).
+      - `layerShape`: `'full' | 'pyramid' | 'shift' | 'randomErosion'` — how upper layers derive their silhouette from the base (default `'full'`).
+      - `layerShapeOptions`: optional strategy params:
+        - for `shift`: `{ shiftDx?, shiftDy? }` (per-layer delta; default 1, 0).
+        - for `randomErosion`: `{ erosionRate?, minCellFraction?, allowShift? }`.
     - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
 
 - **Templates**: `tools/levelgen/templates.js`
@@ -54,6 +67,13 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - Implemented templates:
     - `rectangle`: dense rectangle centred on the grid.
     - `diamond`: Manhattan-distance diamond (`|dx| + |dy| <= radius`).
+    - `circle`: Euclidean disk (`dx^2 + dy^2 <= radius^2`).
+    - `triangle`: regular grid triangle pointing upward.
+    - `hexagon`: compact hexagonal silhouette.
+    - `cross`: plus/cross bars (`radius`, `thickness`).
+    - `ring`: donut-like outer/inner circle (`radius`, `thickness`).
+    - `t`: regular T-shaped glyph.
+    - `u`: regular U-shaped glyph.
     - `heart`: implicit heart curve, then dilated by `thickness`.
     - `spiral`: simple spiral path, then dilated by `thickness`.
     - `letter`: crude glyphs for `S` and `C` (strokes), plus a fallback to a shrunk diamond for other letters.
@@ -65,7 +85,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Builds a tray-feasible pick sequence of tile types (simulated tray with auto-triplets).
       - Converts the sequence into a multi-layer layout over the template silhouette:
         - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, **every layer** is filled in deterministic row-by-row order so each layer’s silhouette is fully and cleanly filled; tile counts per layer respect each layer’s cell capacity.
-        - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index.
+        - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index; `'randomErosion'` = connected edge-erosion per layer with optional small random shifts.
         - Overlap density is controlled via `overlap` + `maxStackPerCell`.
         - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
@@ -167,9 +187,9 @@ The **number of tile types** in a level strongly affects difficulty: more types 
 
 So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "many types" dimension. The tray holds 7 tiles, so with up to 12 types you still avoid the "7 singletons = instant loss" case. To raise difficulty for medium/hard, use **more types** in those batches (e.g. all 12) and combine with more triplets, heavier overlap, and/or more layers.
 
-#### 3.4. Zipf-based distribution (future design)
+#### 3.4. Zipf-based distribution
 
-We can add a third mode, `zipf`, to approximate a **Zipf law** over tile types:
+`zipf` mode approximates a **Zipf law** over tile types:
 
 - **Rationale**:
   - Many natural distributions have a “few very common, many rare” pattern.
@@ -180,7 +200,7 @@ We can add a third mode, `zipf`, to approximate a **Zipf law** over tile types:
     - Almost uniform distributions (easy, lots of alternatives).
     - Strongly skewed distributions (harder, more trap potential).
 
-- **Proposed API**:
+- **API**:
 
 ```js
 distribution: {
@@ -191,7 +211,7 @@ distribution: {
 }
 ```
 
-- **Behavior** (conceptual):
+- **Behavior**:
   - Let `order` define the rank of each tile type:
     - Type at index `k` (1-based) gets ideal weight:
       - `w_k = 1 / k^exponent`.
@@ -211,7 +231,7 @@ distribution: {
     - Increases risk of tray deadlocks late in the level if the player mishandles rare tiles.
   - You can safely experiment with different exponents per batch and rely on the solver + difficulty scoring to reject unsolvable levels and properly rank difficulty.
 
-This mode can be implemented by adding a `zipf` branch in `distributionToCounts` that computes weights as described above, then defers to the same rounding strategy used by `weightedTriplets`.
+Implementation detail: `distributionToCounts` computes Zipf weights from `exponent` and `order`, then delegates to the same integer triplet allocation logic used by `weightedTriplets`.
 
 ---
 
@@ -278,6 +298,7 @@ npx playwright test
   - **`'full'`**: Every layer uses the same silhouette as the base; all layers are fully filled in order.
   - **`'pyramid'`**: Layer 0 = full silhouette; layer 1 = silhouette **shrunk by one tile** (only cells that have all four cardinal neighbors in the set); layer 2 = shrunk again; etc. Each layer is fully filled in order, producing a pyramid-like stack.
   - **`'shift'`**: Layer 0 = base; layer *k* = base shifted by `(k * shiftDx, k * shiftDy)` (default `shiftDx: 1`, `shiftDy: 0`). Each layer is fully filled in order. Configure via `layerShapeOptions: { shiftDx, shiftDy }`.
+  - **`'randomErosion'`**: Layer 0 = base; each higher layer removes a fraction of current edge cells while preserving connectivity, then optionally shifts by `[-1, 1]` in x/y. Configure with `layerShapeOptions: { erosionRate, minCellFraction, allowShift }`.
 
 **Trade-offs:** Fill + pyramid/shift improves **recognizability** and a clean stack; the fixed coverage graph can **increase solver reject rate** for some levels, so you may need to generate more candidates per batch or relax constraints. Tile count must be compatible with layer capacities (e.g. with pyramid, upper layers have fewer cells; the generator partitions tiles accordingly and throws if total capacity is exceeded).
 
@@ -288,9 +309,9 @@ npx playwright test
     - Tile distributions (explicit/weighted/Zipf).
     - Layering (depth, overlap).
   - Use `tests/levelgen.spec.js` and/or additional tooling to inspect solver metrics and difficulty distribution across levels.
-- **Implement Zipf mode**:
-  - Add a `zipf` branch to `distributionToCounts` in `generator.js` as sketched in section 3.3.
-  - Experiment with different exponents and orders per batch.
+- **Tune Zipf mode**:
+  - Use lower exponents (`~0.3-0.7`) for easier, more uniform mixes.
+  - Use higher exponents (`~1.0-1.6`) for stronger common-vs-rare skew and higher tray pressure.
 
 The solver and difficulty metrics are designed so you can safely push on shape, layering, and distribution, then let the pipeline filter out unsuitable levels and rank the rest automatically.
 
