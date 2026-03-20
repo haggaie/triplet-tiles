@@ -41,6 +41,9 @@
     rgb(0 0 0 / 0) 0 6px,
     var(--wood-grain) 6px 6.5px
   );
+  /* Seamless neutral grain (assets/wood-grain-noise.webp); regenerate: npm run generate:grain */
+  --tile-bg-noise: url('assets/wood-grain-noise.webp');
+  --tile-noise-tile-size: 64px;
   --tile-inset-light: inset 1px 1px 3px rgb(255 255 255 / 0.38);
   --tile-inset-dark: inset -2px -3px 6px rgb(0 0 0 / 0.28);
   --tile-drop-board: 0 10px 20px rgb(22 14 10 / 0.72);
@@ -346,6 +349,16 @@ body {
   pointer-events: none;
 }
 
+/* Plank + seamless noise + line grain (top). Noise uses soft-light so mid-gray stays neutral on wood. */
+.tile,
+.tray-tile,
+.level-select-mini-tile {
+  background-image: var(--tile-bg-grain), var(--tile-bg-noise), var(--tile-bg-plank);
+  background-size: auto, var(--tile-noise-tile-size) var(--tile-noise-tile-size), auto;
+  background-repeat: repeat, repeat, no-repeat;
+  background-blend-mode: normal, soft-light, normal;
+}
+
 .tile {
   position: absolute;
   width: var(--tile-size);
@@ -356,7 +369,6 @@ body {
   justify-content: center;
   font-size: var(--tile-icon-size);
   cursor: pointer;
-  background: var(--tile-bg-grain), var(--tile-bg-plank);
   color: var(--ink);
   box-shadow:
     var(--tile-drop-board),
@@ -518,7 +530,6 @@ body {
   align-items: center;
   justify-content: center;
   font-size: var(--tile-icon-size);
-  background: var(--tile-bg-grain), var(--tile-bg-plank);
   color: var(--ink);
   box-shadow:
     var(--tile-drop-tray),
@@ -785,7 +796,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--tile-bg-grain), var(--tile-bg-plank);
   color: var(--ink);
   box-shadow:
     0 2px 6px rgb(22 14 10 / 0.55),

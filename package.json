@@ -8,10 +8,12 @@
     "tile-layering.js",
     "style.css",
     "levels.generated.js",
+    "assets/wood-grain-noise.webp",
     "lib/game-model.js",
     "lib/package.json"
   ],
   "scripts": {
+    "generate:grain": "node scripts/generate-grain-texture.js",
     "build:native": "node scripts/build-native.js",
     "build": "npm run build:native && node tools/generate-levels.js",
     "prepare": "npm run build",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "sharp": "^0.34.5"
   }
 }

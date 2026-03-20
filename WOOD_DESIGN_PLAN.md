@@ -32,7 +32,7 @@ Applied to `.tile` and `.tray-tile` in `style.css` (shared absolute radius via `
 
 1. **Plank body** — Replace cool gray radial with a **linear gradient** (e.g. 125–135°): highlight → face → shadow.
 2. **Micro-bevel** — Layer **inset** highlight (top-left) and **inset** shadow (bottom-right) plus existing **outer drop shadow**.
-3. **Grain** — Phase 1: `repeating-linear-gradient` for faint “ring” lines. Phase 2 (optional): one **seamless** grain or noise image at low opacity as `background-image`.
+3. **Grain** — Phase 1: `repeating-linear-gradient` for faint “ring” lines. Phase 2: **`assets/wood-grain-noise.webp`** (256×256 seamless, neutral mid-gray noise) layered with `soft-light` under the lines; regenerate with `npm run generate:grain`.
 4. **Per-type variation (optional)** — Small hue/lightness nudges to `--wood-face` per type (via `data-type` / class) without new saturated colors.
 
 ## Surrounding surfaces
