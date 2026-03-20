@@ -84,9 +84,9 @@
     - Fewer alternative paths; mistakes more often require restart or power-up use.
 
 - **Can we generate levels algorithmically? Yes.**
-  - **Approach A — constructive (guaranteed-solvable) generator**
-    - Generate a **tray-feasible pick sequence** of length \(N\) (where \(N\) is total tiles), with tile types assigned in triples and with the constraint that the tray never exceeds 7 during the simulated sequence.
-    - Build the board **in reverse pick order** (last-picked placed first), placing each earlier-picked tile so it is not covered by any later-picked tile. Earlier-picked tiles may be placed above later-picked ones, creating the intended unlocking dependencies.
+  - **Approach A — constructive layout from a type sequence**
+    - Assign tile types from a **random shuffle** of the multiset (counts are multiples of 3). There is **no** simulated tray when building this sequence — order is not constrained to be pick-feasible.
+    - Map that sequence onto the 3D grid using layer silhouettes and fill/stack rules (`generator.js`), then **reject** candidates that fail the exact solver (batch mode retries per level until constraints pass).
     - Tune difficulty by controlling:
       - Layer count and max depth,
       - Overlap density / dependency depth,

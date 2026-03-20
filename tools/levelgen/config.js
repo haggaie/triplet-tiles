@@ -64,7 +64,6 @@ module.exports = {
       gridSize: 7,
       count: 3,
       tileTypes: ALL_TILE_TYPES.slice(0, 7),
-      sequenceConstraints: { requireMinSlackAtMost: 3 },
       solverConstraints: { requireMinSlackAtMost: 3 },
       distribution: { mode: 'zipf', totalTriplets: 12, exponent: 0.4 },
       layering: { minZ: 0, maxZ: 3, overlap: 'medium', maxStackPerCell: 3, full: true, layerShape: 'pyramid' }
@@ -75,7 +74,6 @@ module.exports = {
       gridSize: 8,
       count: 2,
       tileTypes: ALL_TILE_TYPES.slice(0, 8),
-      sequenceConstraints: { requireMinSlackAtMost: 3 },
       solverConstraints: { requireMinSlackAtMost: 3 },
       distribution: { mode: 'zipf', totalTriplets: 18, exponent: 0.5 },
       layering: { minZ: 0, maxZ: 3, overlap: 'medium', maxStackPerCell: 3, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.16, minCellFraction: 0.18, allowShift: false } }
@@ -87,7 +85,6 @@ module.exports = {
       gridSize: 9,
       count: 3,
       tileTypes: ALL_TILE_TYPES.slice(0, 10),
-      sequenceConstraints: { requireMinSlackAtMost: 2, targetSlackBand: [1, 3], maxSlackRunLength: 30 },
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 24, exponent: 0.8 },
       layering: { minZ: 0, maxZ: 5, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true } }
@@ -98,7 +95,6 @@ module.exports = {
       gridSize: 9,
       count: 3,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 2, targetSlackBand: [1, 3], maxSlackRunLength: 26 },
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 27, exponent: 0.9 },
       layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.2, minCellFraction: 0.1, allowShift: true } }
@@ -109,7 +105,6 @@ module.exports = {
       gridSize: 9,
       count: 2,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 3], maxSlackRunLength: 24 },
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 28, exponent: 1.0 },
       layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 1 } }
@@ -122,7 +117,6 @@ module.exports = {
       count: 3,
       maxGenerateAttempts: 2800,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 2], maxSlackRunLength: 20, maxAttempts: 220 },
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 30, exponent: 1.15 },
       layering: { minZ: 0, maxZ: 7, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.22, minCellFraction: 0.08, allowShift: true } }
@@ -134,7 +128,6 @@ module.exports = {
       count: 3,
       maxGenerateAttempts: 3000,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 2], maxSlackRunLength: 18, maxAttempts: 240 },
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 34, exponent: 1.25 },
       layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.24, minCellFraction: 0.08, allowShift: true } }
@@ -146,7 +139,6 @@ module.exports = {
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 2], maxSlackRunLength: 16, maxAttempts: 260 },
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
       distribution: { mode: 'zipf', totalTriplets: 36, exponent: 1.35 },
       layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.26, minCellFraction: 0.08, allowShift: true } }
@@ -158,7 +150,6 @@ module.exports = {
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 2], maxSlackRunLength: 16, maxAttempts: 260 },
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
       distribution: { mode: 'zipf', totalTriplets: 38, exponent: 1.45 },
       layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 0 }, interleavePlacement: true }
@@ -170,7 +161,6 @@ module.exports = {
       count: 2,
       maxGenerateAttempts: 3400,
       tileTypes: ALL_TILE_TYPES,
-      sequenceConstraints: { requireMinSlackAtMost: 1, targetSlackBand: [1, 2], maxSlackRunLength: 14, maxAttempts: 280 },
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
       distribution: { mode: 'zipf', totalTriplets: 40, exponent: 1.55 },
       layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.28, minCellFraction: 0.07, allowShift: true }, interleavePlacement: true }

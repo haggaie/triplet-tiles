@@ -13,7 +13,7 @@ This document describes how the Triplet Tiles level generator and solver work, h
   - Are roughly ordered from easiest to hardest using spec-aligned difficulty metrics.
 - **Key pieces**:
   - Shape templates → 2D silhouettes (`templates.js`).
-  - Generator → builds tray-feasible pick sequences and turns them into 3D layouts (`generator.js`).
+  - Generator → shuffles tile types (uniform multiset permutation) and turns them into 3D layouts (`generator.js`); solvability is enforced by the solver during generation, not by sequence construction.
   - Solver → validates solvability using the same rules as `game.js` (`solver.js`).
   - Scoring → turns solver-derived metrics into a single difficulty score (`score.js`).
   - CLI → runs the whole pipeline and writes `levels.generated.js` (`generate-levels.js`).
@@ -83,7 +83,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - `generateLevelsFromConfig(config)`:
     - For each batch:
       - Converts `distribution` → exact tile counts per type (always multiples of 3).
-      - Builds a tray-feasible pick sequence of tile types (simulated tray with auto-triplets).
+      - Shuffles those types into a single sequence (**no** tray-feasibility or slack shaping).
       - Converts the sequence into a multi-layer layout over the template silhouette:
         - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, **every layer** is filled in deterministic row-by-row order so each layer’s silhouette is fully and cleanly filled; tile counts per layer respect each layer’s cell capacity.
         - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index; `'randomErosion'` = connected edge-erosion per layer with optional small random shifts.
@@ -145,7 +145,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `window.__TRIPLET_GENERATED_LEVELS__` if available.
     - Otherwise, a small built-in `FALLBACK_LEVELS` array.
 
-- **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. Each candidate is built with **random pick** sequence mode (tray-feasible but not greedy), so layouts tend to be less “solved-friendly” and the difficulty spread is wider. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
+- **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. Tile-type order is the same **uniform shuffle** as in batch mode. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
 
 ---
 

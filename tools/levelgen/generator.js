@@ -117,163 +117,21 @@ function distributionToCounts(distribution, tileTypes) {
   throw new Error(`Unknown distribution mode "${distribution.mode}"`);
 }
 
-function buildTypeSequence(rng, countsByType, options = {}) {
-  // Create an explicit multiset list of tile types.
+/**
+ * Random permutation of tile types from `countsByType` (uniform multiset shuffle).
+ * No tray-feasibility or difficulty shaping — solvability is left to generate-then-validate.
+ * @param {object} [_options] Ignored; kept for backward-compatible call sites.
+ */
+function buildTypeSequence(rng, countsByType, _options = {}) {
   const bag = [];
   Object.entries(countsByType).forEach(([type, count]) => {
     for (let i = 0; i < count; i += 1) bag.push(type);
   });
+  if (bag.length === 0) {
+    throw new Error('buildTypeSequence: empty tile counts');
+  }
   shuffleInPlace(rng, bag);
-
-  // Produce a tray-feasible pick sequence using a greedy heuristic:
-  // - Prefer picks that complete a triplet in the tray.
-  // - Otherwise prefer types already in tray (to avoid too many distinct singles).
-  // - Never allow tray size > 7.
-  const seq = [];
-  const trayCounts = {};
-  let traySize = 0;
-  let minSlack = 7;
-  const requireMinSlackAtMost = Number.isInteger(options.requireMinSlackAtMost)
-    ? options.requireMinSlackAtMost
-    : null;
-  const targetSlackBand = Array.isArray(options.targetSlackBand) && options.targetSlackBand.length >= 2
-    ? { lo: options.targetSlackBand[0], hi: options.targetSlackBand[1] }
-    : null;
-  const maxSlackRunLength = Number.isInteger(options.maxSlackRunLength) && options.maxSlackRunLength > 0
-    ? options.maxSlackRunLength
-    : null;
-  const rejectLongHighSlackRun = options.rejectLongHighSlackRun === true;
-  if (requireMinSlackAtMost !== null && (requireMinSlackAtMost < 0 || requireMinSlackAtMost > 7)) {
-    throw new Error(`requireMinSlackAtMost must be in [0..7] (got ${requireMinSlackAtMost})`);
-  }
-
-  /** Consecutive picks where slack (7 - traySize) stayed above target band hi. */
-  let runLengthHighSlack = 0;
-
-  function trayAdd(type) {
-    trayCounts[type] = (trayCounts[type] || 0) + 1;
-    traySize += 1;
-    if (trayCounts[type] >= 3) {
-      trayCounts[type] -= 3;
-      traySize -= 3;
-    }
-    minSlack = Math.min(minSlack, 7 - traySize);
-    const slack = 7 - traySize;
-    if (targetSlackBand && maxSlackRunLength != null) {
-      if (slack > targetSlackBand.hi) {
-        runLengthHighSlack += 1;
-        if (rejectLongHighSlackRun && runLengthHighSlack > maxSlackRunLength) {
-          throw new Error(
-            `slack stayed above ${targetSlackBand.hi} for more than ${maxSlackRunLength} consecutive picks`
-          );
-        }
-      } else {
-        runLengthHighSlack = 0;
-      }
-    }
-  }
-
-  const pickMode = options.pickMode === 'random' ? 'random' : 'greedy';
-
-  while (bag.length > 0) {
-    if (traySize > 7) {
-      throw new Error('internal error: tray overflow in sequence builder');
-    }
-
-    // Candidate selection: sample K items from bag, then pick by score or at random.
-    const K = Math.min(20, bag.length);
-    const slackNow = 7 - traySize;
-    const wantMorePressure = targetSlackBand && slackNow > targetSlackBand.hi &&
-      (maxSlackRunLength == null || runLengthHighSlack >= Math.max(0, maxSlackRunLength - 2));
-
-    let pickIdx;
-    if (pickMode === 'random') {
-      // Collect K candidate indices; keep only those that wouldn't overflow the tray.
-      const candidateIndices = [];
-      const seenIdx = new Set();
-      for (let s = 0; s < K; s += 1) {
-        const idx = Math.floor(rng() * bag.length);
-        if (seenIdx.has(idx)) continue;
-        seenIdx.add(idx);
-        const type = bag[idx];
-        const inTray = trayCounts[type] || 0;
-        if (traySize < 7 || inTray === 2) candidateIndices.push(idx);
-      }
-      if (candidateIndices.length > 0) {
-        pickIdx = candidateIndices[Math.floor(rng() * candidateIndices.length)];
-      } else {
-        // Tray full; must pick a type that completes a triplet (same fallback as below).
-        pickIdx = bag.findIndex(t => (trayCounts[t] || 0) === 2);
-        if (pickIdx < 0) {
-          throw new Error('internal error: tray overflow in sequence builder');
-        }
-      }
-    } else {
-      let bestScore = -Infinity;
-      pickIdx = 0;
-      for (let s = 0; s < K; s += 1) {
-        const idx = Math.floor(rng() * bag.length);
-        const type = bag[idx];
-        const inTray = trayCounts[type] || 0;
-
-        // Score higher if it completes a match or extends an existing pair.
-        let score = 0;
-        if (inTray === 2) score += 100; // completes triplet
-        if (inTray === 1) score += 20;
-        if (inTray === 0) score -= 5;
-
-        // Sequence shaping: when slack is above band and we've had a long high-slack run, bias toward adding pressure.
-        if (wantMorePressure) {
-          if (inTray === 2) score -= 40; // prefer not to clear tray yet
-          if (inTray === 1 || inTray === 0) score += 15; // prefer adding to tray
-        }
-
-        // Penalize adding a new type when tray is tight.
-        const distinct = Object.keys(trayCounts).filter(t => trayCounts[t] > 0).length;
-        if (inTray === 0 && traySize >= 5) score -= 20;
-        if (distinct >= 6 && inTray === 0) score -= 50;
-
-        // Soft random tie-break.
-        score += rng();
-
-        if (score > bestScore) {
-          bestScore = score;
-          pickIdx = idx;
-        }
-      }
-    }
-
-    const chosen = bag.splice(pickIdx, 1)[0];
-    // Ensure we never exceed tray capacity (should be true by construction unless bag is pathological).
-    if (traySize >= 7 && (trayCounts[chosen] || 0) < 2) {
-      // Try to find any type in bag that would immediately clear a triplet.
-      const altIdx = bag.findIndex(t => (trayCounts[t] || 0) === 2);
-      if (altIdx >= 0) {
-        bag.push(chosen);
-        const chosenAlt = bag.splice(altIdx, 1)[0];
-        seq.push(chosenAlt);
-        trayAdd(chosenAlt);
-        continue;
-      }
-    }
-
-    seq.push(chosen);
-    trayAdd(chosen);
-  }
-
-  if (traySize > 0) {
-    // If we end with leftovers, the bag/distribution is still valid (multiples of 3),
-    // so this indicates a weakness in greedy ordering. Shuffle and retry should fix it.
-    throw new Error('failed to build tray-feasible pick sequence (non-empty tray at end)');
-  }
-
-  if (requireMinSlackAtMost !== null && minSlack > requireMinSlackAtMost) {
-    throw new Error(
-      `failed to hit required tray tightness (minSlack=${minSlack}, requireMinSlackAtMost=${requireMinSlackAtMost})`
-    );
-  }
-
-  return seq;
+  return bag;
 }
 
 function overlapBias(overlap) {
@@ -481,23 +339,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
 function generateOneLevel(rng, batch, levelId) {
   const templateCells = getTemplateCells(batch.templateId, batch.templateParams, batch.gridSize);
   const countsByType = distributionToCounts(batch.distribution, batch.tileTypes);
-
-  // Retry sequence building a few times in case the greedy ordering fails.
-  const seqConstraints = batch.sequenceConstraints || {};
-  const maxAttempts = Number.isInteger(seqConstraints.maxAttempts) ? seqConstraints.maxAttempts : 80;
-  let seq = null;
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    try {
-      seq = buildTypeSequence(rng, countsByType, seqConstraints);
-      break;
-    } catch {
-      // re-shuffle via rng state and retry
-    }
-  }
-  if (!seq) {
-    throw new Error(`Failed to build pick sequence for template "${batch.templateId}"`);
-  }
-
+  const seq = buildTypeSequence(rng, countsByType);
   const layout = generateLayoutFromSequence(rng, templateCells, seq, batch.gridSize, batch.layering);
   return {
     id: levelId,
@@ -586,8 +428,7 @@ function sampleTemplateParams(templateId, gridSize, rng) {
 }
 
 /**
- * Generate one level by sampling from param ranges. Uses random pick mode for the
- * sequence (no sequenceConstraints). Returns null if layout generation throws.
+ * Generate one level by sampling from param ranges. Returns null if layout generation throws.
  */
 function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const ranges = { ...DEFAULT_POOL_PARAM_RANGES, ...paramRanges };
@@ -649,7 +490,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   try {
     const templateCells = getTemplateCells(templateId, templateParams, gridSize);
     const countsByType = distributionToCounts(distribution, tileTypes);
-    const seq = buildTypeSequence(rng, countsByType, { pickMode: 'random' });
+    const seq = buildTypeSequence(rng, countsByType);
     const layout = generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering);
     return {
       id: levelId,
