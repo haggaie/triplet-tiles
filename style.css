@@ -550,8 +550,8 @@ body {
 
 /* Remove-type mode: roving focus on #tray */
 #tray:focus-visible .tray-tile.tray-keyboard-focus.selectable-type {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid rgb(var(--accent-rgb) / 0.92);
+  outline-offset: 3px;
 }
 
 .overlay {
@@ -821,10 +821,18 @@ body {
   overflow-wrap: anywhere;
 }
 
-/* Roving tabindex: focus stays on #board; .tile-keyboard-focus marks the active tile */
+/* Roving tabindex: focus stays on #board / #tray; child shows --accent — hide UA blue on container */
+#board:focus,
+#board:focus-visible,
+#tray:focus,
+#tray:focus-visible {
+  outline: none;
+}
+
+/* Active tile / tray slot (keyboard): warm accent, softer than a full 3px solid slab */
 #board:focus-visible .tile.tile-keyboard-focus.tappable {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
+  outline: 2px solid rgb(var(--accent-rgb) / 0.92);
+  outline-offset: 3px;
 }
 
 .level-select-card:focus-visible {
