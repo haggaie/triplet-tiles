@@ -161,6 +161,49 @@ function main() {
   }
 }
 
+/** Structural fields used in reports (see LEVELGEN.md "Level configuration"). */
+function levelGridSize(l) {
+  return Number.isFinite(l.gridSize) ? l.gridSize : null;
+}
+
+function levelTileCount(l) {
+  return Array.isArray(l.layout) ? l.layout.length : null;
+}
+
+/** Number of z layers that contain at least one tile. */
+function levelLayerDepth(l) {
+  if (!Array.isArray(l.layout) || l.layout.length === 0) return null;
+  return new Set(l.layout.map(t => t.z)).size;
+}
+
+function levelTileTypeCount(l) {
+  if (!Array.isArray(l.layout) || l.layout.length === 0) return null;
+  return new Set(l.layout.map(t => t.type)).size;
+}
+
+/** Per LEVELGEN.md "Level configuration"; metrics not listed have empty target cells in the report. */
+const LEVELGEN_OVERALL_TARGETS = {
+  'Grid size': { targetRange: '7-10', generationTarget: '7-10' },
+  'Tile count': { targetRange: '61-120 (most levels)', generationTarget: '~48-120 with emphasis on 60+' },
+  'Layers/depth': { targetRange: '4-10 (most levels)', generationTarget: '4-10' },
+  'Tile type count': { targetRange: 'mostly 12', generationTarget: '7-12 with medium/hard at 12' },
+  'Difficulty score': { targetRange: '~0.34-0.76', generationTarget: 'intentionally pushed upward via deeper stacks and tighter slack constraints' },
+  'Min tray slack': { targetRange: 'mostly 1', generationTarget: 'medium/hard batches require solver minSlack <= 1' }
+};
+
+function reportTableCell(text) {
+  if (text == null || text === '') return '';
+  return String(text).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+}
+
+function overallTargetsRow(label, actual) {
+  const t = LEVELGEN_OVERALL_TARGETS[label] || {};
+  const tr = reportTableCell(t.targetRange);
+  const gt = reportTableCell(t.generationTarget);
+  const av = reportTableCell(actual);
+  return `| ${reportTableCell(label)} | ${tr} | ${gt} | ${av} |\n`;
+}
+
 function buildDifficultyReport(levels, seed, rejected) {
   const withMetrics = levels.filter(l => l._reportMetrics);
   if (withMetrics.length === 0) {
@@ -196,9 +239,17 @@ function buildDifficultyReport(levels, seed, rejected) {
     const nodesS = stats(m, l => l._reportMetrics.nodesExpanded);
     const difficultyRangeS = stats(m, l => l._reportMetrics.difficultyRange);
     const difficultyVarianceS = stats(m, l => l._reportMetrics.difficultyVariance);
+    const gridS = stats(m, levelGridSize);
+    const tilesS = stats(m, levelTileCount);
+    const layersS = stats(m, levelLayerDepth);
+    const typesS = stats(m, levelTileTypeCount);
 
     let out = `### ${title}\n\n`;
     out += `| Metric | Min | Max | Mean |\n|--------|-----|-----|------|\n`;
+    out += `| Grid size | ${format(gridS.min)} | ${format(gridS.max)} | ${format(gridS.mean)} |\n`;
+    out += `| Tile count | ${format(tilesS.min)} | ${format(tilesS.max)} | ${format(tilesS.mean)} |\n`;
+    out += `| Layer depth (distinct z with tiles) | ${format(layersS.min)} | ${format(layersS.max)} | ${format(layersS.mean)} |\n`;
+    out += `| Tile type count | ${format(typesS.min)} | ${format(typesS.max)} | ${format(typesS.mean)} |\n`;
     out += `| Difficulty score | ${format(scoreS.min)} | ${format(scoreS.max)} | ${format(scoreS.mean)} |\n`;
     out += `| Min tray slack (7 - tray size) | ${format(minSlackS.min)} | ${format(minSlackS.max)} | ${format(minSlackS.mean)} |\n`;
     out += `| Forced-move ratio | ${format(forcedRatioS.min)} | ${format(forcedRatioS.max)} | ${format(forcedRatioS.mean)} |\n`;
@@ -219,22 +270,49 @@ function buildDifficultyReport(levels, seed, rejected) {
     return typeof x === 'number' ? x.toFixed(3) : String(x);
   }
 
+  function formatRangeMean(srv) {
+    if (srv.min == null && srv.max == null && srv.mean == null) return '—';
+    return `${format(srv.min)} – ${format(srv.max)} (mean ${format(srv.mean)})`;
+  }
+
   let md = `# Level difficulty report\n\n`;
   md += `Generated: ${new Date().toISOString()}  \n`;
   md += `Seed: ${seed}  \n`;
   md += `Levels: ${levels.length} (rejected: ${rejected})\n\n`;
 
   md += `## Overall\n\n`;
+  md += `Targets from \`LEVELGEN.md\` (Level configuration); metrics without entries leave target columns empty.\n\n`;
+  md += '| Metric | Target range | Current generation target | Actual (this run) |\n';
+  md += '| --- | --- | --- | --- |\n';
   const overallScore = stats(withMetrics, l => l.difficultyScore);
-  md += `| Metric | Value |\n|--------|-------|\n`;
-  md += `| Difficulty score range | ${format(overallScore.min)} – ${format(overallScore.max)} |\n`;
-  md += `| Mean difficulty score | ${format(overallScore.mean)} |\n`;
-  md += `| Mean min tray slack | ${format(stats(withMetrics, l => l._reportMetrics.minSlack).mean)} |\n`;
-  md += `| Mean forced-move ratio | ${format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean)} |\n`;
-  md += `| Mean rollout failure rate | ${format(stats(withMetrics, l => l._reportMetrics.failureRate).mean)} |\n`;
-  md += `| Mean solution steps | ${format(stats(withMetrics, l => l._reportMetrics.steps).mean)} |\n`;
-  md += `| Mean difficulty range (in-level uniformity) | ${format(stats(withMetrics, l => l._reportMetrics.difficultyRange).mean)} |\n`;
-  md += `| Mean difficulty variance (in-level uniformity) | ${format(stats(withMetrics, l => l._reportMetrics.difficultyVariance).mean)} |\n`;
+  const overallGrid = stats(withMetrics, levelGridSize);
+  const overallTiles = stats(withMetrics, levelTileCount);
+  const overallLayers = stats(withMetrics, levelLayerDepth);
+  const overallTypes = stats(withMetrics, levelTileTypeCount);
+  const overallMinSlack = stats(withMetrics, l => l._reportMetrics.minSlack);
+  md += overallTargetsRow('Grid size', formatRangeMean(overallGrid));
+  md += overallTargetsRow('Tile count', formatRangeMean(overallTiles));
+  md += overallTargetsRow(
+    'Layers/depth',
+    `${formatRangeMean(overallLayers)} · distinct z with ≥1 tile`
+  );
+  md += overallTargetsRow('Tile type count', formatRangeMean(overallTypes));
+  md += overallTargetsRow(
+    'Difficulty score',
+    `${format(overallScore.min)} – ${format(overallScore.max)} (mean ${format(overallScore.mean)})`
+  );
+  md += overallTargetsRow('Min tray slack', formatRangeMean(overallMinSlack));
+  md += overallTargetsRow('Mean forced-move ratio', format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean));
+  md += overallTargetsRow('Mean rollout failure rate', format(stats(withMetrics, l => l._reportMetrics.failureRate).mean));
+  md += overallTargetsRow('Mean solution steps', format(stats(withMetrics, l => l._reportMetrics.steps).mean));
+  md += overallTargetsRow(
+    'Mean difficulty range (in-level uniformity)',
+    format(stats(withMetrics, l => l._reportMetrics.difficultyRange).mean)
+  );
+  md += overallTargetsRow(
+    'Mean difficulty variance (in-level uniformity)',
+    format(stats(withMetrics, l => l._reportMetrics.difficultyVariance).mean)
+  );
   md += `\n`;
 
   md += `## By difficulty band\n\n`;
