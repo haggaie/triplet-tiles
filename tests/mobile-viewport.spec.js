@@ -56,13 +56,16 @@ async function assertBoardIsSquarePlayfield(page) {
   ).toBeLessThanOrEqual(BOARD_CLIP_TOLERANCE_PX);
 }
 
-/** After scroll, the full board should fit in the visual viewport (no part cut off by screen edge). */
-async function assertBoardFullyVisibleInViewport(page) {
-  await page.locator('#board').scrollIntoViewIfNeeded();
+/**
+ * The scrollport (#board-scroll) should sit in the visual viewport; the inner #board may be
+ * larger on wide grids (--board-cell-min) and pan inside the scrollport.
+ */
+async function assertBoardScrollportVisibleInViewport(page) {
+  await page.locator('#board-scroll').scrollIntoViewIfNeeded();
   const m = await page.evaluate((tol) => {
-    const board = document.getElementById('board');
-    if (!board) return { ok: false, error: 'missing #board' };
-    const r = board.getBoundingClientRect();
+    const scroll = document.getElementById('board-scroll');
+    if (!scroll) return { ok: false, error: 'missing #board-scroll' };
+    const r = scroll.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const ok =
@@ -72,7 +75,7 @@ async function assertBoardFullyVisibleInViewport(page) {
       r.bottom <= vh + tol;
     return { ok, r: { left: r.left, top: r.top, right: r.right, bottom: r.bottom }, vw, vh };
   }, BOARD_CLIP_TOLERANCE_PX);
-  expect(m.ok, m.ok ? '' : `Board is truncated by viewport: ${JSON.stringify(m)}`).toBe(true);
+  expect(m.ok, m.ok ? '' : `Board scrollport is truncated by viewport: ${JSON.stringify(m)}`).toBe(true);
 }
 
 async function assertBoardTilesFullyInsidePlayfield(page) {
@@ -148,9 +151,9 @@ for (const vp of MOBILE_VIEWPORTS) {
         await loadLevel(page, levelIndex);
         await assertNoHorizontalPageOverflow(page);
         await assertBoardIsSquarePlayfield(page);
-        await assertBoardFullyVisibleInViewport(page);
+        await assertBoardScrollportVisibleInViewport(page);
         await assertBoardTilesFullyInsidePlayfield(page);
-        await assertElementContainedHorizontally(page, '#board');
+        await assertElementContainedHorizontally(page, '#board-scroll');
         await assertElementContainedHorizontally(page, '#tray');
       });
     }
@@ -166,6 +169,56 @@ for (const vp of MOBILE_VIEWPORTS) {
     });
   });
 }
+
+test.describe('Board scroll — min cell floor', () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test('first generated level (grid 7): playfield is larger than scrollport so it can pan', async ({ page }) => {
+    await loadLevel(page, 2);
+    await assertNoHorizontalPageOverflow(page);
+    const m = await page.evaluate(() => {
+      const scroll = document.getElementById('board-scroll');
+      const board = document.getElementById('board');
+      if (!scroll || !board) return null;
+      return {
+        scrollW: scroll.scrollWidth,
+        clientW: scroll.clientWidth,
+        scrollH: scroll.scrollHeight,
+        clientH: scroll.clientHeight,
+        boardW: board.offsetWidth
+      };
+    });
+    expect(m).toBeTruthy();
+    const canPan = m.scrollW > m.clientW + 1 || m.scrollH > m.clientH + 1;
+    expect(
+      canPan,
+      `expected #board-scroll to overflow (scroll ${m.scrollW}×${m.scrollH} vs client ${m.clientW}×${m.clientH}); board width ${m.boardW}`
+    ).toBe(true);
+
+    const scrollRange = await page.evaluate(() => {
+      const s = document.getElementById('board-scroll');
+      if (!s) return null;
+      const maxX = s.scrollWidth - s.clientWidth;
+      const maxY = s.scrollHeight - s.clientHeight;
+      s.scrollLeft = 9e6;
+      s.scrollTop = 9e6;
+      const left = s.scrollLeft;
+      const top = s.scrollTop;
+      s.scrollLeft = 0;
+      s.scrollTop = 0;
+      return { maxX, maxY, left, top };
+    });
+    expect(scrollRange).toBeTruthy();
+    expect(
+      scrollRange.left,
+      `scrollLeft should reach end (${scrollRange.maxX}), got ${scrollRange.left}`
+    ).toBeGreaterThanOrEqual(scrollRange.maxX - 2);
+    expect(
+      scrollRange.top,
+      `scrollTop should reach end (${scrollRange.maxY}), got ${scrollRange.top}`
+    ).toBeGreaterThanOrEqual(scrollRange.maxY - 2);
+  });
+});
 
 test.describe('iPhone 12 device metrics (Chromium)', () => {
   // Full `devices['iPhone 12']` sets `defaultBrowserType: 'webkit'`, which cannot be nested
@@ -183,9 +236,9 @@ test.describe('iPhone 12 device metrics (Chromium)', () => {
     await loadLevel(page, 2);
     await assertNoHorizontalPageOverflow(page);
     await assertBoardIsSquarePlayfield(page);
-    await assertBoardFullyVisibleInViewport(page);
+    await assertBoardScrollportVisibleInViewport(page);
     await assertBoardTilesFullyInsidePlayfield(page);
-    await assertElementContainedHorizontally(page, '#board');
+    await assertElementContainedHorizontally(page, '#board-scroll');
     await assertElementContainedHorizontally(page, '#tray');
   });
 });

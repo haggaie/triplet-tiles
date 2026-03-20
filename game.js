@@ -141,6 +141,39 @@ function computeBoardContentOffsetPx(boardW, boardH, cellSize, tiles, halfExtent
   };
 }
 
+function rootRemToPx(rem) {
+  const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  return rem * fs;
+}
+
+/**
+ * Largest square side that fits the “no scroll” cap (matches legacy `.board` CSS):
+ * min(448px, 92vw, 100dvh − 16.75rem). innerHeight approximates dynamic viewport for JS.
+ */
+function getBoardFitSquareSidePx() {
+  const vw = document.documentElement.clientWidth;
+  const vh = window.innerHeight;
+  return Math.max(120, Math.min(448, vw * 0.92, vh - rootRemToPx(16.75)));
+}
+
+function readBoardCellMinPx() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--board-cell-min').trim();
+  const n = parseFloat(raw);
+  return Number.isFinite(n) && n > 0 ? n : 40;
+}
+
+/**
+ * Square playfield side and cell size for gridSize (cell = side / (gridSize + 2), floored by --board-cell-min).
+ */
+function measureBoardLayout(gridSize) {
+  const g = Math.max(1, gridSize);
+  const fitSide = getBoardFitSquareSidePx();
+  const cellBase = fitSide / (g + 2);
+  const cellSize = Math.max(cellBase, readBoardCellMinPx());
+  const sidePx = cellSize * (g + 2);
+  return { cellSize, sidePx };
+}
+
 function getTileVisual(typeId) {
   if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
     return TILE_TYPES[typeId].emoji;
@@ -328,6 +361,7 @@ let _waitingForRoom = [];
 const ui = {};
 
 function initDomRefs() {
+  ui.boardScroll = document.getElementById('board-scroll');
   ui.board = document.getElementById('board');
   ui.tray = document.getElementById('tray');
   ui.levelLabel = document.getElementById('level-label');
@@ -852,12 +886,12 @@ function clearTrayMakeRoomAnimation() {
  * flyTargetX, flyTargetY: optional precomputed target (e.g. slot center before make-room shift); if omitted, read from slot.
  */
 function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete) {
-  const boardRect = ui.board.getBoundingClientRect();
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
-  const cellSize = boardRect.width / (size + 2);
+  const { cellSize, sidePx } = measureBoardLayout(size);
   const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const off = computeBoardContentOffsetPx(boardRect.width, boardRect.height, cellSize, layoutFootprint);
+  const off = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
+  const boardRect = ui.board.getBoundingClientRect();
   const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
 
   const tileCenterX = boardRect.left + layeredLeft + off.x;
@@ -1396,8 +1430,9 @@ function renderBoard(withSettleAnimation = false) {
 
   const level = LEVELS[state.currentLevelIndex];
   const size = level.gridSize;
-  const boardRect = ui.board.getBoundingClientRect();
-  const cellSize = boardRect.width / (size + 2);
+  const { cellSize, sidePx } = measureBoardLayout(size);
+  ui.board.style.width = `${sidePx}px`;
+  ui.board.style.height = `${sidePx}px`;
   document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
@@ -1408,12 +1443,7 @@ function renderBoard(withSettleAnimation = false) {
     .sort((a, b) => a.z - b.z);
 
   const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const layoutOffset = computeBoardContentOffsetPx(
-    boardRect.width,
-    boardRect.height,
-    cellSize,
-    layoutFootprint
-  );
+  const layoutOffset = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
 
   const existingById = new Map();
   for (const child of ui.board.children) {
@@ -1568,9 +1598,23 @@ if (typeof window !== 'undefined') {
   };
 }
 
+let _boardScrollRoTimer = 0;
+
+function installBoardScrollResizeObserver() {
+  if (typeof ResizeObserver === 'undefined' || !ui.boardScroll) return;
+  const ro = new ResizeObserver(() => {
+    clearTimeout(_boardScrollRoTimer);
+    _boardScrollRoTimer = setTimeout(() => {
+      renderBoard();
+    }, 60);
+  });
+  ro.observe(ui.boardScroll);
+}
+
 function main() {
   initDomRefs();
   bindEvents();
+  installBoardScrollResizeObserver();
   loadProgression();
   startLevel(state.currentLevelIndex);
 }

@@ -22,6 +22,8 @@
   --text: #e5e7eb;
   --muted: #9ca3af;
   --tile-size: 64px;
+  /* Floor for board cell = board width / (gridSize + 2); keeps tiles legible / tappable on wide grids (see GAME_SPEC §4.1). */
+  --board-cell-min: 40px;
   /* Same roundness for board and tray tiles (18/64 ≈ 28.125%) */
   --tile-radius: 28.125%;
   /* Icon size: same on board and tray when tile size matches */
@@ -258,21 +260,48 @@ body {
   min-height: 0;
 }
 
-.board-wrapper {
+/*
+ * Scrollport for the squared playfield. `.board` may grow past this area when
+ * gridSize is large and --board-cell-min forces bigger cells; users pan with overflow auto.
+ */
+/*
+ * Do not use flex centering directly on the overflow element: browsers under-report scrollWidth
+ * / max scrollLeft, so the start edge of a centered, wider-than-viewport board stays unreachable
+ * (first column appears truncated). Centering lives on .board-scroll-align instead.
+ */
+.board-scroll {
   flex: 1;
   min-height: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.board-scroll-align {
+  box-sizing: border-box;
+  width: max-content;
+  margin-inline: auto;
+  min-height: 100%;
+  /* Room for board drop-shadow and tappable hover lift so panning does not clip against the scrollport */
+  padding: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.board-scroll:focus-visible {
+  outline: 2px solid rgb(var(--accent-rgb) / 0.65);
+  outline-offset: 2px;
 }
 
 .board {
   position: relative;
-  /* Slightly larger cap + tighter outer margins (main-layout) so phones keep a bigger square. */
-  /* Reserve header, tray, gaps, and the power-up row above the board */
+  /* Intrinsic size is set in JS (fit cap × cell floor); fallback matches previous cap for no-JS. */
+  box-sizing: border-box;
   width: min(448px, 92vw, calc(100dvh - 16.75rem));
-  max-width: 100%;
+  max-width: none;
   aspect-ratio: 1;
   height: auto;
   flex-shrink: 0;
