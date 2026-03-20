@@ -56,7 +56,7 @@ Ensure **keyboard focus** stays visible: extend `.tile.tappable:focus-visible` w
 
 ## Implementation phases
 
-1. **Phase A — Tokens** — Introduce wood + accent variables; optionally alias `--accent` → warm accent for one source of truth.
+1. **Phase A — Tokens** — **Done** in [`style.css`](style.css) `:root`: `--wood-*`, `--ink`, `--accent-warm`, `--accent-rgb`, and `--accent` / `--accent-soft` wired to them; interactive glows use `rgb(var(--accent-rgb) / …)`.
 2. **Phase B — Tiles** — Update `.tile` and `.tray-tile` backgrounds and `box-shadow` stacks; keep animations compatible ([ANIMATIONS.md](ANIMATIONS.md)).
 3. **Phase C — Board & tray** — Harmonize `.board`, `.board::before`, `.tray-wrapper`, `.tray-slot*` with table/trough language.
 4. **Phase D — Chrome & overlays** — Buttons, `.overlay-content`, top bar so they don’t clash with wood-first scene.

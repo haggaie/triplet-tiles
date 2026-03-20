@@ -3,8 +3,21 @@
   --bg: #0e172a;
   --bg-soft: #111827;
   --bg-softer: #020617;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.15);
+
+  /* Wood tokens (Phase A). Used by tile/board/tray in Phase B+. */
+  --wood-highlight: #ebd5b8;
+  --wood-face: #b8895e;
+  --wood-shadow: #6f4e37;
+  --wood-edge: rgb(62 44 32 / 0.55);
+  --wood-grain: rgb(62 44 32 / 0.08);
+  --ink: #251810;
+
+  /* Single interactive accent (honey — pairs with wood). --accent aliases for existing rules. */
+  --accent-rgb: 220 165 70;
+  --accent-warm: rgb(var(--accent-rgb));
+  --accent: var(--accent-warm);
+  --accent-soft: rgb(var(--accent-rgb) / 0.15);
+
   --danger: #f97373;
   --text: #e5e7eb;
   --muted: #9ca3af;
@@ -227,7 +240,7 @@ body {
   transform: translateY(-3px) scale(1.03);
   box-shadow:
     0 16px 30px rgba(15, 23, 42, 1),
-    0 0 0 1px rgba(56, 189, 248, 0.6);
+    0 0 0 1px rgb(var(--accent-rgb) / 0.6);
 }
 
 .tile.blocked {
@@ -242,7 +255,7 @@ body {
   box-shadow:
     0 16px 32px rgba(0, 0, 0, 0.5),
     0 6px 16px rgba(15, 23, 42, 0.8),
-    0 0 0 2px rgba(56, 189, 248, 0.8);
+    0 0 0 2px rgb(var(--accent-rgb) / 0.8);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -360,15 +373,15 @@ body {
 
 .tray-tile.matching {
   box-shadow:
-    0 0 0 2px rgba(56, 189, 248, 0.9),
-    0 0 30px rgba(56, 189, 248, 0.7);
+    0 0 0 2px rgb(var(--accent-rgb) / 0.9),
+    0 0 30px rgb(var(--accent-rgb) / 0.7);
 }
 
 .tray-tile.selectable-type {
   cursor: pointer;
   box-shadow:
-    0 0 0 2px rgba(96, 165, 250, 0.9),
-    0 0 20px rgba(96, 165, 250, 0.7);
+    0 0 0 2px rgb(var(--accent-rgb) / 0.85),
+    0 0 20px rgb(var(--accent-rgb) / 0.55);
 }
 
 .overlay {
@@ -544,7 +557,7 @@ body {
 .level-select-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 8px 24px rgb(var(--accent-rgb) / 0.2);
 }
 
 /* Prev/Next slide animation: exit */
