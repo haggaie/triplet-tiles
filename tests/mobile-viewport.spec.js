@@ -154,7 +154,8 @@ for (const vp of MOBILE_VIEWPORTS) {
         await assertBoardScrollportVisibleInViewport(page);
         await assertBoardTilesFullyInsidePlayfield(page);
         await assertElementContainedHorizontally(page, '#board-scroll');
-        await assertElementContainedHorizontally(page, '#tray');
+        /* #tray may be wider than the viewport (min cell × 7); it scrolls inside .tray-wrapper. */
+        await assertElementContainedHorizontally(page, '.tray-wrapper');
       });
     }
 
@@ -239,6 +240,6 @@ test.describe('iPhone 12 device metrics (Chromium)', () => {
     await assertBoardScrollportVisibleInViewport(page);
     await assertBoardTilesFullyInsidePlayfield(page);
     await assertElementContainedHorizontally(page, '#board-scroll');
-    await assertElementContainedHorizontally(page, '#tray');
+    await assertElementContainedHorizontally(page, '.tray-wrapper');
   });
 });

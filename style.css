@@ -395,6 +395,12 @@ body {
 
 .tray-wrapper {
   width: min(520px, 100vw);
+  max-width: 100%;
+  /* Tray grid min track width can exceed the rail on small phones; scroll inside the rail, not the page. */
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--tray-rail);
   border-radius: 999px;
   padding: 0.6rem 1rem 0.8rem;
@@ -413,12 +419,18 @@ body {
 }
 
 .tray {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.3rem;
+  --tray-gap: 0.3rem;
   /* Shared empty-slot look: inner fill and ring match .tray-slot-inner inset */
   --tray-slot-inner-bg: rgb(20 17 14 / 0.94);
   --tray-slot-ring: 6px;
+  display: grid;
+  /* Inner well = slot minus 2× ring; keep slot ≥ tile + 2× ring so the well is never narrower than the tile. */
+  grid-template-columns: repeat(
+    7,
+    minmax(calc(var(--tile-size) + 2 * var(--tray-slot-ring)), 1fr)
+  );
+  gap: var(--tray-gap);
+  min-width: calc(7 * (var(--tile-size) + 2 * var(--tray-slot-ring)) + 6 * var(--tray-gap));
   --tray-slot-ring-color: rgb(45 38 32 / 0.96);
   --tray-slot-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
   /* Pocket shell slightly rounder than tile (inner opening uses --tile-corner-radius). */
@@ -471,9 +483,12 @@ body {
   justify-content: center;
   color: var(--muted);
   font-size: 1.4rem;
+  z-index: 0;
 }
 
 .tray-tile {
+  position: relative;
+  z-index: 1;
   width: var(--tile-size);
   height: var(--tile-size);
   border-radius: var(--tile-corner-radius);

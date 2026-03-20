@@ -907,23 +907,25 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   }
 
   const tileRect = tileEl ? tileEl.getBoundingClientRect() : null;
-  const flySize = tileRect ? tileRect.width : cellSize;
-  const sampleTrayTile = document.querySelector('.tray-tile');
-  const trayTileSize = sampleTrayTile
-    ? sampleTrayTile.getBoundingClientRect().width
-    : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tile-size')) || flySize;
+  const boardVisualPx =
+    tileRect && tileRect.width > 0 ? tileRect.width : cellSize;
+  // Fly element uses the same layout box as tray tiles (cellSize) so the last keyframe matches
+  // the committed .tray-tile exactly — no subpixel mix of "scaled arbitrary rect" vs CSS px tile.
+  const trayTargetPx = cellSize;
+  const startScale = boardVisualPx / trayTargetPx;
 
   const fly = document.createElement('div');
-  fly.className = 'tile tile-flying';
+  fly.className = 'tray-tile tile-flying';
   fly.textContent = getTileVisual(tile.type);
   fly.style.cssText = `
     position: fixed;
     left: ${tileCenterX}px;
     top: ${tileCenterY}px;
-    width: ${flySize}px;
-    height: ${flySize}px;
-    margin-left: -${flySize / 2}px;
-    margin-top: -${flySize / 2}px;
+    width: ${trayTargetPx}px;
+    height: ${trayTargetPx}px;
+    margin-left: -${trayTargetPx / 2}px;
+    margin-top: -${trayTargetPx / 2}px;
+    box-sizing: border-box;
     z-index: 100;
     pointer-events: none;
   `;
@@ -937,14 +939,19 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
     });
   }
 
-  const endScale = trayTileSize / flySize;
-
   const animation = fly.animate(
     [
-      { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-      { transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(${endScale})`, opacity: 1 }
+      { transform: `translate(0, 0) scale(${startScale})`, opacity: 1 },
+      {
+        transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(1)`,
+        opacity: 1
+      }
     ],
-    { duration: motionMs(FLY_DURATION_MS), easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
+    {
+      duration: motionMs(FLY_DURATION_MS),
+      easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+      fill: 'forwards'
+    }
   );
 
   function finishFly(isSnap) {
