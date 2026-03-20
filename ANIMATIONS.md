@@ -23,11 +23,10 @@ So the next animation always has a well-defined target and correct slot index, w
 
 **Projected tray** is the logical tray we use for “is there room?” and “where does the next tile go?”:
 
-- Current `state.trayTiles`
+- Current `state.trayTiles` (matched triples are removed from state as soon as combine animations **start**, so logic matches the solver even while visuals are still animating)
 - Plus the current flying tile (if any), as if it had already landed
-- Minus tiles that are being removed by in-flight combine animations
 
-When the tray is full (7 tiles) but a combine is in progress, projected length drops below 7 after the combine, so we know room will appear and we can wait instead of losing.
+When the tray is full (7 tiles) but a combine animation is still running, there is already headroom in `state.trayTiles`, so we can accept the next fly or queue correctly instead of mis-counting stalled tray space.
 
 ## Blocking when tray is full
 

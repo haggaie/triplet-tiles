@@ -162,7 +162,7 @@ let _currentFly = null;
 /** Queue of apply thunks; processed one at a time so fly completions don't race. */
 let _applyQueue = [];
 let _applyRunning = false;
-/** Types currently being combined (in-flight combine animations). Used for projected tray. */
+/** Types currently being combined (in-flight combine animations). Blocks checkAllIdle until visuals finish. */
 let _combiningTypes = [];
 /** Pending tile IDs to start flying when tray has room (after a combine frees space). */
 let _waitingForRoom = [];
@@ -430,21 +430,12 @@ function getTrayInsertIndexForTray(trayTiles, type) {
   return insertIndex;
 }
 
-/** Builds logical tray: current state + current flying tile, minus tiles being removed by in-flight combines. */
+/** Builds logical tray: current state plus the in-flight fly tile (if any). Matched triples leave state immediately when combine animations start. */
 function getProjectedTray() {
   const tray = state.trayTiles.map(t => ({ ...t }));
   if (_currentFly) {
     insertTrayTileByShape(tray, { id: _currentFly.tile.id, type: _currentFly.type });
   }
-  _combiningTypes.forEach(type => {
-    let removed = 0;
-    for (let i = tray.length - 1; i >= 0 && removed < 3; i -= 1) {
-      if (tray[i].type === type) {
-        tray.splice(i, 1);
-        removed += 1;
-      }
-    }
-  });
   return { tray, length: tray.length };
 }
 
@@ -822,6 +813,8 @@ function animateMatchCombine(type, onComplete) {
   startPositions.forEach(({ el, zIndex }) => {
     el.classList.add('tile-combining');
     el.style.zIndex = String(zIndex);
+    // Detach from tray so a later renderTray() from another applyMove cannot strip these nodes mid-animation.
+    document.body.appendChild(el);
   });
 
   const combinePromises = startPositions.map(({ el, startX, startY, zIndex }) => {
@@ -844,9 +837,17 @@ function animateMatchCombine(type, onComplete) {
 }
 
 function handleMatchingInTrayAnimated(onComplete) {
-  // Exclude types already being combined so concurrent snap applies don't double-score the same tiles.
-  const matchingTypes = getMatchingTypesInTray().filter(t => !_combiningTypes.includes(t));
+  // Types already animating: still exclude from a new combine batch, but if new triples of those types
+  // formed while flags are stale, we must sync-remove (solver parity) — see matchingTypes.length === 0 branch.
+  const rawMatching = getMatchingTypesInTray();
+  const matchingTypes = rawMatching.filter(t => !_combiningTypes.includes(t));
+  if (rawMatching.length === 0) {
+    onComplete();
+    return;
+  }
   if (matchingTypes.length === 0) {
+    handleMatchingInTray();
+    renderHud();
     onComplete();
     return;
   }
@@ -875,6 +876,11 @@ function handleMatchingInTrayAnimated(onComplete) {
 
   _combiningTypes.push(...matchingTypes);
 
+  // Match solver/skip path: remove triples from state immediately (handleMatchingInTray), then animate
+  // the tiles we already rendered; reparent in animateMatchCombine keeps renderTray from killing nodes.
+  handleMatchingInTray();
+  renderHud();
+
   const combinePromises = matchingTypes.map(type => new Promise((resolve) => {
     animateMatchCombine(type, (removedSlotIndices) => {
       resolve(removedSlotIndices);
@@ -883,22 +889,6 @@ function handleMatchingInTrayAnimated(onComplete) {
 
   Promise.all(combinePromises).then((arrayOfRemovedArrays) => {
     const allRemovedIndices = [...new Set(arrayOfRemovedArrays.flat())].sort((a, b) => a - b);
-
-    const toRemove = {};
-    matchingTypes.forEach(type => { toRemove[type] = 3; });
-    const newTray = [];
-    for (let i = 0; i < state.trayTiles.length; i += 1) {
-      const t = state.trayTiles[i];
-      if (toRemove[t.type] > 0) {
-        toRemove[t.type] -= 1;
-      } else {
-        newTray.push(t);
-      }
-    }
-    state.trayTiles = newTray;
-    state.score += 10 * 3 * matchingTypes.length;
-    state.stats.tilesClearedTotal += 3 * matchingTypes.length;
-    saveStats();
 
     if (allRemovedIndices.length > 0) {
       startTrayCompactAnimation(allRemovedIndices);
