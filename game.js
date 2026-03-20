@@ -188,6 +188,43 @@ function focusElementIfStillMounted(el) {
 
 let _focusBeforeLevelSelect = null;
 let _focusBeforeGameOverlay = null;
+/** Set while #overlay is open so primary action matches copy (win = advance, loss = retry same level). */
+let _gameOverlayOutcome = null;
+
+/**
+ * Keeps focus inside open dialogs: background is non-interactive (inert) per modality.
+ * @param {'none' | 'game' | 'level-select'} mode
+ */
+function setModalBackdropInert(mode) {
+  const header = ui.appHeader;
+  const main = ui.appMain;
+  const gameOverlay = ui.overlay;
+  const apply = (el, on) => {
+    if (!el) return;
+    try {
+      if ('inert' in el) el.inert = !!on;
+    } catch {
+      /* ignore */
+    }
+  };
+  if (mode === 'none') {
+    apply(header, false);
+    apply(main, false);
+    apply(gameOverlay, false);
+    return;
+  }
+  if (mode === 'game') {
+    apply(header, true);
+    apply(main, true);
+    apply(gameOverlay, false);
+    return;
+  }
+  if (mode === 'level-select') {
+    apply(header, true);
+    apply(main, true);
+    apply(gameOverlay, true);
+  }
+}
 
 function loadLocal(key, defaultValue) {
   try {
@@ -319,6 +356,10 @@ function initDomRefs() {
   ui.levelSelectMedium = document.getElementById('level-select-medium');
   ui.levelSelectHard = document.getElementById('level-select-hard');
   ui.levelSelectHint = document.getElementById('level-select-hint');
+
+  const app = document.getElementById('app');
+  ui.appHeader = app?.querySelector(':scope > header') ?? null;
+  ui.appMain = app?.querySelector(':scope > main') ?? null;
 }
 
 function bindEvents() {
@@ -327,10 +368,14 @@ function bindEvents() {
   });
 
   ui.overlayPrimary.addEventListener('click', () => {
-    if (state.currentLevelIndex < LEVELS.length - 1) {
-      startLevel(state.currentLevelIndex + 1);
+    if (_gameOverlayOutcome === 'loss') {
+      startLevel(state.currentLevelIndex);
     } else {
-      startLevel(0);
+      if (state.currentLevelIndex < LEVELS.length - 1) {
+        startLevel(state.currentLevelIndex + 1);
+      } else {
+        startLevel(0);
+      }
     }
     hideOverlay();
   });
@@ -416,6 +461,11 @@ function bindEvents() {
     if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) {
       e.preventDefault();
       hideLevelSelect();
+      return;
+    }
+    if (ui.overlay && !ui.overlay.classList.contains('hidden')) {
+      e.preventDefault();
+      ui.overlayPrimary?.click();
     }
   });
 }
@@ -1023,7 +1073,9 @@ function triggerWin() {
   ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
   ui.overlayPrimary.textContent =
     state.currentLevelIndex < LEVELS.length - 1 ? 'Next Level' : 'Restart from Level 1';
+  _gameOverlayOutcome = 'win';
   _focusBeforeGameOverlay = document.activeElement;
+  setModalBackdropInert('game');
   ui.overlay.classList.remove('hidden');
   requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
 }
@@ -1036,13 +1088,17 @@ function triggerLoss(reason) {
   ui.overlayTitle.textContent = 'Level Failed';
   ui.overlayMessage.textContent = reason || 'The tray overflowed.';
   ui.overlayPrimary.textContent = 'Try Again';
+  _gameOverlayOutcome = 'loss';
   _focusBeforeGameOverlay = document.activeElement;
+  setModalBackdropInert('game');
   ui.overlay.classList.remove('hidden');
   requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
 }
 
 function hideOverlay() {
   ui.overlay.classList.add('hidden');
+  setModalBackdropInert('none');
+  _gameOverlayOutcome = null;
   focusElementIfStillMounted(_focusBeforeGameOverlay);
   _focusBeforeGameOverlay = null;
 }
@@ -1256,6 +1312,7 @@ function levelSelectGoToDifficulty(difficulty) {
 function showLevelSelect() {
   if (!ui.levelSelectOverlay) return;
   _focusBeforeLevelSelect = document.activeElement;
+  setModalBackdropInert('level-select');
   ui.levelSelectOverlay.classList.remove('hidden');
   requestAnimationFrame(() => {
     const visibleCount = getLevelSelectVisibleCount();
@@ -1270,6 +1327,7 @@ function showLevelSelect() {
 
 function hideLevelSelect() {
   if (ui.levelSelectOverlay) ui.levelSelectOverlay.classList.add('hidden');
+  setModalBackdropInert('none');
   focusElementIfStillMounted(_focusBeforeLevelSelect);
   _focusBeforeLevelSelect = null;
 }
