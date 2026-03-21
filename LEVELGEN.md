@@ -123,6 +123,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - Branching (avg/min tappable) and search effort matter too, but the weights are tuned so tray pressure and forced choices dominate, ensuring the curve favors strategic difficulty over sheer size or variety.
 
 - **CLI & output**: `tools/generate-levels.js`
+  - **Progress**: stderr shows batch/pool position and attempt counts; `--quiet` / `LEVELGEN_QUIET=1` silences it. The final summary line remains on stdout.
   - Steps (when `generationMode === 'batches'`):
     1. Import `config.js`.
     2. Call `generateLevelsFromConfig(config)` to produce candidate levels (or, when `generationMode === 'randomPool'`, generate `pool.count` levels via `generateOneRandomLevel` with random params).
@@ -262,6 +263,8 @@ npx playwright install
 ```bash
 node tools/generate-levels.js
 ```
+
+While it runs, progress goes to **stderr** (so you can still pipe stdout if needed): in a TTY it updates in place; otherwise it prints one line per update. Disable with `--quiet` or `LEVELGEN_QUIET=1`.
 
 This will:
 

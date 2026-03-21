@@ -18,6 +18,33 @@ function scoreOptionsFromConfig(config, seed) {
   return o;
 }
 
+/** Progress to stderr so stdout stays usable if piped; disabled with --quiet or LEVELGEN_QUIET=1 */
+function progressEnabled() {
+  return !process.argv.includes('--quiet') && process.env.LEVELGEN_QUIET !== '1';
+}
+
+let lastProgressLen = 0;
+function progressUpdate(message) {
+  if (!progressEnabled()) return;
+  const line = String(message);
+  const out = process.stderr;
+  if (out.isTTY) {
+    const pad = ' '.repeat(Math.max(0, lastProgressLen - line.length));
+    out.write(`\r${line}${pad}`);
+    lastProgressLen = line.length;
+  } else {
+    out.write(`${line}\n`);
+  }
+}
+
+function progressFinishLine() {
+  if (!progressEnabled()) return;
+  if (process.stderr.isTTY) {
+    process.stderr.write('\n');
+  }
+  lastProgressLen = 0;
+}
+
 function main() {
   const projectRoot = path.resolve(__dirname, '..');
   const configPath = path.resolve(projectRoot, 'tools/levelgen/config.js');
@@ -48,6 +75,10 @@ function main() {
       );
     }
     for (let i = 0; i < N; i += 1) {
+      progressUpdate(
+        `Levelgen pool ${i + 1}/${N} · accepted ${scored.length}` +
+          (keep != null ? ` · will keep top ${keep}` : '')
+      );
       const levelSeed = Math.floor(rng() * 2 ** 31) ^ ((i + 1) * 2654435761);
       const levelRng = mulberry32(levelSeed);
       const level = generateOneRandomLevel(levelRng, i + 1, paramRanges);
@@ -92,6 +123,10 @@ function main() {
 
       while (made < want) {
         attempts += 1;
+        progressUpdate(
+          `Levelgen ${scored.length}/${totalTarget} · batch ${batchIndex}/${config.levels.length} ` +
+            `${batch.templateId} ${made}/${want} · attempt ${attempts}`
+        );
         if (attempts > maxPerBatchAttempts) {
           throw new Error(
           `Failed to generate enough levels for template "${batch.templateId}". ` +
@@ -134,6 +169,8 @@ function main() {
       }
     }
   }
+
+  progressFinishLine();
 
   scored.sort((a, b) => a.difficultyScore - b.difficultyScore);
   const toNumber = useRandomPool && Number.isInteger(config.pool.keep)
