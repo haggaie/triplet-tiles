@@ -137,7 +137,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     7. **Difficulty report** (if `config.output.reportFile` is set):
        - Writes a markdown report to the given path (e.g. `levelgen-report.md`).
        - Report includes: overall difficulty score range and mean metrics; statistics by band (**easy** = bottom third, **medium** = middle third, **hard** = top third by score).
-       - Per band: level count, difficulty score min/max/mean, and for each metric (min tray slack, forced-move ratio, rollout failure rate, avg/min tappable tiles, solution steps, solver nodes expanded) min/max/mean.
+       - Per band: level count, difficulty score min/max/mean, **grid width and grid height** (separate min/max/mean), and for each metric (min tray slack, forced-move ratio, rollout failure rate, avg/min tappable tiles, solution steps, solver nodes expanded) min/max/mean.
 
 - **Runtime loading**:
   - `index.html` includes:

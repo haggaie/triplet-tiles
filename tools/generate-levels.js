@@ -169,10 +169,14 @@ function main() {
 }
 
 /** Structural fields used in reports (see LEVELGEN.md "Level configuration"). */
-function levelGridSize(l) {
-  const gw = l.gridWidth;
-  const gh = l.gridHeight;
-  if (Number.isFinite(gw) && Number.isFinite(gh)) return Math.max(gw, gh);
+function levelGridWidth(l) {
+  if (Number.isFinite(l.gridWidth)) return l.gridWidth;
+  if (Number.isFinite(l.gridSize)) return l.gridSize;
+  return null;
+}
+
+function levelGridHeight(l) {
+  if (Number.isFinite(l.gridHeight)) return l.gridHeight;
   if (Number.isFinite(l.gridSize)) return l.gridSize;
   return null;
 }
@@ -194,7 +198,8 @@ function levelTileTypeCount(l) {
 
 /** Per LEVELGEN.md "Level configuration"; metrics not listed have empty target cells in the report. */
 const LEVELGEN_OVERALL_TARGETS = {
-  'Grid size': { targetRange: '7-10', generationTarget: '7-10' },
+  'Grid width': { targetRange: '7-10', generationTarget: '7-10 typical' },
+  'Grid height': { targetRange: '7-13', generationTarget: 'often ≥ width (portrait batches)' },
   'Tile count': { targetRange: '61-120 (most levels)', generationTarget: '~48-120 with emphasis on 60+' },
   'Layers/depth': { targetRange: '4-10 (most levels)', generationTarget: '4-10' },
   'Tile type count': { targetRange: 'mostly 12', generationTarget: '7-12 with medium/hard at 12' },
@@ -251,14 +256,16 @@ function buildDifficultyReport(levels, seed, rejected) {
     const nodesS = stats(m, l => l._reportMetrics.nodesExpanded);
     const difficultyRangeS = stats(m, l => l._reportMetrics.difficultyRange);
     const difficultyVarianceS = stats(m, l => l._reportMetrics.difficultyVariance);
-    const gridS = stats(m, levelGridSize);
+    const gridWS = stats(m, levelGridWidth);
+    const gridHS = stats(m, levelGridHeight);
     const tilesS = stats(m, levelTileCount);
     const layersS = stats(m, levelLayerDepth);
     const typesS = stats(m, levelTileTypeCount);
 
     let out = `### ${title}\n\n`;
     out += `| Metric | Min | Max | Mean |\n|--------|-----|-----|------|\n`;
-    out += `| Grid size | ${format(gridS.min)} | ${format(gridS.max)} | ${format(gridS.mean)} |\n`;
+    out += `| Grid width | ${format(gridWS.min)} | ${format(gridWS.max)} | ${format(gridWS.mean)} |\n`;
+    out += `| Grid height | ${format(gridHS.min)} | ${format(gridHS.max)} | ${format(gridHS.mean)} |\n`;
     out += `| Tile count | ${format(tilesS.min)} | ${format(tilesS.max)} | ${format(tilesS.mean)} |\n`;
     out += `| Layer depth (distinct z with tiles) | ${format(layersS.min)} | ${format(layersS.max)} | ${format(layersS.mean)} |\n`;
     out += `| Tile type count | ${format(typesS.min)} | ${format(typesS.max)} | ${format(typesS.mean)} |\n`;
@@ -298,12 +305,14 @@ function buildDifficultyReport(levels, seed, rejected) {
   md += '| Metric | Target range | Current generation target | Actual (this run) |\n';
   md += '| --- | --- | --- | --- |\n';
   const overallScore = stats(withMetrics, l => l.difficultyScore);
-  const overallGrid = stats(withMetrics, levelGridSize);
+  const overallGridW = stats(withMetrics, levelGridWidth);
+  const overallGridH = stats(withMetrics, levelGridHeight);
   const overallTiles = stats(withMetrics, levelTileCount);
   const overallLayers = stats(withMetrics, levelLayerDepth);
   const overallTypes = stats(withMetrics, levelTileTypeCount);
   const overallMinSlack = stats(withMetrics, l => l._reportMetrics.minSlack);
-  md += overallTargetsRow('Grid size', formatRangeMean(overallGrid));
+  md += overallTargetsRow('Grid width', formatRangeMean(overallGridW));
+  md += overallTargetsRow('Grid height', formatRangeMean(overallGridH));
   md += overallTargetsRow('Tile count', formatRangeMean(overallTiles));
   md += overallTargetsRow(
     'Layers/depth',

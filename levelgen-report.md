@@ -1,6 +1,6 @@
 # Level difficulty report
 
-Generated: 2026-03-21T07:15:30.720Z  
+Generated: 2026-03-21T07:16:52.463Z  
 Seed: 1337  
 Levels: 25 (rejected: 1)
 
@@ -10,7 +10,8 @@ Targets from `LEVELGEN.md` (Level configuration); metrics without entries leave 
 
 | Metric | Target range | Current generation target | Actual (this run) |
 | --- | --- | --- | --- |
-| Grid size | 7-10 | 7-10 | 10 – 13 (mean 12.040) |
+| Grid width | 7-10 | 7-10 typical | 7 – 10 (mean 9.040) |
+| Grid height | 7-13 | often ≥ width (portrait batches) | 10 – 13 (mean 12.040) |
 | Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ | 36 – 120 (mean 84.120) |
 | Layers/depth | 4-10 (most levels) | 4-10 | 2 – 5 (mean 2.720) · distinct z with ≥1 tile |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 | 7 – 12 (mean 10.840) |
@@ -31,7 +32,8 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 10 | 13 | 11.500 |
+| Grid width | 7 | 10 | 8.500 |
+| Grid height | 10 | 13 | 11.500 |
 | Tile count | 36 | 108 | 67.500 |
 | Layer depth (distinct z with tiles) | 2 | 2 | 2 |
 | Tile type count | 7 | 12 | 9.250 |
@@ -53,7 +55,8 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 10 | 13 | 12 |
+| Grid width | 7 | 10 | 9 |
+| Grid height | 10 | 13 | 12 |
 | Tile count | 36 | 114 | 81.375 |
 | Layer depth (distinct z with tiles) | 2 | 4 | 2.500 |
 | Tile type count | 7 | 12 | 11.125 |
@@ -75,7 +78,8 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 12 | 13 | 12.556 |
+| Grid width | 9 | 10 | 9.556 |
+| Grid height | 12 | 13 | 12.556 |
 | Tile count | 84 | 120 | 101.333 |
 | Layer depth (distinct z with tiles) | 3 | 5 | 3.556 |
 | Tile type count | 12 | 12 | 12 |
