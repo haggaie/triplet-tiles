@@ -65,14 +65,40 @@ module.exports = {
     // Easy: regular silhouettes, shallow depth, fewer types.
     {
       templateId: 'diamond',
-      templateParams: { radius: 3 },
+      /** Manhattan ellipse: radiusX × radiusY (not symmetric); variants stretch vertically as grid grows. */
+      templateParams: { radiusX: 3, radiusY: 4 },
       gridWidth: 7,
       gridHeight: 10,
-      count: 3,
+      count: 'auto',
       tileTypeCount: 7,
-      solverConstraints: { requireMinSlackAtMost: 3 },
-      distribution: { mode: 'zipf', totalTriplets: 12, exponent: 0.4 },
-      layering: { minZ: 0, maxZ: 3, overlap: 'medium', maxStackPerCell: 3, full: true, layerShape: 'pyramid' }
+      /** Taller boards (batchVariation gridHeight 13+) often need minSlack ≥ 5 on the solution path; 3 would reject those slots forever. */
+      solverConstraints: { requireMinSlackAtMost: 7 },
+      /** `auto` scales triplets to template capacity; fixed counts left holes on tall grids (36 tiles vs 40+ layer-0 cells). */
+      distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.4 },
+      layering: {
+        minZ: 0,
+        maxZ: 2,
+        overlap: 'medium',
+        maxStackPerCell: 3,
+        full: true,
+        layerShape: 'paramSweep',
+        layerShapeOptions: {
+          sweep: 'radius',
+          minRadius: 1,
+          maxRadius: null
+        }
+      },
+      batchVariation: {
+        mode: 'sweep',
+        variants: [
+          { gridHeight: 10, templateParams: { radiusX: 3, radiusY: 4 } },
+          { gridHeight: 11, templateParams: { radiusX: 3, radiusY: 5 } },
+          { gridHeight: 12, templateParams: { radiusX: 3, radiusY: 5 } },
+          { gridHeight: 13, templateParams: { radiusX: 3, radiusY: 6 } },
+          { gridHeight: 14, templateParams: { radiusX: 3, radiusY: 6 } },
+          { gridHeight: 15, templateParams: { radiusX: 3, radiusY: 7 } }
+        ]
+      }
     },
     {
       templateId: 'circle',

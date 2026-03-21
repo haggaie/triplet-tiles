@@ -28,6 +28,7 @@ const LAYER_SHAPE_OPTIONS_DEFAULTS = {
   pyramid: { pyramidMinNeighbors: 2 },
   shift: { shiftDx: 1, shiftDy: 0 },
   randomErosion: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true },
+  // `footprintZ`: same params, z per layer. `radius`: symmetric radius ladder + z (e.g. diamond pyramid). `thickness`: stroke templates.
   paramSweep: { sweep: 'thickness', minThickness: 1, maxThickness: null }
 };
 

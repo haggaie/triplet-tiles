@@ -185,8 +185,23 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
   return [nBase, ...counts];
 }
 
-/** Templates that support `layerShape: 'paramSweep'` with `sweep: 'thickness'`. */
+/** Templates that support `layerShape: 'paramSweep'` with `sweep: 'thickness'` (not needed for `sweep: 'footprintZ'` or `radius`). */
 const THICKNESS_SWEEP_TEMPLATE_IDS = new Set([
+  'cross',
+  'ring',
+  't',
+  'u',
+  'heart',
+  'spiral',
+  'letter'
+]);
+
+/** Symmetric `radius` sweep (pyramid from large bottom to small top). Not `rectangle` (uses width/height). */
+const RADIUS_SWEEP_TEMPLATE_IDS = new Set([
+  'diamond',
+  'circle',
+  'triangle',
+  'hexagon',
   'cross',
   'ring',
   't',
@@ -209,14 +224,114 @@ function defaultThicknessForTemplate(templateId) {
  * @param {number} gridWidth
  * @param {number} gridHeight
  * @param {number} numLayers
- * @param {{ sweep: string, minThickness?: number, maxThickness?: number }} layerShapeOptions
+ * @param {{ sweep: string, minThickness?: number, maxThickness?: number, minRadius?: number, maxRadius?: number }} layerShapeOptions
  * @param {number} [minZ] absolute z of layer index 0 (for footprint alignment)
  * @returns {Array<Array<{x:number,y:number}>>}
  */
 function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHeight, numLayers, layerShapeOptions, minZ = 0) {
   const sweep = layerShapeOptions.sweep;
+  if (sweep === 'footprintZ') {
+    const id = String(templateId || '').toLowerCase();
+    const layers = [];
+    for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+      layers.push(
+        getTemplateCells(id, templateParams, gridWidth, gridHeight, { z: minZ + layerIdx })
+      );
+    }
+    return layers;
+  }
+  if (sweep === 'radius') {
+    const id = String(templateId || '').toLowerCase();
+    if (!RADIUS_SWEEP_TEMPLATE_IDS.has(id)) {
+      throw new Error(
+        `paramSweep radius sweep is not supported for template "${templateId}" (supported: ${[...RADIUS_SWEEP_TEMPLATE_IDS].join(', ')})`
+      );
+    }
+    const p = templateParams || {};
+    const symmetric =
+      p.radius != null && p.radiusX == null && p.radiusY == null;
+    const asymmetric =
+      p.radius == null &&
+      p.radiusX != null &&
+      p.radiusY != null &&
+      Number.isFinite(Number(p.radiusX)) &&
+      Number.isFinite(Number(p.radiusY));
+
+    if (!symmetric && !asymmetric) {
+      throw new Error(
+        'paramSweep radius sweep requires templateParams.radius (symmetric), or both radiusX and radiusY (asymmetric Manhattan ellipse)'
+      );
+    }
+
+    const minR0 = layerShapeOptions.minRadius != null ? layerShapeOptions.minRadius : 1;
+    let lo = Math.max(1, Math.floor(Number(minR0)));
+    let hi;
+
+    if (symmetric) {
+      const maxR0 =
+        layerShapeOptions.maxRadius != null
+          ? layerShapeOptions.maxRadius
+          : p.radius != null
+            ? p.radius
+            : null;
+      if (maxR0 == null) {
+        throw new Error(
+          'paramSweep radius sweep requires templateParams.radius or layerShapeOptions.maxRadius'
+        );
+      }
+      hi = Math.max(1, Math.floor(Number(maxR0)));
+    } else {
+      hi =
+        layerShapeOptions.maxRadius != null
+          ? layerShapeOptions.maxRadius
+          : Math.floor(Number(p.radiusX));
+      hi = Math.max(1, Math.floor(Number(hi)));
+    }
+
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
+      throw new Error('paramSweep: minRadius and maxRadius must be finite numbers');
+    }
+    if (lo > hi) {
+      const tmp = lo;
+      lo = hi;
+      hi = tmp;
+    }
+    const radiusLadder = [];
+    for (let v = hi; v >= lo; v -= 1) {
+      radiusLadder.push(v);
+    }
+    if (radiusLadder.length === 0) {
+      throw new Error('paramSweep: empty radius range after clamp');
+    }
+
+    const aspect = asymmetric ? Number(p.radiusY) / Math.max(1e-9, Number(p.radiusX)) : 1;
+
+    const layers = [];
+    for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+      const idx =
+        numLayers <= 1
+          ? 0
+          : Math.round((layerIdx / (numLayers - 1)) * (radiusLadder.length - 1));
+      const r = radiusLadder[idx];
+      let merged;
+      if (symmetric) {
+        merged = { ...p, radius: r };
+      } else {
+        const rx = r;
+        const ry = Math.max(1, Math.round(rx * aspect));
+        merged = { ...p };
+        delete merged.radius;
+        merged.radiusX = rx;
+        merged.radiusY = ry;
+      }
+      layers.push(getTemplateCells(id, merged, gridWidth, gridHeight, { z: minZ + layerIdx }));
+    }
+    return layers;
+  }
   if (sweep !== 'thickness') {
-    throw new Error(`paramSweep: unsupported sweep "${sweep}" (only "thickness" is implemented)`);
+    throw new Error(
+      `paramSweep: unsupported sweep "${sweep}" (only "thickness", "footprintZ", and "radius" are implemented)`
+    );
   }
   const id = String(templateId || '').toLowerCase();
   if (!THICKNESS_SWEEP_TEMPLATE_IDS.has(id)) {

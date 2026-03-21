@@ -24,11 +24,70 @@ test('paramSweep thickness: bottom matches getTemplateCells; top is minThickness
   assert.deepEqual(sortCells(layers[1]), sortCells(midExpected));
 });
 
+test('paramSweep radius: shrinking diamond + z matches getTemplateCells per layer', () => {
+  const gw = 9;
+  const gh = 9;
+  const params = { radius: 3 };
+  const layers = buildParamSweepLayerCells('diamond', params, gw, gh, 4, {
+    sweep: 'radius',
+    minRadius: 1,
+    maxRadius: 3
+  });
+  assert.equal(layers.length, 4);
+  // Same ladder + index mapping as generator: [3,2,1] spread across 4 layers → 3,2,2,1
+  const expectedRadii = [3, 2, 2, 1];
+  for (let i = 0; i < 4; i += 1) {
+    const merged = { ...params, radius: expectedRadii[i] };
+    assert.deepEqual(
+      sortCells(layers[i]),
+      sortCells(getTemplateCells('diamond', merged, gw, gh, { z: i }))
+    );
+  }
+});
+
+test('paramSweep radius: asymmetric diamond keeps aspect (radiusY/radiusX) per ladder step', () => {
+  const gw = 9;
+  const gh = 9;
+  const params = { radiusX: 3, radiusY: 5 };
+  const aspect = params.radiusY / params.radiusX;
+  const layers = buildParamSweepLayerCells('diamond', params, gw, gh, 4, {
+    sweep: 'radius',
+    minRadius: 1,
+    maxRadius: null
+  });
+  assert.equal(layers.length, 4);
+  const expectedRx = [3, 2, 2, 1];
+  for (let i = 0; i < 4; i += 1) {
+    const rx = expectedRx[i];
+    const ry = Math.max(1, Math.round(rx * aspect));
+    assert.deepEqual(
+      sortCells(layers[i]),
+      sortCells(getTemplateCells('diamond', { radiusX: rx, radiusY: ry }, gw, gh, { z: i }))
+    );
+  }
+});
+
+test('paramSweep footprintZ: per-layer cells match getTemplateCells with z', () => {
+  const gw = 9;
+  const gh = 9;
+  const params = { radius: 3 };
+  const layers = buildParamSweepLayerCells('diamond', params, gw, gh, 4, {
+    sweep: 'footprintZ'
+  });
+  assert.equal(layers.length, 4);
+  for (let z = 0; z < 4; z += 1) {
+    assert.deepEqual(
+      sortCells(layers[z]),
+      sortCells(getTemplateCells('diamond', params, gw, gh, { z }))
+    );
+  }
+});
+
 test('paramSweep rejects unsupported sweep', () => {
   assert.throws(
     () =>
-      buildParamSweepLayerCells('cross', {}, 9, 9, 2, {
-        sweep: 'radius'
+      buildParamSweepLayerCells('cross', { radius: 4, thickness: 2 }, 9, 9, 2, {
+        sweep: 'bogusSweep'
       }),
     /unsupported sweep/
   );
