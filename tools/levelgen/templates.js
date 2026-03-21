@@ -2,6 +2,36 @@ function clamp(n, lo, hi) {
   return Math.max(lo, Math.min(hi, n));
 }
 
+/**
+ * Horizontal / vertical extents for silhouette generation.
+ * - If `radius` is set (and neither radiusX nor radiusY), uses a symmetric footprint (legacy).
+ * - Otherwise defaults scale with gridWidth / gridHeight so portrait grids (height > width)
+ *   produce taller silhouettes instead of sizing everything by the shorter side only.
+ */
+function resolveRadii(params, gridWidth, gridHeight, defaults) {
+  const p = params || {};
+  const d = {
+    scaleX: 0.35,
+    scaleY: 0.35,
+    minRx: 1,
+    minRy: 1,
+    ...defaults
+  };
+  if (p.radius != null && p.radiusX == null && p.radiusY == null) {
+    const rr = Math.max(d.minRx, Math.max(d.minRy, p.radius));
+    return { rx: rr, ry: rr };
+  }
+  const rx =
+    p.radiusX != null
+      ? Math.max(d.minRx, p.radiusX)
+      : Math.max(d.minRx, Math.floor(gridWidth * d.scaleX));
+  const ry =
+    p.radiusY != null
+      ? Math.max(d.minRy, p.radiusY)
+      : Math.max(d.minRy, Math.floor(gridHeight * d.scaleY));
+  return { rx, ry };
+}
+
 function keyXY(x, y) {
   return `${x},${y}`;
 }
@@ -45,9 +75,8 @@ function centeredToGrid(dx, dy, gridWidth, gridHeight) {
 }
 
 function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const w = Math.max(1, width || Math.floor(gMin * 0.7));
-  const h = Math.max(1, height || Math.floor(gMin * 0.7));
+  const w = Math.max(1, width ?? Math.floor(gridWidth * 0.7));
+  const h = Math.max(1, height ?? Math.floor(gridHeight * 0.7));
   const halfW = Math.floor(w / 2);
   const halfH = Math.floor(h / 2);
   const cells = [];
@@ -60,13 +89,18 @@ function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function diamondTemplate({ radius }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(1, radius || Math.floor(gMin * 0.35));
+function diamondTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 1, minRy: 1 }
+  );
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      if (Math.abs(dx) + Math.abs(dy) <= r) {
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      // Manhattan ellipse: |dx|/rx + |dy|/ry <= 1  →  |dx|*ry + |dy|*rx <= rx*ry
+      if (Math.abs(dx) * ry + Math.abs(dy) * rx <= rx * ry) {
         const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
         if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
       }
@@ -75,13 +109,19 @@ function diamondTemplate({ radius }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function circleTemplate({ radius }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(2, radius || Math.floor(gMin * 0.35));
+function circleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 2, minRy: 2 }
+  );
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      if ((dx * dx) + (dy * dy) <= (r * r)) {
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const nx = rx > 0 ? dx / rx : 0;
+      const ny = ry > 0 ? dy / ry : 0;
+      if (nx * nx + ny * ny <= 1 + 1e-9) {
         const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
         if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
       }
@@ -90,14 +130,18 @@ function circleTemplate({ radius }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function triangleTemplate({ radius }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.35));
+function triangleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 3, minRy: 3 }
+  );
   const cells = [];
-  // Isosceles triangle pointing up; regular and easy to represent on grid.
-  for (let dy = -r; dy <= r; dy += 1) {
-    const width = Math.max(0, Math.floor(((dy + r) / Math.max(1, 2 * r)) * (2 * r)));
-    for (let dx = -width; dx <= width; dx += 1) {
+  // Isosceles triangle pointing up (apex at dy = -ry, base at dy = ry).
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    const halfW = Math.max(0, Math.floor((rx * (dy + ry)) / Math.max(1, 2 * ry)));
+    for (let dx = -halfW; dx <= halfW; dx += 1) {
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
@@ -105,13 +149,20 @@ function triangleTemplate({ radius }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function hexagonTemplate({ radius }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(2, radius || Math.floor(gMin * 0.3));
+function hexagonTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.3, scaleY: 0.3, minRx: 2, minRy: 2 }
+  );
   const cells = [];
-  // Axial hex approximation on integer lattice.
-  for (let dy = -r; dy <= r; dy += 1) {
-    const span = r - Math.floor(Math.abs(dy) / 2);
+  // Axial hex approximation stretched to rx × ry (flat-top style).
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    const span = Math.max(
+      0,
+      Math.floor(rx - (Math.abs(dy) * rx) / Math.max(1, 2 * ry))
+    );
     for (let dx = -span; dx <= span; dx += 1) {
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
@@ -120,16 +171,21 @@ function hexagonTemplate({ radius }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function crossTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(2, radius || Math.floor(gMin * 0.35));
-  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+function crossTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 2, minRy: 2 }
+  );
+  const rBar = Math.min(rx, ry);
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
   const half = Math.floor(t / 2);
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      const inVertical = Math.abs(dx) <= half;
-      const inHorizontal = Math.abs(dy) <= half;
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const inVertical = Math.abs(dx) <= half && Math.abs(dy) <= ry;
+      const inHorizontal = Math.abs(dy) <= half && Math.abs(dx) <= rx;
       if (!inVertical && !inHorizontal) continue;
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
@@ -138,17 +194,27 @@ function crossTemplate({ radius, thickness }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function ringTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.35));
-  const w = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, r - 1));
-  const inner = Math.max(1, r - w);
+function ringTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 3, minRy: 3 }
+  );
+  const rEff = Math.min(rx, ry);
+  const w = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, rEff - 1));
+  const innerRx = Math.max(1, rx - w);
+  const innerRy = Math.max(1, ry - w);
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      const d2 = (dx * dx) + (dy * dy);
-      if (d2 > (r * r)) continue;
-      if (d2 < (inner * inner)) continue;
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const nx = rx > 0 ? dx / rx : 0;
+      const ny = ry > 0 ? dy / ry : 0;
+      const out = nx * nx + ny * ny <= 1 + 1e-9;
+      const ix = innerRx > 0 ? dx / innerRx : 0;
+      const iy = innerRy > 0 ? dy / innerRy : 0;
+      const inn = ix * ix + iy * iy < 1 - 1e-9;
+      if (!out || inn) continue;
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
@@ -156,16 +222,21 @@ function ringTemplate({ radius, thickness }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function tTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.4));
-  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+function tTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.4, scaleY: 0.4, minRx: 3, minRy: 3 }
+  );
+  const rBar = Math.min(rx, ry);
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
   const half = Math.floor(t / 2);
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      const inTopBar = dy <= -r + t && Math.abs(dx) <= r;
-      const inStem = Math.abs(dx) <= half && dy >= -r + t && dy <= r;
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const inTopBar = dy <= -ry + t && Math.abs(dx) <= rx;
+      const inStem = Math.abs(dx) <= half && dy >= -ry + t && dy <= ry;
       if (!inTopBar && !inStem) continue;
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
@@ -174,16 +245,21 @@ function tTemplate({ radius, thickness }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function uTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.4));
-  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(r / 2) + 1));
+function uTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.4, scaleY: 0.4, minRx: 3, minRy: 3 }
+  );
+  const rBar = Math.min(rx, ry);
+  const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
   const cells = [];
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      const inLeft = dx >= -r && dx <= (-r + t - 1) && dy <= r && dy >= -r;
-      const inRight = dx <= r && dx >= (r - t + 1) && dy <= r && dy >= -r;
-      const inBottom = dy >= (r - t + 1) && dy <= r && Math.abs(dx) <= r;
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const inLeft = dx >= -rx && dx <= -rx + t - 1 && dy <= ry && dy >= -ry;
+      const inRight = dx <= rx && dx >= rx - t + 1 && dy <= ry && dy >= -ry;
+      const inBottom = dy >= ry - t + 1 && dy <= ry && Math.abs(dx) <= rx;
       if (!inLeft && !inRight && !inBottom) continue;
       const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
@@ -192,15 +268,19 @@ function uTemplate({ radius, thickness }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function heartTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.35));
+function heartTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.35, scaleY: 0.35, minRx: 3, minRy: 3 }
+  );
   const cells = [];
-  // Sample a heart implicit curve on a grid. Scale coordinates into [-1.5, 1.5].
-  for (let dy = -r; dy <= r; dy += 1) {
-    for (let dx = -r; dx <= r; dx += 1) {
-      const x = (dx / r) * 1.5;
-      const y = (dy / r) * 1.5;
+  // Sample a heart implicit curve on a grid; scale to an axis-aligned ellipse in [-1.5,1.5]^2.
+  for (let dy = -ry; dy <= ry; dy += 1) {
+    for (let dx = -rx; dx <= rx; dx += 1) {
+      const x = rx > 0 ? (dx / rx) * 1.5 : 0;
+      const y = ry > 0 ? (dy / ry) * 1.5 : 0;
       const a = x * x + y * y - 1;
       const inside = a * a * a - x * x * y * y * y <= 0;
       if (!inside) continue;
@@ -213,23 +293,28 @@ function heartTemplate({ radius, thickness }, gridWidth, gridHeight) {
   return t > 0 ? dilate(cells, gridWidth, gridHeight, t - 1) : uniqueCells(cells);
 }
 
-function spiralTemplate({ radius, thickness }, gridWidth, gridHeight) {
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(3, radius || Math.floor(gMin * 0.4));
+function spiralTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.4, scaleY: 0.4, minRx: 3, minRy: 3 }
+  );
   const t = clamp(thickness == null ? 1 : thickness, 1, 4);
 
-  // Build an inward spiral path using integer steps.
+  // Rectangular spiral: alternate horizontal / vertical run lengths (matches square when rx === ry).
   const cells = [];
-  let x = -r;
-  let y = -r;
+  let x = -rx;
+  let y = -ry;
   let dx = 1;
   let dy = 0;
-  let segLen = 2 * r;
-  let segPassed = 0;
+  let hLen = 2 * rx;
+  let vLen = 2 * ry;
+  let segLen = hLen;
   let segsDone = 0;
-  let stepsLeft = (2 * r + 1) * (2 * r + 1) * 2;
+  let stepsLeft = (2 * rx + 1) * (2 * ry + 1) * 4;
 
-  while (stepsLeft > 0 && segLen > 0) {
+  while (stepsLeft > 0 && segLen > 0 && hLen >= 0 && vLen >= 0) {
     for (let i = 0; i < segLen; i += 1) {
       const { x: gx, y: gy } = centeredToGrid(x, y, gridWidth, gridHeight);
       if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
@@ -239,31 +324,41 @@ function spiralTemplate({ radius, thickness }, gridWidth, gridHeight) {
       if (stepsLeft <= 0) break;
     }
 
-    segPassed += 1;
+    if (stepsLeft <= 0) break;
     // Rotate direction: right -> down -> left -> up
     if (dx === 1 && dy === 0) {
-      dx = 0; dy = 1;
+      dx = 0;
+      dy = 1;
     } else if (dx === 0 && dy === 1) {
-      dx = -1; dy = 0;
+      dx = -1;
+      dy = 0;
     } else if (dx === -1 && dy === 0) {
-      dx = 0; dy = -1;
+      dx = 0;
+      dy = -1;
     } else {
-      dx = 1; dy = 0;
+      dx = 1;
+      dy = 0;
     }
 
     segsDone += 1;
     if (segsDone % 2 === 0) {
-      segLen -= 1;
+      hLen -= 1;
+      vLen -= 1;
     }
+    segLen = segsDone % 2 === 1 ? vLen : hLen;
   }
 
   return dilate(uniqueCells(cells), gridWidth, gridHeight, t - 1);
 }
 
-function letterTemplate({ letter, radius, thickness }, gridWidth, gridHeight) {
+function letterTemplate({ letter, radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const ch = String(letter || 'S').toUpperCase();
-  const gMin = Math.min(gridWidth, gridHeight);
-  const r = Math.max(4, radius || Math.floor(gMin * 0.45));
+  const { rx, ry } = resolveRadii(
+    { radius, radiusX, radiusY },
+    gridWidth,
+    gridHeight,
+    { scaleX: 0.45, scaleY: 0.45, minRx: 4, minRy: 4 }
+  );
   const t = clamp(thickness == null ? 2 : thickness, 1, 4);
 
   const cells = [];
@@ -292,12 +387,11 @@ function letterTemplate({ letter, radius, thickness }, gridWidth, gridHeight) {
 
   if (ch === 'S') {
     // S shape: top curve (top bar + left vertical), mid bar, bottom curve (right vertical + bottom bar).
-    // Use full radius for height so the two openings stay visible; keep width slightly narrower.
-    const left = -Math.floor(r * 0.6);
-    const right = Math.floor(r * 0.6);
-    const top = -r;
+    const left = -Math.floor(rx * 0.6);
+    const right = Math.floor(rx * 0.6);
+    const top = -ry;
     const mid = 0;
-    const bottom = r;
+    const bottom = ry;
 
     addBarH(top, left, right);
     addBarH(mid, left, right);
@@ -305,16 +399,21 @@ function letterTemplate({ letter, radius, thickness }, gridWidth, gridHeight) {
     addBarV(left, top, mid);
     addBarV(right, mid, bottom);
   } else if (ch === 'C') {
-    const left = -Math.floor(r * 0.6);
-    const right = Math.floor(r * 0.4);
-    const top = -Math.floor(r * 0.6);
-    const bottom = Math.floor(r * 0.6);
+    const left = -Math.floor(rx * 0.6);
+    const right = Math.floor(rx * 0.4);
+    const top = -Math.floor(ry * 0.6);
+    const bottom = Math.floor(ry * 0.6);
     addBarH(top, left, right);
     addBarH(bottom, left, right);
     addBarV(left, top, bottom);
   } else {
     // Fallback: diamond-like glyph.
-    return dilate(diamondTemplate({ radius: Math.floor(r * 0.6) }, gridWidth, gridHeight), gridWidth, gridHeight, t - 1);
+    return dilate(
+      diamondTemplate({ radius: Math.floor(Math.min(rx, ry) * 0.6) }, gridWidth, gridHeight),
+      gridWidth,
+      gridHeight,
+      t - 1
+    );
   }
 
   // Note: we don't use dilation for letters because it fills in S/C openings.

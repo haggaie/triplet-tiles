@@ -1,8 +1,8 @@
 # Level difficulty report
 
-Generated: 2026-03-21T05:49:53.525Z  
+Generated: 2026-03-21T07:11:38.382Z  
 Seed: 1337  
-Levels: 25 (rejected: 0)
+Levels: 25 (rejected: 1)
 
 ## Overall
 
@@ -10,18 +10,18 @@ Targets from `LEVELGEN.md` (Level configuration); metrics without entries leave 
 
 | Metric | Target range | Current generation target | Actual (this run) |
 | --- | --- | --- | --- |
-| Grid size | 7-10 | 7-10 | 7 – 10 (mean 9.040) |
+| Grid size | 7-10 | 7-10 | 10 – 13 (mean 12.040) |
 | Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ | 36 – 120 (mean 84.120) |
-| Layers/depth | 4-10 (most levels) | 4-10 | 2 – 9 (mean 2.920) · distinct z with ≥1 tile |
+| Layers/depth | 4-10 (most levels) | 4-10 | 2 – 5 (mean 2.720) · distinct z with ≥1 tile |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 | 7 – 12 (mean 10.840) |
-| Difficulty score | ~0.34-0.76 | intentionally pushed upward via deeper stacks and tighter slack constraints | 0.434 – 0.585 (mean 0.514) |
+| Difficulty score | ~0.34-0.76 | intentionally pushed upward via deeper stacks and tighter slack constraints | 0.390 – 0.585 (mean 0.513) |
 | Min tray slack | mostly 1 | medium/hard batches require solver minSlack <= 1 | 1 – 1 (mean 1) |
-| Mean forced-move ratio |  |  | 0.298 |
-| Mean forced-move ratio (depth-k lookahead) |  |  | 0.159 |
-| Mean rollout failure rate |  |  | 0.777 |
+| Mean forced-move ratio |  |  | 0.287 |
+| Mean forced-move ratio (depth-k lookahead) |  |  | 0.157 |
+| Mean rollout failure rate |  |  | 0.792 |
 | Mean solution steps |  |  | 84.120 |
-| Mean difficulty range (in-level uniformity) |  |  | 0.194 |
-| Mean difficulty variance (in-level uniformity) |  |  | 0.008 |
+| Mean difficulty range (in-level uniformity) |  |  | 0.208 |
+| Mean difficulty variance (in-level uniformity) |  |  | 0.009 |
 
 ## By difficulty band
 
@@ -31,21 +31,21 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 7 | 10 | 8.375 |
-| Tile count | 36 | 108 | 64.125 |
+| Grid size | 10 | 13 | 11.500 |
+| Tile count | 36 | 108 | 67.500 |
 | Layer depth (distinct z with tiles) | 2 | 2 | 2 |
 | Tile type count | 7 | 12 | 9.250 |
-| Difficulty score | 0.434 | 0.494 | 0.466 |
+| Difficulty score | 0.390 | 0.494 | 0.452 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio | 0.194 | 0.333 | 0.288 |
-| Forced-move ratio (depth-k) | 0.056 | 0.198 | 0.124 |
-| Dead-end (rollout) failure rate | 0.133 | 0.767 | 0.529 |
-| Avg tappable tiles per step | 7.056 | 28.500 | 14.675 |
+| Forced-move ratio | 0.148 | 0.333 | 0.268 |
+| Forced-move ratio (depth-k) | 0.056 | 0.324 | 0.123 |
+| Dead-end (rollout) failure rate | 0.133 | 0.767 | 0.492 |
+| Avg tappable tiles per step | 7.056 | 36.148 | 17.623 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 36 | 108 | 64.125 |
-| Solver nodes expanded | 46 | 1894 | 541 |
-| Difficulty range (in-level uniformity) | 0.070 | 0.377 | 0.253 |
-| Difficulty variance (in-level uniformity) | 0.001 | 0.025 | 0.013 |
+| Solution steps | 36 | 108 | 67.500 |
+| Solver nodes expanded | 46 | 564 | 230.500 |
+| Difficulty range (in-level uniformity) | 0.070 | 0.377 | 0.274 |
+| Difficulty variance (in-level uniformity) | 0.001 | 0.025 | 0.015 |
 
 **Level count:** 8
 
@@ -53,21 +53,21 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 7 | 10 | 9 |
-| Tile count | 36 | 108 | 81.750 |
-| Layer depth (distinct z with tiles) | 2 | 4 | 2.375 |
+| Grid size | 10 | 13 | 12 |
+| Tile count | 36 | 114 | 81.375 |
+| Layer depth (distinct z with tiles) | 2 | 4 | 2.500 |
 | Tile type count | 7 | 12 | 11.125 |
-| Difficulty score | 0.498 | 0.530 | 0.514 |
+| Difficulty score | 0.498 | 0.535 | 0.522 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio | 0.250 | 0.333 | 0.289 |
-| Forced-move ratio (depth-k) | 0.028 | 0.250 | 0.151 |
-| Dead-end (rollout) failure rate | 0.467 | 0.933 | 0.804 |
-| Avg tappable tiles per step | 7.167 | 23.648 | 16.266 |
+| Forced-move ratio | 0.247 | 0.333 | 0.282 |
+| Forced-move ratio (depth-k) | 0.028 | 0.210 | 0.141 |
+| Dead-end (rollout) failure rate | 0.467 | 1 | 0.867 |
+| Avg tappable tiles per step | 7.167 | 17.774 | 15.098 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 36 | 108 | 81.750 |
-| Solver nodes expanded | 37 | 13432 | 2141.875 |
-| Difficulty range (in-level uniformity) | 0.092 | 0.317 | 0.160 |
-| Difficulty variance (in-level uniformity) | 0.002 | 0.019 | 0.006 |
+| Solution steps | 36 | 114 | 81.375 |
+| Solver nodes expanded | 37 | 1812 | 645.500 |
+| Difficulty range (in-level uniformity) | 0.109 | 0.337 | 0.209 |
+| Difficulty variance (in-level uniformity) | 0.002 | 0.019 | 0.009 |
 
 **Level count:** 8
 
@@ -75,21 +75,21 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid size | 9 | 10 | 9.667 |
-| Tile count | 84 | 120 | 104 |
-| Layer depth (distinct z with tiles) | 2 | 9 | 4.222 |
+| Grid size | 12 | 13 | 12.556 |
+| Tile count | 84 | 120 | 101.333 |
+| Layer depth (distinct z with tiles) | 3 | 5 | 3.556 |
 | Tile type count | 12 | 12 | 12 |
-| Difficulty score | 0.532 | 0.585 | 0.555 |
+| Difficulty score | 0.545 | 0.585 | 0.558 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio | 0.237 | 0.367 | 0.315 |
-| Forced-move ratio (depth-k) | 0.096 | 0.256 | 0.198 |
-| Dead-end (rollout) failure rate | 0.867 | 1 | 0.974 |
-| Avg tappable tiles per step | 12.308 | 17.317 | 14.351 |
+| Forced-move ratio | 0.238 | 0.378 | 0.307 |
+| Forced-move ratio (depth-k) | 0.167 | 0.256 | 0.202 |
+| Dead-end (rollout) failure rate | 0.967 | 1 | 0.993 |
+| Avg tappable tiles per step | 12.611 | 19.952 | 15.835 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 84 | 120 | 104 |
-| Solver nodes expanded | 983 | 96171 | 14563.667 |
-| Difficulty range (in-level uniformity) | 0.118 | 0.321 | 0.173 |
-| Difficulty variance (in-level uniformity) | 0.002 | 0.017 | 0.006 |
+| Solution steps | 84 | 120 | 101.333 |
+| Solver nodes expanded | 795 | 96171 | 14824.556 |
+| Difficulty range (in-level uniformity) | 0.102 | 0.258 | 0.149 |
+| Difficulty variance (in-level uniformity) | 0.002 | 0.013 | 0.005 |
 
 **Level count:** 9
 

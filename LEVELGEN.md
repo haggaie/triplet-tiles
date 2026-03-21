@@ -24,7 +24,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
 
 | Metric | Target range | Current generation target |
 | --- | --- | --- |
-| Grid dimensions | 7-10 per axis | `gridWidth` × `gridHeight` (often equal); 7-10 typical |
+| Grid dimensions | 7-10 per axis | `gridWidth` × `gridHeight` (portrait batches use height ≥ width); 7–13 typical |
 | Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ |
 | Layers/depth | 4-10 (most levels) | 4-10 |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 |
@@ -48,7 +48,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `forcedLookahead` (optional): use `{}` to enable **`forcedRatioK`** (defaults from [`tools/levelgen/forced-lookahead-defaults.js`](tools/levelgen/forced-lookahead-defaults.js)—edit **`lookaheadDepth` there** for forced-move depth). Override per-field in config if needed. Omit `forcedLookahead` entirely to skip (faster builds). Large depth is expensive.
   - `levels`: array of “batches” describing how to generate groups of levels:
     - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
-    - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
+    - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, `{ radiusX, radiusY }` for asymmetric silhouettes, or `{ letter }`).
     - `gridWidth`, `gridHeight`: board cell counts used by the template and layout (`x` in `[0, gridWidth)`, `y` in `[0, gridHeight)`; both ≥ 5 for templates). Legacy `gridSize` is still accepted in generator config as shorthand for a square grid.
     - `count`: how many levels to generate for this batch.
     - `tileTypeCount`: number of distinct **abstract** tile kinds in this batch — type ids `0 .. tileTypeCount - 1` only (no dependency on emoji or `TILE_TYPES` names).
