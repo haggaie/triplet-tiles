@@ -7,6 +7,8 @@ function clamp(n, lo, hi) {
  * - If `radius` is set (and neither radiusX nor radiusY), uses a symmetric footprint (legacy).
  * - Otherwise defaults scale with gridWidth / gridHeight so portrait grids (height > width)
  *   produce taller silhouettes instead of sizing everything by the shorter side only.
+ * - Results are clamped so symmetric templates centered on (floor(W/2), floor(H/2)) stay in
+ *   bounds: max |dx| is min(cx, W-1-cx) (even widths are asymmetric around the center cell).
  */
 function resolveRadii(params, gridWidth, gridHeight, defaults) {
   const p = params || {};
@@ -17,8 +19,14 @@ function resolveRadii(params, gridWidth, gridHeight, defaults) {
     minRy: 1,
     ...defaults
   };
+  const cx = Math.floor(gridWidth / 2);
+  const cy = Math.floor(gridHeight / 2);
+  const maxRx = Math.min(cx, gridWidth - 1 - cx);
+  const maxRy = Math.min(cy, gridHeight - 1 - cy);
+
   if (p.radius != null && p.radiusX == null && p.radiusY == null) {
-    const rr = Math.max(d.minRx, Math.max(d.minRy, p.radius));
+    let rr = Math.max(d.minRx, Math.max(d.minRy, p.radius));
+    rr = Math.min(rr, maxRx, maxRy);
     return { rx: rr, ry: rr };
   }
   const rx =
@@ -29,7 +37,10 @@ function resolveRadii(params, gridWidth, gridHeight, defaults) {
     p.radiusY != null
       ? Math.max(d.minRy, p.radiusY)
       : Math.max(d.minRy, Math.floor(gridHeight * d.scaleY));
-  return { rx, ry };
+  return {
+    rx: Math.min(rx, maxRx),
+    ry: Math.min(ry, maxRy)
+  };
 }
 
 function keyXY(x, y) {
@@ -74,6 +85,19 @@ function centeredToGrid(dx, dy, gridWidth, gridHeight) {
   return { x: cx + dx, y: cy + dy };
 }
 
+/**
+ * Map offsets in [-rx, rx] × [-ry, ry] to grid cells so the bounding box
+ * (2·rx+1) × (2·ry+1) is centered — avoids left/right bias when gridWidth or
+ * gridHeight is even (floor(W/2) is not the geometric midpoint between cells).
+ */
+function centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight) {
+  const spanX = 2 * rx + 1;
+  const spanY = 2 * ry + 1;
+  const startX = Math.floor((gridWidth - spanX) / 2);
+  const startY = Math.floor((gridHeight - spanY) / 2);
+  return { x: startX + (dx + rx), y: startY + (dy + ry) };
+}
+
 function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
   const w = Math.max(1, width ?? Math.floor(gridWidth * 0.7));
   const h = Math.max(1, height ?? Math.floor(gridHeight * 0.7));
@@ -82,7 +106,7 @@ function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
   const cells = [];
   for (let dy = -halfH; dy <= halfH; dy += 1) {
     for (let dx = -halfW; dx <= halfW; dx += 1) {
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, halfW, halfH, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -101,7 +125,7 @@ function diamondTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
     for (let dx = -rx; dx <= rx; dx += 1) {
       // Manhattan ellipse: |dx|/rx + |dy|/ry <= 1  →  |dx|*ry + |dy|*rx <= rx*ry
       if (Math.abs(dx) * ry + Math.abs(dy) * rx <= rx * ry) {
-        const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+        const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
         if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
       }
     }
@@ -122,7 +146,7 @@ function circleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
       const nx = rx > 0 ? dx / rx : 0;
       const ny = ry > 0 ? dy / ry : 0;
       if (nx * nx + ny * ny <= 1 + 1e-9) {
-        const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+        const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
         if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
       }
     }
@@ -142,7 +166,7 @@ function triangleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   for (let dy = -ry; dy <= ry; dy += 1) {
     const halfW = Math.max(0, Math.floor((rx * (dy + ry)) / Math.max(1, 2 * ry)));
     for (let dx = -halfW; dx <= halfW; dx += 1) {
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -164,7 +188,7 @@ function hexagonTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
       Math.floor(rx - (Math.abs(dy) * rx) / Math.max(1, 2 * ry))
     );
     for (let dx = -span; dx <= span; dx += 1) {
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -176,7 +200,8 @@ function crossTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
     { radius, radiusX, radiusY },
     gridWidth,
     gridHeight,
-    { scaleX: 0.35, scaleY: 0.35, minRx: 2, minRy: 2 }
+    // Slightly shorter default arm on X so portrait boards stay balanced (not clipped sides).
+    { scaleX: 0.28, scaleY: 0.35, minRx: 2, minRy: 2 }
   );
   const rBar = Math.min(rx, ry);
   const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
@@ -187,7 +212,7 @@ function crossTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
       const inVertical = Math.abs(dx) <= half && Math.abs(dy) <= ry;
       const inHorizontal = Math.abs(dy) <= half && Math.abs(dx) <= rx;
       if (!inVertical && !inHorizontal) continue;
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -215,7 +240,7 @@ function ringTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHe
       const iy = innerRy > 0 ? dy / innerRy : 0;
       const inn = ix * ix + iy * iy < 1 - 1e-9;
       if (!out || inn) continue;
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -238,7 +263,7 @@ function tTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeigh
       const inTopBar = dy <= -ry + t && Math.abs(dx) <= rx;
       const inStem = Math.abs(dx) <= half && dy >= -ry + t && dy <= ry;
       if (!inTopBar && !inStem) continue;
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -250,7 +275,7 @@ function uTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeigh
     { radius, radiusX, radiusY },
     gridWidth,
     gridHeight,
-    { scaleX: 0.4, scaleY: 0.4, minRx: 3, minRy: 3 }
+    { scaleX: 0.28, scaleY: 0.4, minRx: 3, minRy: 3 }
   );
   const rBar = Math.min(rx, ry);
   const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
@@ -261,7 +286,7 @@ function uTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeigh
       const inRight = dx <= rx && dx >= rx - t + 1 && dy <= ry && dy >= -ry;
       const inBottom = dy >= ry - t + 1 && dy <= ry && Math.abs(dx) <= rx;
       if (!inLeft && !inRight && !inBottom) continue;
-      const { x, y } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });
     }
   }
@@ -285,7 +310,7 @@ function heartTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
       const a = x * x + y * y - 1;
       const inside = a * a * a - x * x * y * y * y <= 0;
       if (!inside) continue;
-      const { x: gx, y: gy } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+      const { x: gx, y: gy } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
     }
   }
@@ -317,7 +342,7 @@ function spiralTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, grid
 
   while (stepsLeft > 0 && segLen > 0 && hLen >= 0 && vLen >= 0) {
     for (let i = 0; i < segLen; i += 1) {
-      const { x: gx, y: gy } = centeredToGrid(x, y, gridWidth, gridHeight);
+      const { x: gx, y: gy } = centeredSymmetricToGrid(x, y, rx, ry, gridWidth, gridHeight);
       if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
       x += dx;
       y += dy;
