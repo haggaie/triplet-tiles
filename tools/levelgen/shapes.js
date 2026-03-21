@@ -52,24 +52,28 @@ function cellSet(cells) {
 }
 
 /**
- * Shrink the silhouette by one tile: keep only cells that have all four
- * cardinal neighbors (up, down, left, right) inside the silhouette.
- * Produces a "pyramid" inner layer.
+ * Shrink the silhouette by one step: keep cells that have at least
+ * `minCardinalNeighbors` of their four cardinal neighbors inside the silhouette.
+ * Default 2 works well for thin shapes (e.g. cross arms); use 4 for strict interior
+ * (all four neighbors in-set), matching the original pyramid behavior.
  * @param {Array<{x: number, y: number}>} cells
  * @param {number} gridWidth
  * @param {number} gridHeight
- * @returns {Array<{x: number, y: number}>} interior cells only
+ * @param {number} [minCardinalNeighbors=2] clamped to 1..4
+ * @returns {Array<{x: number, y: number}>}
  */
-function shrinkSilhouette(cells, gridWidth, gridHeight) {
+function shrinkSilhouette(cells, gridWidth, gridHeight, minCardinalNeighbors = 2) {
+  const k = Math.max(1, Math.min(4, Number(minCardinalNeighbors) || 2));
   const set = cellSet(cells);
   const out = [];
   for (const { x, y } of cells) {
     if (!inBounds(x, y, gridWidth, gridHeight)) continue;
-    const hasL = set.has(keyXY(x - 1, y));
-    const hasR = set.has(keyXY(x + 1, y));
-    const hasU = set.has(keyXY(x, y - 1));
-    const hasD = set.has(keyXY(x, y + 1));
-    if (hasL && hasR && hasU && hasD) out.push({ x, y });
+    let n = 0;
+    if (set.has(keyXY(x - 1, y))) n += 1;
+    if (set.has(keyXY(x + 1, y))) n += 1;
+    if (set.has(keyXY(x, y - 1))) n += 1;
+    if (set.has(keyXY(x, y + 1))) n += 1;
+    if (n >= k) out.push({ x, y });
   }
   return out;
 }
@@ -82,13 +86,14 @@ function shrinkSilhouette(cells, gridWidth, gridHeight) {
  * @param {number} gridWidth
  * @param {number} gridHeight
  * @param {number} steps max number of shrink steps
+ * @param {number} [minCardinalNeighbors=2] passed to {@link shrinkSilhouette}
  * @returns {Array<Array<{x: number, y: number}>>}
  */
-function pyramidSilhouettes(cells, gridWidth, gridHeight, steps = 10) {
+function pyramidSilhouettes(cells, gridWidth, gridHeight, steps = 10, minCardinalNeighbors = 2) {
   const result = [cells];
   let current = cells;
   for (let i = 0; i < steps; i += 1) {
-    const next = shrinkSilhouette(current, gridWidth, gridHeight);
+    const next = shrinkSilhouette(current, gridWidth, gridHeight, minCardinalNeighbors);
     if (next.length === 0) break;
     result.push(next);
     current = next;
@@ -211,7 +216,7 @@ function randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, o
  * @param {number} gridHeight
  * @param {string} layerShape 'full' | 'pyramid' | 'shift'
  * @param {number} layerIndex 0-based layer index (0 = bottom)
- * @param {{ shiftDx?: number, shiftDy?: number, erosionRate?: number, minCellFraction?: number, allowShift?: boolean }} options
+ * @param {{ shiftDx?: number, shiftDy?: number, erosionRate?: number, minCellFraction?: number, allowShift?: boolean, pyramidMinNeighbors?: number }} options
  * @param {Function} [rng]
  * @returns {Array<{x: number, y: number}>} cells allowed for that layer
  */
@@ -223,7 +228,8 @@ function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerI
       return baseCells;
 
     case 'pyramid': {
-      const pyramids = pyramidSilhouettes(baseCells, gridWidth, gridHeight, layerIndex + 1);
+      const minN = options.pyramidMinNeighbors != null ? options.pyramidMinNeighbors : 2;
+      const pyramids = pyramidSilhouettes(baseCells, gridWidth, gridHeight, layerIndex + 1, minN);
       const idx = Math.min(layerIndex, pyramids.length - 1);
       return pyramids[idx].length > 0 ? pyramids[idx] : baseCells;
     }

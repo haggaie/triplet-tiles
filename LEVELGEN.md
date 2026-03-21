@@ -61,6 +61,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - `full`: if `true`, placement uses deterministic fill order and greedy lower‑z‑first budgets; each layer may be **fully** tiled (row‑major) or **partially** tiled with cells spread along that order if the level runs out of tiles (see **Fill and layer-shape strategies** below).
       - `layerShape`: `'full' | 'pyramid' | 'shift' | 'randomErosion'` — how upper layers derive their silhouette from the base (default `'full'`).
       - `layerShapeOptions`: optional strategy params:
+        - for `pyramid`: `{ pyramidMinNeighbors? }` — keep a cell on the next layer if at least this many of its four cardinal neighbors lie in the current silhouette (default **2**; use **4** for strict interior / old behavior).
         - for `shift`: `{ shiftDx?, shiftDy? }` (per-layer delta; default 1, 0).
         - for `randomErosion`: `{ erosionRate?, minCellFraction?, allowShift? }`.
     - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
@@ -88,7 +89,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Shuffles those types into a single sequence (**no** tray-feasibility or slack shaping).
       - Converts the sequence into a multi-layer layout over the template silhouette:
         - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, layers fill in **increasing z**: base up to capacity, then the next layer up to capacity, and so on. Full layers use row-major order; **partial** layers use cells **spaced along** that order so coverage is spread over the silhouette (not clumped in low‑y rows). With `full` false, the same greedy z-order applies to tile budgets per layer.
-        - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk by one tile per layer (inner pyramid); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index; `'randomErosion'` = connected edge-erosion per layer with optional small random shifts.
+        - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = same as base; `'pyramid'` = base shrunk each layer by dropping cells with too few in-silhouette cardinal neighbors (see `pyramidMinNeighbors`, default 2); `'shift'` = base shifted by `(shiftDx, shiftDy)` per layer index; `'randomErosion'` = connected edge-erosion per layer with optional small random shifts.
         - Overlap density is controlled via `overlap` + `maxStackPerCell`.
         - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
@@ -303,7 +304,7 @@ npx playwright test
 - **`full: true`** (recommended): **Every layer** is filled in a deterministic **row-by-row** order (sort by `(y, x)`), so each layer’s silhouette is fully and cleanly filled—no random scatter. Tile counts per layer respect each layer’s cell capacity (so with `layerShape: 'pyramid'` or `'shift'`, upper layers may have fewer cells and thus fewer tiles).
 - **`layerShape`** controls each layer’s allowed cells (and thus its fill shape):
   - **`'full'`**: Every layer uses the same silhouette as the base; all layers are fully filled in order.
-  - **`'pyramid'`**: Layer 0 = full silhouette; layer 1 = silhouette **shrunk by one tile** (only cells that have all four cardinal neighbors in the set); layer 2 = shrunk again; etc. Each layer is fully filled in order, producing a pyramid-like stack.
+  - **`'pyramid'`**: Layer 0 = full silhouette; each higher layer applies one shrink step: a cell stays if at least **`pyramidMinNeighbors`** of its four cardinal neighbors are in the silhouette below (default **2**). Use **`pyramidMinNeighbors: 4`** to match the previous “strict interior” rule (all four neighbors in-set). Each layer is fully filled in order, producing a pyramid-like stack.
   - **`'shift'`**: Layer 0 = base; layer *k* = base shifted by `(k * shiftDx, k * shiftDy)` (default `shiftDx: 1`, `shiftDy: 0`). Each layer is fully filled in order. Configure via `layerShapeOptions: { shiftDx, shiftDy }`.
   - **`'randomErosion'`**: Layer 0 = base; each higher layer removes a fraction of current edge cells while preserving connectivity, then optionally shifts by `[-1, 1]` in x/y. Configure with `layerShapeOptions: { erosionRate, minCellFraction, allowShift }`.
 

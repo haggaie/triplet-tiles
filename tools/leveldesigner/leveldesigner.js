@@ -25,7 +25,7 @@ const TEMPLATE_PARAM_DEFAULTS = {
 
 const LAYER_SHAPE_OPTIONS_DEFAULTS = {
   full: {},
-  pyramid: {},
+  pyramid: { pyramidMinNeighbors: 2 },
   shift: { shiftDx: 1, shiftDy: 0 },
   randomErosion: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true }
 };
