@@ -1,3 +1,5 @@
+const { expandCellsByFootprintUnion } = require('./template-footprint');
+
 function clamp(n, lo, hi) {
   return Math.max(lo, Math.min(hi, n));
 }
@@ -13,8 +15,8 @@ function clamp(n, lo, hi) {
 function resolveRadii(params, gridWidth, gridHeight, defaults) {
   const p = params || {};
   const d = {
-    scaleX: 0.35,
-    scaleY: 0.35,
+    scaleX: 1,
+    scaleY: 1,
     minRx: 1,
     minRy: 1,
     ...defaults
@@ -98,7 +100,7 @@ function centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight) {
   return { x: startX + (dx + rx), y: startY + (dy + ry) };
 }
 
-function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
+function rectangleTemplateLegacy({ width, height }, gridWidth, gridHeight) {
   const w = Math.max(1, width ?? Math.floor(gridWidth * 0.7));
   const h = Math.max(1, height ?? Math.floor(gridHeight * 0.7));
   const halfW = Math.floor(w / 2);
@@ -113,7 +115,7 @@ function rectangleTemplate({ width, height }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function diamondTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+function diamondTemplateLegacy({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -133,7 +135,7 @@ function diamondTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function circleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+function circleTemplateLegacy({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -154,7 +156,7 @@ function circleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function triangleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+function triangleTemplateLegacy({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -173,7 +175,7 @@ function triangleTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function hexagonTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
+function hexagonTemplateLegacy({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -195,13 +197,13 @@ function hexagonTemplate({ radius, radiusX, radiusY }, gridWidth, gridHeight) {
   return uniqueCells(cells);
 }
 
-function crossTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function crossTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
     gridHeight,
     // Slightly shorter default arm on X so portrait boards stay balanced (not clipped sides).
-    { scaleX: 0.28, scaleY: 0.35, minRx: 2, minRy: 2 }
+    { scaleX: 0.9, minRx: 2, minRy: 2 }
   );
   const rBar = Math.min(rx, ry);
   const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
@@ -219,7 +221,7 @@ function crossTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
   return uniqueCells(cells);
 }
 
-function ringTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function ringTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -247,7 +249,7 @@ function ringTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHe
   return uniqueCells(cells);
 }
 
-function tTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function tTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -270,7 +272,7 @@ function tTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeigh
   return uniqueCells(cells);
 }
 
-function uTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function uTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -293,7 +295,7 @@ function uTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeigh
   return uniqueCells(cells);
 }
 
-function heartTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function heartTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -319,7 +321,7 @@ function heartTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
   return t > 0 ? dilate(cells, gridWidth, gridHeight, t - 1) : uniqueCells(cells);
 }
 
-function spiralTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function spiralTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
     gridWidth,
@@ -377,7 +379,7 @@ function spiralTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, grid
   return dilate(uniqueCells(cells), gridWidth, gridHeight, t - 1);
 }
 
-function letterTemplate({ letter, radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
+function letterTemplateLegacy({ letter, radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
   const ch = String(letter || 'S').toUpperCase();
   const { rx, ry } = resolveRadii(
     { radius, radiusX, radiusY },
@@ -435,7 +437,7 @@ function letterTemplate({ letter, radius, radiusX, radiusY, thickness }, gridWid
   } else {
     // Fallback: diamond-like glyph.
     return dilate(
-      diamondTemplate({ radius: Math.floor(Math.min(rx, ry) * 0.6) }, gridWidth, gridHeight),
+      diamondTemplateLegacy({ radius: Math.floor(Math.min(rx, ry) * 0.6) }, gridWidth, gridHeight),
       gridWidth,
       gridHeight,
       t - 1
@@ -446,7 +448,14 @@ function letterTemplate({ letter, radius, radiusX, radiusY, thickness }, gridWid
   return uniqueCells(cells);
 }
 
-function getTemplateCells(templateId, templateParams, gridWidth, gridHeight) {
+/**
+ * @param {string} templateId
+ * @param {object} templateParams
+ * @param {number} gridWidth
+ * @param {number} gridHeight
+ * @param {{ z?: number }} [options] absolute layer z for footprint alignment with tile-layering (odd z half-cell shift)
+ */
+function getTemplateCells(templateId, templateParams, gridWidth, gridHeight, options = {}) {
   const id = String(templateId || '').toLowerCase();
   const params = templateParams || {};
   if (
@@ -459,35 +468,53 @@ function getTemplateCells(templateId, templateParams, gridWidth, gridHeight) {
       `gridWidth and gridHeight must be integers >= 5 (got ${gridWidth}×${gridHeight})`
     );
   }
+  const z =
+    options != null && typeof options.z === 'number' && Number.isFinite(options.z)
+      ? Math.floor(options.z)
+      : 0;
 
+  let legacyCells;
   switch (id) {
     case 'rectangle':
-      return rectangleTemplate(params, gridWidth, gridHeight);
+      legacyCells = rectangleTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'diamond':
-      return diamondTemplate(params, gridWidth, gridHeight);
+      legacyCells = diamondTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'circle':
-      return circleTemplate(params, gridWidth, gridHeight);
+      legacyCells = circleTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'triangle':
-      return triangleTemplate(params, gridWidth, gridHeight);
+      legacyCells = triangleTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'hexagon':
-      return hexagonTemplate(params, gridWidth, gridHeight);
+      legacyCells = hexagonTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'cross':
-      return crossTemplate(params, gridWidth, gridHeight);
+      legacyCells = crossTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'ring':
-      return ringTemplate(params, gridWidth, gridHeight);
+      legacyCells = ringTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 't':
-      return tTemplate(params, gridWidth, gridHeight);
+      legacyCells = tTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'u':
-      return uTemplate(params, gridWidth, gridHeight);
+      legacyCells = uTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'heart':
-      return heartTemplate(params, gridWidth, gridHeight);
+      legacyCells = heartTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'spiral':
-      return spiralTemplate(params, gridWidth, gridHeight);
+      legacyCells = spiralTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     case 'letter':
-      return letterTemplate(params, gridWidth, gridHeight);
+      legacyCells = letterTemplateLegacy(params, gridWidth, gridHeight);
+      break;
     default:
       throw new Error(`Unknown templateId "${templateId}"`);
   }
+  return uniqueCells(expandCellsByFootprintUnion(legacyCells, z, gridWidth, gridHeight));
 }
 
 module.exports = {

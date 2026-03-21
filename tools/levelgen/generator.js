@@ -209,9 +209,10 @@ function defaultThicknessForTemplate(templateId) {
  * @param {number} gridHeight
  * @param {number} numLayers
  * @param {{ sweep: string, minThickness?: number, maxThickness?: number }} layerShapeOptions
+ * @param {number} [minZ] absolute z of layer index 0 (for footprint alignment)
  * @returns {Array<Array<{x:number,y:number}>>}
  */
-function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHeight, numLayers, layerShapeOptions) {
+function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHeight, numLayers, layerShapeOptions, minZ = 0) {
   const sweep = layerShapeOptions.sweep;
   if (sweep !== 'thickness') {
     throw new Error(`paramSweep: unsupported sweep "${sweep}" (only "thickness" is implemented)`);
@@ -240,12 +241,21 @@ function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHe
     lo = hi;
     hi = tmp;
   }
+  /** Descending integers hi..lo; avoids skipping middle values when rounding linear lerp (e.g. 4→1 in 3 layers). */
+  const thicknessLadder = [];
+  for (let v = hi; v >= lo; v -= 1) thicknessLadder.push(v);
+  if (thicknessLadder.length === 0) {
+    throw new Error('paramSweep: empty thickness range after clamp');
+  }
   const layers = [];
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
-    const u = numLayers <= 1 ? 0 : layerIdx / (numLayers - 1);
-    const t = Math.round(hi + (lo - hi) * u);
+    const idx =
+      numLayers <= 1
+        ? 0
+        : Math.round((layerIdx / (numLayers - 1)) * (thicknessLadder.length - 1));
+    const t = thicknessLadder[idx];
     const merged = { ...p, thickness: t };
-    layers.push(getTemplateCells(id, merged, gridWidth, gridHeight));
+    layers.push(getTemplateCells(id, merged, gridWidth, gridHeight, { z: minZ + layerIdx }));
   }
   return layers;
 }
@@ -258,9 +268,18 @@ function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHe
  * @param {object} layering
  * @param {function} rng
  * @param {{ templateId: string, templateParams?: object } | null} [paramSweepContext] required when `layering.layerShape === 'paramSweep'`
+ * @param {{ templateId: string, templateParams?: object, minZ: number } | null} [layerTemplateContext] when `layerShape === 'full'`, per-layer getTemplateCells with z
  * @returns {Array<Array<{x:number,y:number}>>}
  */
-function buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, rng, paramSweepContext = null) {
+function buildLayerCellsByIndex(
+  templateCells,
+  gridWidth,
+  gridHeight,
+  layering,
+  rng,
+  paramSweepContext = null,
+  layerTemplateContext = null
+) {
   const { minZ, maxZ, layerShape, layerShapeOptions } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
@@ -280,8 +299,24 @@ function buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, 
       gridWidth,
       gridHeight,
       numLayers,
-      shapeOpts
+      shapeOpts,
+      minLayer
     );
+  }
+  if (shapeStrategy === 'full' && layerTemplateContext && layerTemplateContext.templateId != null) {
+    const out = [];
+    for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+      out.push(
+        getTemplateCells(
+          layerTemplateContext.templateId,
+          layerTemplateContext.templateParams,
+          gridWidth,
+          gridHeight,
+          { z: minLayer + layerIdx }
+        )
+      );
+    }
+    return out;
   }
   const layerCellsByIndex = [];
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
@@ -345,6 +380,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
   const shapeStrategy = layerShape || 'full';
   const shapeOpts = layerShapeOptions || {};
   const paramSweepContext = layoutOptions.paramSweepContext || null;
+  const layerTemplateContext = layoutOptions.layerTemplateContext || null;
 
   // Per-layer silhouettes: layerIndex 0 = base (minZ), 1 = minZ+1, ...
   const layerCellsByIndex =
@@ -364,9 +400,22 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
         gridWidth,
         gridHeight,
         numLayers,
-        shapeOpts
+        shapeOpts,
+        minLayer
       );
       for (let i = 0; i < swept.length; i += 1) layerCellsByIndex.push(swept[i]);
+    } else if (shapeStrategy === 'full' && layerTemplateContext && layerTemplateContext.templateId != null) {
+      for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+        layerCellsByIndex.push(
+          getTemplateCells(
+            layerTemplateContext.templateId,
+            layerTemplateContext.templateParams,
+            gridWidth,
+            gridHeight,
+            { z: minLayer + layerIdx }
+          )
+        );
+      }
     } else {
       for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
         layerCellsByIndex.push(
@@ -544,9 +593,18 @@ function rangeTileTypes(count) {
 
 function generateOneLevel(rng, batch, levelId) {
   const { gridWidth, gridHeight } = normalizeBatchGrid(batch);
-  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight);
+  const layeringBatch = batch.layering || {};
+  const minZLayer = Number.isInteger(layeringBatch.minZ) ? layeringBatch.minZ : 0;
+  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight, {
+    z: minZLayer
+  });
+  const layerTemplateContext = {
+    templateId: batch.templateId,
+    templateParams: batch.templateParams || {},
+    minZ: minZLayer
+  };
   const paramSweepContext =
-    ((batch.layering || {}).layerShape || 'full') === 'paramSweep'
+    (layeringBatch.layerShape || 'full') === 'paramSweep'
       ? { templateId: batch.templateId, templateParams: batch.templateParams || {} }
       : null;
   const n = batch.tileTypeCount;
@@ -567,7 +625,8 @@ function generateOneLevel(rng, batch, levelId) {
       gridHeight,
       batch.layering,
       rng,
-      paramSweepContext
+      paramSweepContext,
+      layerTemplateContext
     );
     const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
     const fillRatio =
@@ -587,7 +646,7 @@ function generateOneLevel(rng, batch, levelId) {
     gridWidth,
     gridHeight,
     batch.layering,
-    { ...layoutOpts, paramSweepContext }
+    { ...layoutOpts, paramSweepContext, layerTemplateContext }
   );
   return {
     id: levelId,
@@ -746,11 +805,20 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const deriveFromTemplate = ranges.deriveTotalTripletsFromTemplate !== false;
 
   try {
-    const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight);
+    const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight, { z: 0 });
+    const layerTemplateContext = { templateId, templateParams, minZ: 0 };
     let distribution;
     let layoutOpts = {};
     if (deriveFromTemplate) {
-      const precomputedLayers = buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, rng);
+      const precomputedLayers = buildLayerCellsByIndex(
+        templateCells,
+        gridWidth,
+        gridHeight,
+        layering,
+        rng,
+        null,
+        layerTemplateContext
+      );
       const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
       const fillRatio =
         typeof ranges.templateTripletFillRatio === 'number' ? ranges.templateTripletFillRatio : 1;
@@ -774,7 +842,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
       gridWidth,
       gridHeight,
       layering,
-      layoutOpts
+      { ...layoutOpts, layerTemplateContext }
     );
     return {
       id: levelId,

@@ -83,7 +83,9 @@ function previewHandler(body) {
 
   const { gridWidth, gridHeight } = level;
   const { templateId, templateParams } = batch;
-  const silhouetteCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight);
+  const layering = batch.layering || {};
+  const minZ = Number.isInteger(layering.minZ) ? layering.minZ : 0;
+  const silhouetteCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight, { z: minZ });
 
   const scoreOpts = scoreOptionsFromBody(body);
   const scored = scoreLevel(level, scoreOpts);

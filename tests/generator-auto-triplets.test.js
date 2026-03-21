@@ -42,9 +42,25 @@ test('generateOneLevel with totalTriplets auto fills to derived triplet count (f
       layerShape: 'full'
     }
   };
-  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, batch.gridWidth, batch.gridHeight);
+  const minZ = batch.layering.minZ ?? 0;
+  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, batch.gridWidth, batch.gridHeight, {
+    z: minZ
+  });
+  const layerTemplateContext = {
+    templateId: batch.templateId,
+    templateParams: batch.templateParams || {},
+    minZ
+  };
   const maxTiles = computeMaxTilesFromLayers(
-    buildLayerCellsByIndex(templateCells, batch.gridWidth, batch.gridHeight, batch.layering, mulberry32(0))
+    buildLayerCellsByIndex(
+      templateCells,
+      batch.gridWidth,
+      batch.gridHeight,
+      batch.layering,
+      mulberry32(0),
+      null,
+      layerTemplateContext
+    )
   );
   const expectedTiles = resolveTotalTripletsFromCapacity(maxTiles, {}) * 3;
   const level = generateOneLevel(rng, batch, 1);
