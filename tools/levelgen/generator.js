@@ -338,7 +338,12 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
     }
   }
 
-  return layout;
+  const layerSilhouettes = layerCellsByIndex.map((cells, idx) => ({
+    z: minLayer + idx,
+    cells
+  }));
+
+  return { layout, layerSilhouettes };
 }
 
 function normalizeBatchGrid(batch) {
@@ -370,7 +375,7 @@ function generateOneLevel(rng, batch, levelId) {
   const typeIds = rangeTileTypes(n);
   const countsByType = distributionToCounts(batch.distribution, typeIds);
   const seq = buildTypeSequence(rng, countsByType);
-  const layout = generateLayoutFromSequence(
+  const { layout, layerSilhouettes } = generateLayoutFromSequence(
     rng,
     templateCells,
     seq,
@@ -384,7 +389,8 @@ function generateOneLevel(rng, batch, levelId) {
     gridWidth,
     gridHeight,
     difficultyScore: 0,
-    layout
+    layout,
+    layerSilhouettes
   };
 }
 
@@ -543,7 +549,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
     const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight);
     const countsByType = distributionToCounts(distribution, typeIds);
     const seq = buildTypeSequence(rng, countsByType);
-    const layout = generateLayoutFromSequence(
+    const { layout, layerSilhouettes } = generateLayoutFromSequence(
       rng,
       templateCells,
       seq,
@@ -557,7 +563,8 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
       gridWidth,
       gridHeight,
       difficultyScore: 0,
-      layout
+      layout,
+      layerSilhouettes
     };
   } catch {
     return null;

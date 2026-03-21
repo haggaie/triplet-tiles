@@ -187,7 +187,7 @@ function main() {
   }));
 
   const banner = `// AUTO-GENERATED FILE. DO NOT EDIT.\n// Generated at: ${new Date().toISOString()}\n// Seed: ${seed}\n\n`;
-  const levelsForFile = levels.map(({ _reportMetrics, ...rest }) => rest);
+  const levelsForFile = levels.map(({ _reportMetrics, layerSilhouettes, ...rest }) => rest);
   const contents =
     banner +
     `window.__TRIPLET_GENERATED_LEVELS__ = ${JSON.stringify(levelsForFile, null, 2)};\n`;

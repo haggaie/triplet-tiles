@@ -10,24 +10,11 @@ import {
   applyCommittedPick,
   getTripleRemovalTypeOrder
 } from './lib/game-model.js';
+import { boardTileCenterPx, computeBoardContentOffsetPx, measureBoardLayoutFromFit } from './lib/board-view.js';
+import { getTileVisual, getTileTypeLabel, normalizeLevelTileType } from './lib/tile-types.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
-
-const TILE_TYPES = [
-  { id: 'leaf', emoji: '🍃' },
-  { id: 'flower', emoji: '🌸' },
-  { id: 'clover', emoji: '🍀' },
-  { id: 'star', emoji: '⭐' },
-  { id: 'acorn', emoji: '🌰' },
-  { id: 'mushroom', emoji: '🍄' },
-  { id: 'cherry', emoji: '🍒' },
-  { id: 'butterfly', emoji: '🦋' },
-  { id: 'sunflower', emoji: '🌻' },
-  { id: 'apple', emoji: '🍎' },
-  { id: 'carrot', emoji: '🥕' },
-  { id: 'bee', emoji: '🐝' }
-];
 
 /** Layout `type` values are indices into `TILE_TYPES` (0 = leaf, 1 = flower, 2 = clover, …). */
 
@@ -110,45 +97,6 @@ const STORAGE_KEYS = {
 
 const TRAY_ARIA_LABEL_DEFAULT = 'Tray';
 
-/**
- * Pixel position of a tile's center on the board (before translate(-50%,-50%)).
- * Odd z shifts the footprint by half a cell along (+x,-y); without a Y inset, y=0 odd-z
- * tiles would be centered on the top edge and half the tile draws above the frame.
- */
-function boardTileCenterPx(tile, cellSize) {
-  const frac = TL.layerDiagonalFraction(tile.z);
-  const insetY = 0.5 * cellSize;
-  const baseLeft = (tile.x + 0.5) * cellSize;
-  const baseTop = (tile.y + 0.5) * cellSize;
-  return {
-    left: baseLeft + frac * cellSize,
-    top: baseTop - frac * cellSize + insetY
-  };
-}
-
-/** Shift so tile bounding boxes (axis-aligned squares of side 2*half) are centered in the board. */
-function computeBoardContentOffsetPx(boardW, boardH, cellSize, tiles, halfExtentPx) {
-  const half = halfExtentPx ?? cellSize / 2;
-  if (!tiles.length) return { x: 0, y: 0 };
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (const t of tiles) {
-    const { left: cx, top: cy } = boardTileCenterPx(t, cellSize);
-    minX = Math.min(minX, cx - half);
-    maxX = Math.max(maxX, cx + half);
-    minY = Math.min(minY, cy - half);
-    maxY = Math.max(maxY, cy + half);
-  }
-  const bw = maxX - minX;
-  const bh = maxY - minY;
-  return {
-    x: (boardW - bw) / 2 - minX,
-    y: (boardH - bh) / 2 - minY
-  };
-}
-
 function rootRemToPx(rem) {
   const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   return rem * fs;
@@ -189,16 +137,9 @@ function readBoardCellMinPx() {
  * Single cellSize so tiles stay square; board may be rectangular if gridWidth !== gridHeight.
  */
 function measureBoardLayout(gridWidth, gridHeight) {
-  const gw = Math.max(1, gridWidth);
-  const gh = Math.max(1, gridHeight);
   const { maxW, maxH } = getBoardFitRectPx();
-  const cellBaseW = maxW / (gw + 2);
-  const cellBaseH = maxH / (gh + 2);
-  const cellBase = Math.min(cellBaseW, cellBaseH);
-  const cellSize = Math.max(cellBase, readBoardCellMinPx());
-  const widthPx = cellSize * (gw + 2);
-  const heightPx = cellSize * (gh + 2);
-  return { cellSize, widthPx, heightPx };
+  const cellMin = readBoardCellMinPx();
+  return measureBoardLayoutFromFit(gridWidth, gridHeight, { maxW, maxH, cellMinPx: cellMin });
 }
 
 /** @param {{ gridWidth?: number, gridHeight?: number, gridSize?: number }} level */
@@ -216,47 +157,10 @@ function normalizeGridDims(level) {
   return { gridWidth: 6, gridHeight: 6 };
 }
 
-/**
- * Maps level layout `type` to runtime tile kind: **integer indices** into `TILE_TYPES`, or digit strings
- * from JSON; other strings (e.g. overflow test types) pass through unchanged.
- */
-function normalizeLevelTileType(type) {
-  if (typeof type === 'number' && Number.isInteger(type) && type >= 0 && type < TILE_TYPES.length) {
-    return type;
-  }
-  if (typeof type === 'string' && /^\d+$/.test(type)) {
-    const idx = parseInt(type, 10);
-    if (idx >= 0 && idx < TILE_TYPES.length) return idx;
-  }
-  return type;
-}
-
-function getTileVisual(typeId) {
-  if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
-    return TILE_TYPES[typeId].emoji;
-  }
-  if (typeof typeId === 'string' && /^\d+$/.test(typeId)) {
-    const idx = parseInt(typeId, 10);
-    return TILE_TYPES[idx]?.emoji ?? '?';
-  }
-  return '?';
-}
-
 const scoreFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
 function formatScore(n) {
   return scoreFormatter.format(Number(n) || 0);
-}
-
-/** Readable tile type for ARIA labels (English id from data). */
-function getTileTypeLabel(typeId) {
-  if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
-    return TILE_TYPES[typeId].id;
-  }
-  if (typeof typeId === 'string' && /^\d+$/.test(typeId)) {
-    return TILE_TYPES[parseInt(typeId, 10)]?.id ?? 'tile';
-  }
-  return 'tile';
 }
 
 function focusElementIfStillMounted(el) {

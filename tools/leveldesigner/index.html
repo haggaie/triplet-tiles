@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Level designer — Triplet Tiles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Game tile + board visuals (served from repo root by leveldesign-server.js) -->
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="leveldesigner.css" />
+    <!-- Same load order as index.html: layering before modules that import lib/board-view.js -->
+    <script src="/tile-layering.js"></script>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead__inner">
+        <h1 class="masthead__title">Level designer</h1>
+        <p class="masthead__sub">
+          Tune generator parameters, inspect silhouette and layout, read solver metrics.
+        </p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel--controls" aria-labelledby="controls-heading">
+        <h2 id="controls-heading" class="panel__h">Parameters</h2>
+
+        <fieldset class="field-row">
+          <legend class="sr-only">RNG</legend>
+          <label class="field">
+            <span class="field__label">Config seed</span>
+            <input type="number" id="configSeed" name="configSeed" step="1" />
+          </label>
+          <label class="field">
+            <span class="field__label">Level id</span>
+            <input type="number" id="levelId" name="levelId" min="1" step="1" value="1" />
+          </label>
+          <label class="field field--check">
+            <input type="checkbox" id="useLevelSeed" name="useLevelSeed" />
+            <span>Override with level seed</span>
+          </label>
+          <label class="field">
+            <span class="field__label">Level seed (override)</span>
+            <input type="number" id="levelSeed" name="levelSeed" step="1" disabled />
+          </label>
+        </fieldset>
+
+        <fieldset class="field-row">
+          <legend class="sr-only">Grid &amp; template</legend>
+          <label class="field">
+            <span class="field__label">Template</span>
+            <select id="templateId" name="templateId"></select>
+          </label>
+          <label class="field">
+            <span class="field__label">Grid width</span>
+            <input type="number" id="gridWidth" name="gridWidth" min="5" max="8" step="1" />
+          </label>
+          <label class="field">
+            <span class="field__label">Grid height</span>
+            <input type="number" id="gridHeight" name="gridHeight" min="5" max="24" step="1" />
+          </label>
+        </fieldset>
+
+        <label class="field field--block">
+          <span class="field__label">templateParams (JSON)</span>
+          <textarea id="templateParamsJson" name="templateParamsJson" rows="3" spellcheck="false"></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Tile type count</span>
+          <input type="number" id="tileTypeCount" name="tileTypeCount" min="1" max="24" step="1" />
+        </label>
+
+        <fieldset class="field-row">
+          <legend class="field__label">Distribution</legend>
+          <label class="field">
+            <span class="field__label">Mode</span>
+            <select id="distMode" name="distMode">
+              <option value="zipf">zipf</option>
+              <option value="weightedTriplets">weightedTriplets</option>
+              <option value="explicitCounts">explicitCounts</option>
+            </select>
+          </label>
+          <label class="field dist-zipf">
+            <span class="field__label">Total triplets</span>
+            <input type="number" id="totalTriplets" name="totalTriplets" min="1" max="80" step="1" />
+          </label>
+          <label class="field dist-zipf">
+            <span class="field__label">Zipf exponent</span>
+            <input type="number" id="zipfExponent" name="zipfExponent" min="0" max="3" step="0.05" />
+          </label>
+        </fieldset>
+
+        <label class="field field--block dist-explicit" hidden>
+          <span class="field__label">explicitCounts (JSON: type → count, multiples of 3)</span>
+          <textarea id="explicitCountsJson" rows="4" spellcheck="false"></textarea>
+        </label>
+
+        <label class="field field--block dist-weighted" hidden>
+          <span class="field__label">weights (JSON)</span>
+          <textarea id="weightsJson" rows="4" spellcheck="false"></textarea>
+        </label>
+
+        <fieldset class="field-row">
+          <legend class="field__label">Layering</legend>
+          <label class="field">
+            <span class="field__label">minZ</span>
+            <input type="number" id="minZ" name="minZ" min="0" max="20" step="1" />
+          </label>
+          <label class="field">
+            <span class="field__label">maxZ</span>
+            <input type="number" id="maxZ" name="maxZ" min="0" max="20" step="1" />
+          </label>
+          <label class="field">
+            <span class="field__label">Overlap</span>
+            <select id="overlap" name="overlap">
+              <option value="light">light</option>
+              <option value="medium">medium</option>
+              <option value="heavy">heavy</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">maxStack / cell</span>
+            <input type="number" id="maxStackPerCell" name="maxStackPerCell" min="1" max="8" step="1" />
+          </label>
+          <label class="field field--check">
+            <input type="checkbox" id="layerFull" name="layerFull" checked />
+            <span>full</span>
+          </label>
+          <label class="field field--check">
+            <input type="checkbox" id="interleavePlacement" name="interleavePlacement" />
+            <span>interleavePlacement</span>
+          </label>
+          <label class="field">
+            <span class="field__label">layerShape</span>
+            <select id="layerShape" name="layerShape">
+              <option value="full">full</option>
+              <option value="pyramid">pyramid</option>
+              <option value="shift">shift</option>
+              <option value="randomErosion">randomErosion</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <label class="field field--block">
+          <span class="field__label">layerShapeOptions (JSON)</span>
+          <textarea id="layerShapeOptionsJson" name="layerShapeOptionsJson" rows="3" spellcheck="false"></textarea>
+        </label>
+
+        <fieldset class="field-row">
+          <legend class="field__label">Scoring (solver)</legend>
+          <label class="field">
+            <span class="field__label">maxSolveNodes</span>
+            <input type="number" id="maxSolveNodes" value="200000" min="1000" step="1000" />
+          </label>
+          <label class="field">
+            <span class="field__label">Rollouts</span>
+            <input type="number" id="rollouts" value="20" min="1" max="80" step="1" />
+          </label>
+          <label class="field field--check">
+            <input type="checkbox" id="forcedLookahead" />
+            <span>forced lookahead (slower)</span>
+          </label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="button" class="btn btn--primary" id="btnGenerate">Generate</button>
+          <button type="button" class="btn btn--ghost" id="btnCopyBatch">Copy batch JSON</button>
+        </div>
+        <p class="hint" id="statusLine" role="status"></p>
+      </section>
+
+      <section class="panel panel--viz" aria-labelledby="viz-heading">
+        <h2 id="viz-heading" class="panel__h">Visualization</h2>
+        <div class="viz-grid viz-grid--compact">
+          <figure class="viz viz--small">
+            <figcaption>Template footprint</figcaption>
+            <div class="viz__svg" id="silhouetteMount"></div>
+          </figure>
+          <figure class="viz viz--small">
+            <figcaption>Top tile per column (quick)</figcaption>
+            <div class="viz__svg" id="layoutMount"></div>
+          </figure>
+        </div>
+        <figure class="viz viz--full">
+          <figcaption>
+            Full level — same as the game: wood tile, emoji, odd-<code>z</code> half-cell diagonal offset
+          </figcaption>
+          <div class="viz__scroll" id="fullLevelMount"></div>
+        </figure>
+        <div class="layer-silhouettes">
+          <h3 class="viz__subh">Layer silhouettes</h3>
+          <p class="viz__note">
+            Allowed <code>(x,y)</code> cells per depth from <code>getLayerSilhouette</code> (matches generation RNG).
+          </p>
+          <div class="layer-silhouettes__grid" id="layerSilhouettesMount"></div>
+        </div>
+      </section>
+
+      <section class="panel panel--metrics" aria-labelledby="metrics-heading">
+        <h2 id="metrics-heading" class="panel__h">Difficulty &amp; metrics</h2>
+        <div class="metrics-summary" id="metricsSummary"></div>
+        <div class="metrics-table-wrap">
+          <table class="metrics-table" id="metricsTable">
+            <thead>
+              <tr>
+                <th scope="col">Metric</th>
+                <th scope="col">Value</th>
+              </tr>
+            </thead>
+            <tbody id="metricsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="leveldesigner.js"></script>
+  </body>
+</html>
