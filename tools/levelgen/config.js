@@ -137,9 +137,12 @@ module.exports = {
       batchVariation: {
         mode: 'sweep',
         variants: [
+          { gridHeight: 7, layering: { maxZ: 1 } },
+          { gridHeight: 10, layering: { maxZ: 1 } },
+          { gridHeight: 8, layering: { maxZ: 2 } },
+          { gridHeight: 9, layering: { maxZ: 2 } },
           { gridHeight: 10, layering: { maxZ: 2 } },
-          { gridHeight: 11, layering: { maxZ: 3 } },
-          { gridHeight: 12, layering: { maxZ: 4 } }
+          { gridHeight: 11, layering: { maxZ: 2 } },
         ]
       }
     },
