@@ -276,11 +276,12 @@ function heartTemplate({ radius, radiusX, radiusY, thickness }, gridWidth, gridH
     { scaleX: 0.35, scaleY: 0.35, minRx: 3, minRy: 3 }
   );
   const cells = [];
-  // Sample a heart implicit curve on a grid; scale to an axis-aligned ellipse in [-1.5,1.5]^2.
+  // Sample a heart implicit curve on a grid; scale to [-1.5,1.5]^2.
+  // Grid y grows downward (matches CSS); the classic implicit form assumes y up — negate so the point sits bottom.
   for (let dy = -ry; dy <= ry; dy += 1) {
     for (let dx = -rx; dx <= rx; dx += 1) {
       const x = rx > 0 ? (dx / rx) * 1.5 : 0;
-      const y = ry > 0 ? (dy / ry) * 1.5 : 0;
+      const y = ry > 0 ? -(dy / ry) * 1.5 : 0;
       const a = x * x + y * y - 1;
       const inside = a * a * a - x * x * y * y * y <= 0;
       if (!inside) continue;
