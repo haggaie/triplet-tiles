@@ -168,6 +168,7 @@
   - Gentle ambient music loop per theme.
   - SFX: tile pick, tray placement, match, level win, and fail sounds.
   - Separate volume sliders for music and SFX.
+  - Full audio & haptics design (events, mixer, haptics, accessibility): [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 
 ### 8. Meta & Events (Lightweight)
 

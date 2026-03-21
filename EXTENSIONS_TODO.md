@@ -2,14 +2,14 @@
 
 Working backlog for features, design, gameplay, and QA. **Not committed scope**; prioritize as product goals evolve.
 
-Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [.impeccable.md](.impeccable.md) (design follow-ups), [WOOD_DESIGN_PLAN.md](WOOD_DESIGN_PLAN.md) (wood/visual phases & QA), [LEVELGEN.md](LEVELGEN.md) (difficulty pipeline & generator tuning).
+Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [.impeccable.md](.impeccable.md) (design follow-ups), [AUDIO_DESIGN.md](AUDIO_DESIGN.md) (music, SFX, haptics), [WOOD_DESIGN_PLAN.md](WOOD_DESIGN_PLAN.md) (wood/visual phases & QA), [LEVELGEN.md](LEVELGEN.md) (difficulty pipeline & generator tuning).
 
 ---
 
 ## Design
 
 - [ ] **Icons alongside or instead of some chrome text** — Reduce label noise; keep clarity for first-time players (tooltips or `aria-label` where text is removed).
-- [ ] **Audio & haptics** — Background music (optional mute), sound effects for pick/match/tray/loss/win, and **vibration** on supported devices (respect system “reduce motion” / accessibility preferences where applicable).
+- [ ] **Audio & haptics** — Background music (optional mute), sound effects for pick/match/tray/loss/win, and **vibration** on supported devices (respect system “reduce motion” / accessibility preferences where applicable). Spec: [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 - [ ] **Vertical-scroll-only level layouts** — Redesign levels / level-select flow so the primary navigation is **vertical scrolling** only (aligns with a calmer mobile reading pattern; may affect board scroll UX and level carousel — see mobile constraints in [TESTING.md](TESTING.md)).
 
 *From repo notes:*
@@ -67,6 +67,7 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 | Doc | Relevance |
 |-----|-----------|
 | [GAME_SPEC.md](GAME_SPEC.md) | Roadmap phases, optional mechanics, platform targets |
+| [AUDIO_DESIGN.md](AUDIO_DESIGN.md) | Music, SFX, haptics, mixer, accessibility |
 | [.impeccable.md](.impeccable.md) | Brand, themes, future design passes |
 | [WOOD_DESIGN_PLAN.md](WOOD_DESIGN_PLAN.md) | Visual system, Phase E QA |
 | [LEVELGEN.md](LEVELGEN.md) | Difficulty metrics, generator modes |
