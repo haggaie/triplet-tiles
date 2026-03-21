@@ -101,6 +101,8 @@ Hook at the **same** places UI already updates score / modals (see `game.js` flo
 
 **Total minimum:** 1 music + 7 one-shots (if three match variants).
 
+**Music attribution (shipped `music_ambient_loop_01`):** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno). Details: [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
+
 ---
 
 ## Prompts for asset generation

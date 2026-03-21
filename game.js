@@ -97,6 +97,7 @@ const STORAGE_KEYS = {
   AUDIO: 'triplet_tiles_audio'
 };
 
+/** music_ambient_loop_01 — Late Afternoon Garden Loop (Suno); attribution in AUDIO_DESIGN.md. */
 const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
 const audioSvc = createAudioService({
   storageKey: STORAGE_KEYS.AUDIO,

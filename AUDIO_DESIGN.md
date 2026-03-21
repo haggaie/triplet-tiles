@@ -33,6 +33,10 @@ Sound should reinforce **wood, felt, and a quiet garden**: soft transients, shor
 
 **Delivery:** Stream long assets; **Ogg/Opus or AAC**; crossfade or clean loop seam as needed.
 
+### Attribution — current ambient loop
+
+The shipped file `assets/audio/music_ambient_loop_01.mp3` is **Late Afternoon Garden Loop** ([Suno](https://suno.com/s/e6A9f0jUQL7tZCh1)). Record attribution in this repo (not in the game UI); comply with [Suno](https://suno.com)’s terms for your use case.
+
 ---
 
 ## Sound effects — logical events
