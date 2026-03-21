@@ -184,6 +184,72 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
   return [nBase, ...counts];
 }
 
+/** Templates that support `layerShape: 'paramSweep'` with `sweep: 'thickness'`. */
+const THICKNESS_SWEEP_TEMPLATE_IDS = new Set([
+  'cross',
+  'ring',
+  't',
+  'u',
+  'heart',
+  'spiral',
+  'letter'
+]);
+
+function defaultThicknessForTemplate(templateId) {
+  const id = String(templateId || '').toLowerCase();
+  if (id === 'heart' || id === 'spiral') return 1;
+  return 2;
+}
+
+/**
+ * Bottom layer (index 0) uses max thickness; top (last index) uses min.
+ * @param {string} templateId
+ * @param {object} templateParams
+ * @param {number} gridWidth
+ * @param {number} gridHeight
+ * @param {number} numLayers
+ * @param {{ sweep: string, minThickness?: number, maxThickness?: number }} layerShapeOptions
+ * @returns {Array<Array<{x:number,y:number}>>}
+ */
+function buildParamSweepLayerCells(templateId, templateParams, gridWidth, gridHeight, numLayers, layerShapeOptions) {
+  const sweep = layerShapeOptions.sweep;
+  if (sweep !== 'thickness') {
+    throw new Error(`paramSweep: unsupported sweep "${sweep}" (only "thickness" is implemented)`);
+  }
+  const id = String(templateId || '').toLowerCase();
+  if (!THICKNESS_SWEEP_TEMPLATE_IDS.has(id)) {
+    throw new Error(
+      `paramSweep thickness sweep is not supported for template "${templateId}" (supported: ${[...THICKNESS_SWEEP_TEMPLATE_IDS].join(', ')})`
+    );
+  }
+  const p = templateParams || {};
+  const minT0 = layerShapeOptions.minThickness != null ? layerShapeOptions.minThickness : 1;
+  const maxT0 =
+    layerShapeOptions.maxThickness != null
+      ? layerShapeOptions.maxThickness
+      : p.thickness != null
+        ? p.thickness
+        : defaultThicknessForTemplate(id);
+  let lo = Math.max(0, Math.floor(Number(minT0)));
+  let hi = Math.max(0, Math.floor(Number(maxT0)));
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
+    throw new Error('paramSweep: minThickness and maxThickness must be finite numbers');
+  }
+  if (lo > hi) {
+    const tmp = lo;
+    lo = hi;
+    hi = tmp;
+  }
+  const layers = [];
+  for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+    const u = numLayers <= 1 ? 0 : layerIdx / (numLayers - 1);
+    const t = Math.round(hi + (lo - hi) * u);
+    const merged = { ...p, thickness: t };
+    layers.push(getTemplateCells(id, merged, gridWidth, gridHeight));
+  }
+  return layers;
+}
+
 /**
  * Per-layer silhouettes (same construction as `generateLayoutFromSequence`).
  * @param {Array<{x:number,y:number}>} templateCells
@@ -191,9 +257,10 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
  * @param {number} gridHeight
  * @param {object} layering
  * @param {function} rng
+ * @param {{ templateId: string, templateParams?: object } | null} [paramSweepContext] required when `layering.layerShape === 'paramSweep'`
  * @returns {Array<Array<{x:number,y:number}>>}
  */
-function buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, rng) {
+function buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, rng, paramSweepContext = null) {
   const { minZ, maxZ, layerShape, layerShapeOptions } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
@@ -201,6 +268,21 @@ function buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, layering, 
   const numLayers = maxLayer - minLayer + 1;
   const shapeStrategy = layerShape || 'full';
   const shapeOpts = layerShapeOptions || {};
+  if (shapeStrategy === 'paramSweep') {
+    if (!paramSweepContext || paramSweepContext.templateId == null) {
+      throw new Error(
+        'layerShape "paramSweep" requires paramSweepContext { templateId, templateParams } (pass from batch when generating)'
+      );
+    }
+    return buildParamSweepLayerCells(
+      paramSweepContext.templateId,
+      paramSweepContext.templateParams,
+      gridWidth,
+      gridHeight,
+      numLayers,
+      shapeOpts
+    );
+  }
   const layerCellsByIndex = [];
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     layerCellsByIndex.push(
@@ -262,6 +344,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
   const useFullFill = full === true;
   const shapeStrategy = layerShape || 'full';
   const shapeOpts = layerShapeOptions || {};
+  const paramSweepContext = layoutOptions.paramSweepContext || null;
 
   // Per-layer silhouettes: layerIndex 0 = base (minZ), 1 = minZ+1, ...
   const layerCellsByIndex =
@@ -269,10 +352,27 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
       ? layoutOptions.precomputedLayerCellsByIndex
       : [];
   if (layoutOptions.precomputedLayerCellsByIndex == null) {
-    for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
-      layerCellsByIndex.push(
-        getLayerSilhouette(templateCells, gridWidth, gridHeight, shapeStrategy, layerIdx, shapeOpts, rng)
+    if (shapeStrategy === 'paramSweep') {
+      if (!paramSweepContext || paramSweepContext.templateId == null) {
+        throw new Error(
+          'layerShape "paramSweep" requires layoutOptions.paramSweepContext { templateId, templateParams }'
+        );
+      }
+      const swept = buildParamSweepLayerCells(
+        paramSweepContext.templateId,
+        paramSweepContext.templateParams,
+        gridWidth,
+        gridHeight,
+        numLayers,
+        shapeOpts
       );
+      for (let i = 0; i < swept.length; i += 1) layerCellsByIndex.push(swept[i]);
+    } else {
+      for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
+        layerCellsByIndex.push(
+          getLayerSilhouette(templateCells, gridWidth, gridHeight, shapeStrategy, layerIdx, shapeOpts, rng)
+        );
+      }
     }
   } else if (layerCellsByIndex.length !== numLayers) {
     throw new Error(
@@ -287,7 +387,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
     : null;
 
   let stackCap = Math.max(1, maxStackPerCell || 2);
-  const neededCap = Math.ceil(seq.length / Math.max(1, templateCells.length));
+  const neededCap = Math.ceil(seq.length / Math.max(1, baseCells.length));
   if (neededCap > stackCap) stackCap = Math.min(6, neededCap);
 
   const usedPositions = new Set();
@@ -445,6 +545,10 @@ function rangeTileTypes(count) {
 function generateOneLevel(rng, batch, levelId) {
   const { gridWidth, gridHeight } = normalizeBatchGrid(batch);
   const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight);
+  const paramSweepContext =
+    ((batch.layering || {}).layerShape || 'full') === 'paramSweep'
+      ? { templateId: batch.templateId, templateParams: batch.templateParams || {} }
+      : null;
   const n = batch.tileTypeCount;
   if (!Number.isInteger(n) || n < 1) {
     throw new Error(`Level batch must set tileTypeCount to a positive integer (got ${batch.tileTypeCount})`);
@@ -457,7 +561,14 @@ function generateOneLevel(rng, batch, levelId) {
     if (distIn.mode !== 'zipf' && distIn.mode !== 'weightedTriplets') {
       throw new Error('distribution.totalTriplets "auto" is only valid for zipf or weightedTriplets');
     }
-    const precomputedLayers = buildLayerCellsByIndex(templateCells, gridWidth, gridHeight, batch.layering, rng);
+    const precomputedLayers = buildLayerCellsByIndex(
+      templateCells,
+      gridWidth,
+      gridHeight,
+      batch.layering,
+      rng,
+      paramSweepContext
+    );
     const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
     const fillRatio =
       typeof batch.templateTripletFillRatio === 'number' ? batch.templateTripletFillRatio : 1;
@@ -476,7 +587,7 @@ function generateOneLevel(rng, batch, levelId) {
     gridWidth,
     gridHeight,
     batch.layering,
-    layoutOpts
+    { ...layoutOpts, paramSweepContext }
   );
   return {
     id: levelId,
@@ -688,8 +799,10 @@ module.exports = {
   normalizeBatchGrid,
   rangeTileTypes,
   buildLayerCellsByIndex,
+  buildParamSweepLayerCells,
   computeMaxTilesFromLayers,
   resolveTotalTripletsFromCapacity,
-  distributionUsesAutoTotalTriplets
+  distributionUsesAutoTotalTriplets,
+  THICKNESS_SWEEP_TEMPLATE_IDS
 };
 

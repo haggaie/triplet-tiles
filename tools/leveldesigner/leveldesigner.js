@@ -27,7 +27,8 @@ const LAYER_SHAPE_OPTIONS_DEFAULTS = {
   full: {},
   pyramid: { pyramidMinNeighbors: 2 },
   shift: { shiftDx: 1, shiftDy: 0 },
-  randomErosion: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true }
+  randomErosion: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true },
+  paramSweep: { sweep: 'thickness', minThickness: 1, maxThickness: null }
 };
 
 function $(id) {
