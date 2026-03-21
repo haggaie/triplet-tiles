@@ -409,15 +409,16 @@ function generateLevelsFromConfig(config) {
 }
 
 const DEFAULT_POOL_PARAM_RANGES = {
-  templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter', 'circle', 'triangle', 'hexagon', 'cross', 'ring', 't', 'u'],
+  templateIds: ['rectangle', 'diamond', 'heart', 'letter', 'circle', 'triangle', 'hexagon', 'cross', 'ring', 't', 'u'],
   /** Pool of abstract ids `0 .. tileTypePoolSize - 1` for random sampling before each level. */
   tileTypePoolSize: 12,
-  /** @type {Array<[number, number]>} [gridWidth, gridHeight] pairs */
+  /** @type {Array<[number, number]>} [gridWidth, gridHeight] pairs (width capped at 8) */
   gridDimensions: [
     [7, 7],
     [8, 8],
-    [9, 9],
-    [10, 10]
+    [7, 10],
+    [8, 11],
+    [8, 12]
   ],
   numTypesMin: 6,
   numTypesMax: 12,

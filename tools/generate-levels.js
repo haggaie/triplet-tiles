@@ -104,7 +104,10 @@ function main() {
       scored.push(withScore);
     }
   } else {
+    const totalTarget = config.levels.reduce((s, b) => s + Math.max(1, b.count || 1), 0);
+    let batchIndex = 0;
     for (const batch of config.levels) {
+      batchIndex += 1;
       const want = Math.max(1, batch.count || 1);
       const solverConstraints = batch.solverConstraints || {};
       const requireMinSlackAtMost = Number.isInteger(solverConstraints.requireMinSlackAtMost)
@@ -235,7 +238,7 @@ function levelTileTypeCount(l) {
 
 /** Per LEVELGEN.md "Level configuration"; metrics not listed have empty target cells in the report. */
 const LEVELGEN_OVERALL_TARGETS = {
-  'Grid width': { targetRange: '7-10', generationTarget: '7-10 typical' },
+  'Grid width': { targetRange: '7-8', generationTarget: 'max 8 (batches + random pool)' },
   'Grid height': { targetRange: '7-13', generationTarget: 'often ≥ width (portrait batches)' },
   'Tile count': { targetRange: '61-120 (most levels)', generationTarget: '~48-120 with emphasis on 60+' },
   'Layers/depth': { targetRange: '4-10 (most levels)', generationTarget: '4-10' },

@@ -16,7 +16,7 @@
  *   - batch fields:
  *     - templateId: string
  *     - templateParams: object (template-specific)
- *     - gridWidth, gridHeight: number (cell counts; odd-ish recommended; min dimension >= 5 for templates)
+ *     - gridWidth, gridHeight: number (cell counts; odd-ish recommended; min dimension >= 5 for templates; gridWidth <= 8)
  *     - count: number (how many levels to generate for this batch)
  *     - tileTypeCount: number — distinct abstract type indices 0 .. tileTypeCount-1
  *     - distribution:
@@ -81,95 +81,83 @@ module.exports = {
     {
       templateId: 'heart',
       templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 9,
+      gridWidth: 8,
       gridHeight: 12,
       count: 3,
       tileTypeCount: 10,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 24, exponent: 0.8 },
+      distribution: { mode: 'zipf', totalTriplets: 18, exponent: 0.8 },
       layering: { minZ: 0, maxZ: 5, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true } }
     },
     {
       templateId: 'hexagon',
       templateParams: { radius: 4 },
-      gridWidth: 9,
+      gridWidth: 8,
       gridHeight: 12,
       count: 3,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 27, exponent: 0.9 },
+      distribution: { mode: 'zipf', totalTriplets: 20, exponent: 0.9 },
       layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.2, minCellFraction: 0.1, allowShift: true } }
     },
     {
       templateId: 'triangle',
       templateParams: { radius: 4 },
-      gridWidth: 9,
+      gridWidth: 8,
       gridHeight: 12,
       count: 2,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 28, exponent: 1.0 },
+      distribution: { mode: 'zipf', totalTriplets: 21, exponent: 1.0 },
       layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 1 } }
     },
     // Hard: deeper stacks, 12 types, higher skew and pressure.
     {
       templateId: 'cross',
       templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 9,
+      gridWidth: 8,
       gridHeight: 12,
       count: 3,
       maxGenerateAttempts: 2800,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 30, exponent: 1.15 },
+      distribution: { mode: 'zipf', totalTriplets: 22, exponent: 1.15 },
       layering: { minZ: 0, maxZ: 7, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.22, minCellFraction: 0.08, allowShift: true } }
     },
     {
       templateId: 'ring',
       templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 10,
-      gridHeight: 13,
+      gridWidth: 8,
+      gridHeight: 14,
       count: 3,
       maxGenerateAttempts: 3000,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 34, exponent: 1.25 },
+      distribution: { mode: 'zipf', totalTriplets: 24, exponent: 1.25 },
       layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.24, minCellFraction: 0.08, allowShift: true } }
-    },
-    {
-      templateId: 'spiral',
-      templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 10,
-      gridHeight: 13,
-      count: 2,
-      maxGenerateAttempts: 3200,
-      tileTypeCount: 12,
-      solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
-      distribution: { mode: 'zipf', totalTriplets: 36, exponent: 1.35 },
-      layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.26, minCellFraction: 0.08, allowShift: true } }
     },
     {
       templateId: 't',
       templateParams: { radius: 5, thickness: 2 },
-      gridWidth: 10,
-      gridHeight: 13,
+      gridWidth: 8,
+      gridHeight: 14,
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypeCount: 12,
-      solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
-      distribution: { mode: 'zipf', totalTriplets: 38, exponent: 1.45 },
+      solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.5 },
+      distribution: { mode: 'zipf', totalTriplets: 25, exponent: 1.45 },
       layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 0 }, interleavePlacement: true }
     },
     {
       templateId: 'u',
       templateParams: { radius: 5, thickness: 2 },
-      gridWidth: 10,
-      gridHeight: 13,
+      gridWidth: 8,
+      gridHeight: 14,
       count: 2,
       maxGenerateAttempts: 3400,
       tileTypeCount: 12,
-      solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.35 },
-      distribution: { mode: 'zipf', totalTriplets: 40, exponent: 1.55 },
+      solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.5 },
+      distribution: { mode: 'zipf', totalTriplets: 21, exponent: 1.55 },
       layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.28, minCellFraction: 0.07, allowShift: true }, interleavePlacement: true }
     }
   ]

@@ -24,7 +24,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
 
 | Metric | Target range | Current generation target |
 | --- | --- | --- |
-| Grid dimensions | 7-10 per axis | `gridWidth` × `gridHeight` (portrait batches use height ≥ width); 7–13 typical |
+| Grid dimensions | width 7–8, height 7–13 | `gridWidth` × `gridHeight` (portrait batches use height ≥ width; `gridWidth` ≤ 8) |
 | Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ |
 | Layers/depth | 4-10 (most levels) | 4-10 |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 |
