@@ -202,6 +202,8 @@
 
 ### 11. Roadmap & Phasing
 
+A living **extensions backlog** (design, gameplay, i18n, QA) lives in [EXTENSIONS_TODO.md](EXTENSIONS_TODO.md).
+
 - **Phase 1 – MVP (Core Loop)**
   - Implement tray mechanics, simple multi-layer boards, base tiles, win/loss, and basic scoring.
 - **Phase 2 – Content & Polish**
