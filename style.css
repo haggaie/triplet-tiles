@@ -150,6 +150,44 @@ body {
   gap: 1rem;
 }
 
+.audio-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: min(52vw, 14rem);
+}
+
+.audio-music-toggle {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.audio-volume-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.audio-volume {
+  width: min(4.5rem, 22vw);
+  min-width: 0;
+  accent-color: var(--accent);
+  vertical-align: middle;
+}
+
+.audio-volume:disabled {
+  opacity: 0.45;
+}
+
 .game-title {
   font-size: 1.2rem;
   margin: 0;

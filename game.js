@@ -12,6 +12,7 @@ import {
 } from './lib/game-model.js';
 import { boardTileCenterPx, computeBoardContentOffsetPx, measureBoardLayoutFromFit } from './lib/board-view.js';
 import { getTileVisual, getTileTypeLabel, normalizeLevelTileType } from './lib/tile-types.js';
+import { createAudioService } from './lib/audio-service.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
@@ -92,8 +93,15 @@ const LEVELS = typeof window !== 'undefined' ? buildLevelsArray() : FALLBACK_LEV
 const STORAGE_KEYS = {
   PROGRESSION: 'triplet_tiles_progression',
   STATS: 'triplet_tiles_stats',
-  POWERUPS: 'triplet_tiles_powerups'
+  POWERUPS: 'triplet_tiles_powerups',
+  AUDIO: 'triplet_tiles_audio'
 };
+
+const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
+const audioSvc = createAudioService({
+  storageKey: STORAGE_KEYS.AUDIO,
+  musicUrl: MUSIC_AMBIENT_LOOP_URL
+});
 
 const TRAY_ARIA_LABEL_DEFAULT = 'Tray';
 
@@ -476,6 +484,19 @@ function initDomRefs() {
   const app = document.getElementById('app');
   ui.appHeader = app?.querySelector(':scope > header') ?? null;
   ui.appMain = app?.querySelector(':scope > main') ?? null;
+
+  ui.musicMuteToggle = document.getElementById('music-mute-toggle');
+  ui.musicVolume = document.getElementById('music-volume');
+}
+
+function syncMusicUi() {
+  if (!ui.musicMuteToggle || !ui.musicVolume) return;
+  const s = audioSvc.getState();
+  const audible = !s.musicMuted && s.musicVolume > 0;
+  ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
+  ui.musicMuteToggle.textContent = audible ? 'Music on' : 'Music off';
+  ui.musicVolume.value = String(s.musicVolume);
+  ui.musicVolume.disabled = s.musicMuted;
 }
 
 function bindEvents() {
@@ -590,6 +611,39 @@ function bindEvents() {
   ui.tray.addEventListener('keydown', onTrayKeydown);
   ui.tray.addEventListener('focusin', onTrayFocusIn);
   ui.tray.addEventListener('focusout', onTrayFocusOut);
+
+  const appEl = document.getElementById('app');
+  if (appEl) {
+    function unlockAudioOnce() {
+      audioSvc.unlock();
+    }
+    function unlockOnGameKey(e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key.startsWith('Arrow')) {
+        unlockAudioOnce();
+        appEl.removeEventListener('keydown', unlockOnGameKey);
+      }
+    }
+    appEl.addEventListener('pointerdown', () => {
+      unlockAudioOnce();
+      appEl.removeEventListener('keydown', unlockOnGameKey);
+    }, { once: true });
+    appEl.addEventListener('keydown', unlockOnGameKey);
+  }
+
+  if (ui.musicMuteToggle) {
+    ui.musicMuteToggle.addEventListener('click', () => {
+      const s = audioSvc.getState();
+      audioSvc.setMusicMuted(!s.musicMuted);
+      syncMusicUi();
+    });
+  }
+  if (ui.musicVolume) {
+    ui.musicVolume.addEventListener('input', () => {
+      const v = parseFloat(ui.musicVolume.value);
+      audioSvc.setMusicVolume(v);
+      syncMusicUi();
+    });
+  }
 
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -2334,6 +2388,8 @@ if (typeof window !== 'undefined') {
       } catch {
         // ignore storage errors in tests
       }
+      audioSvc.reloadFromStorage();
+      syncMusicUi();
       state.stats = { ...defaultStats };
       state.powerups = { ...defaultPowerups };
       state.currentLevelIndex = 0;
@@ -2391,6 +2447,8 @@ function installBoardScrollResizeObserver() {
 
 function main() {
   initDomRefs();
+  syncMusicUi();
+  audioSvc.applyStoredStateToElement();
   bindEvents();
   installBoardScrollResizeObserver();
   installLevelSelectScrollUrlSync();

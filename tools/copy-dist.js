@@ -30,11 +30,7 @@ const assetsDir = path.join(projectRoot, 'assets');
 const distAssets = path.join(distDir, 'assets');
 if (fs.existsSync(assetsDir)) {
   fs.mkdirSync(distAssets, { recursive: true });
-  for (const name of fs.readdirSync(assetsDir)) {
-    const src = path.join(assetsDir, name);
-    if (!fs.statSync(src).isFile()) continue;
-    fs.copyFileSync(src, path.join(distAssets, name));
-  }
+  fs.cpSync(assetsDir, distAssets, { recursive: true });
 }
 
 console.log(`Copied ${deployables.length} root files, lib/, and assets/ to dist/`);

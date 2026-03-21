@@ -18,6 +18,32 @@
           </div>
         </div>
         <div class="top-bar-right">
+          <div
+            class="audio-toolbar"
+            role="group"
+            aria-label="Background music"
+          >
+            <button
+              type="button"
+              id="music-mute-toggle"
+              class="btn btn-ghost btn-small audio-music-toggle"
+              aria-pressed="true"
+              title="Turn background music on or off"
+            >
+              Music on
+            </button>
+            <label class="audio-volume-label" for="music-volume">Volume</label>
+            <input
+              type="range"
+              id="music-volume"
+              class="audio-volume"
+              min="0"
+              max="1"
+              step="0.05"
+              value="0.55"
+              aria-label="Music volume"
+            />
+          </div>
           <div class="score-info">
             <span>Score</span>
             <span id="score-value" aria-live="polite" aria-atomic="true">0</span>
