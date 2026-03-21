@@ -1,5 +1,6 @@
 const { getTemplateCells } = require('./templates');
 const { getFillOrder, getLayerSilhouette, subsetFillOrderEvenly } = require('./shapes');
+const { resolveBatchVariation, resolveBatchLevelCount } = require('./batch-variation');
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -665,15 +666,22 @@ function generateLevelsFromConfig(config) {
 
   const levels = [];
   let nextId = 1;
+  let batchIdx = 0;
   for (const batch of config.levels) {
-    const count = Math.max(1, batch.count || 1);
+    const count = resolveBatchLevelCount(batch);
     for (let i = 0; i < count; i += 1) {
+      const resolvedBatch = resolveBatchVariation(batch, {
+        slotIndex: i,
+        batchIndex: batchIdx,
+        seed
+      });
       // Per-level RNG fork for reproducibility while keeping batches stable.
       const levelSeed = Math.floor(rng() * 2 ** 31) ^ (nextId * 2654435761);
       const levelRng = mulberry32(levelSeed);
-      levels.push(generateOneLevel(levelRng, batch, nextId));
+      levels.push(generateOneLevel(levelRng, resolvedBatch, nextId));
       nextId += 1;
     }
+    batchIdx += 1;
   }
 
   return { levels, meta: { seed } };
@@ -863,6 +871,8 @@ module.exports = {
   generateOneLevel,
   generateOneRandomLevel,
   mulberry32,
+  resolveBatchVariation,
+  resolveBatchLevelCount,
   DEFAULT_POOL_PARAM_RANGES,
   normalizeBatchGrid,
   rangeTileTypes,

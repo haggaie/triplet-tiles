@@ -50,7 +50,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, `{ radiusX, radiusY }` for asymmetric silhouettes, or `{ letter }`).
     - `gridWidth`, `gridHeight`: board cell counts used by the template and layout (`x` in `[0, gridWidth)`, `y` in `[0, gridHeight)`; both ≥ 5 for templates). Legacy `gridSize` is still accepted in generator config as shorthand for a square grid.
-    - `count`: how many levels to generate for this batch.
+    - `count`: how many levels to generate for this batch (positive integer). For **`batchVariation.mode === 'sweep'`**, omit **`count`** or set **`count: 'auto'`** so the number of levels equals the number of sweep combinations (`variants.length` or Cartesian product of **`axes`**). An explicit integer **`count`** is still allowed (variants repeat with `slotIndex % N`).
     - `tileTypeCount`: number of distinct **abstract** tile kinds in this batch — type ids `0 .. tileTypeCount - 1` only (no dependency on emoji or `TILE_TYPES` names).
     - Distribution `weights`, `explicitCounts`, and Zipf `order` use those same type ids as keys (integers `0..N-1`).
     - `distribution`: how many tiles of each type to place (see section 3).
@@ -65,6 +65,13 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
         - for `paramSweep`: `{ sweep: 'thickness', minThickness?, maxThickness? }` — each layer calls `getTemplateCells` with merged `templateParams` (see §5.1).
         - for `shift`: `{ shiftDx?, shiftDy? }` (per-layer delta; default 1, 0).
         - for `randomErosion`: `{ erosionRate?, minCellFraction?, allowShift? }`.
+    - **`batchVariation`** (optional): vary grid, `templateParams`, `layering`, `distribution`, etc. **per successful level** in the batch (CLI: `slotIndex` = accepted count within the batch; `generateLevelsFromConfig`: sequential index `i`). Implemented in [`tools/levelgen/batch-variation.js`](tools/levelgen/batch-variation.js); merged into a clone of the batch before `generateOneLevel`. **Sweep** retries do **not** advance the variant index (`slotIndex` stays `made` until the level is accepted).
+      - **`mode: 'sweep'`** — either **`variants`**: `[{ gridHeight: 10, layering: { maxZ: 2 } }, ...]` and pick `variants[slotIndex % variants.length]`, or **`axes`**: nested object whose **leaves are arrays** (e.g. `{ gridHeight: [10, 11, 12], layering: { maxZ: [2, 4, 6] } }`) — **Cartesian product** of all axes (order: first axis varies fastest in the recursion implementation; see tests).
+      - **`mode: 'random'`** — **`ranges`**: nested object whose leaves are **`{ min, max }`** (inclusive integers if both integers, else float) or **`{ values: [...] }`**. Sampling uses a deterministic PRNG seeded from `config.seed`, **0-based batch index** in `levels`, and **`slotIndex`** so the same structural params repeat across solver retries.
+      - **Cross example (sweep heights):**  
+        `batchVariation: { mode: 'sweep', variants: [{ gridHeight: 10 }, { gridHeight: 11 }, { gridHeight: 12 }] }` — omit **`count`** (or `count: 'auto'`) so three levels are generated.
+      - **Cross example (random depth):**  
+        `batchVariation: { mode: 'random', ranges: { layering: { maxZ: { min: 2, max: 5 } }, templateParams: { radius: { min: 3, max: 5 } } } }`
     - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
 
 - **Templates**: `tools/levelgen/templates.js`

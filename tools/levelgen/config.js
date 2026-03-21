@@ -17,7 +17,7 @@
  *     - templateId: string
  *     - templateParams: object (template-specific)
  *     - gridWidth, gridHeight: number (cell counts; odd-ish recommended; min dimension >= 5 for templates; gridWidth <= 8)
- *     - count: number (how many levels to generate for this batch)
+ *     - count: number | "auto" | omitted — how many levels per batch; for batchVariation.mode "sweep", omit or use "auto" to use variants/axes length (see tools/levelgen/batch-variation.js)
  *     - tileTypeCount: number — distinct abstract type indices 0 .. tileTypeCount-1
  *     - distribution:
  *       - mode: "explicitCounts" | "weightedTriplets" | "zipf"
@@ -27,6 +27,10 @@
  *       - weights: { [typeId]: number } (typeId = integer; relative weights; generator rounds to multiples of 3)
  *     - templateTripletFillRatio (optional): 0–1, default 1 — with totalTriplets "auto", use floor(maxTiles*ratio/3) triplets
  *     - totalTripletsMin / totalTripletsMax (optional): optional clamps after derive (batch mode)
+ *     - batchVariation (optional): per-slot structural overrides — `mode: 'sweep' | 'random'`;
+ *       sweep: `variants` (array of patch objects) or `axes` (nested object with array leaves, Cartesian product);
+ *       random: `ranges` nested tree of `{ min, max }` (integers or floats), `{ values: [...] }`, or sub-objects;
+ *       resolved with `tools/levelgen/batch-variation.js` (deterministic for `slotIndex` + `seed` + batch index so CLI retries keep the same geometry).
  *     - layering:
  *       - minZ: number (usually 0)
  *       - maxZ: number (inclusive)
@@ -121,17 +125,23 @@ module.exports = {
       templateParams: { thickness: 2 },
       gridWidth: 8,
       gridHeight: 12,
-      count: 3,
       maxGenerateAttempts: 2800,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 1.15 },
       layering: { minZ: 0, maxZ: 2, full: true, layerShape: 'paramSweep', layerShapeOptions: {
-        "sweep": "thickness",
-        "minThickness": 1,
-        "maxThickness": null
+        sweep: 'thickness',
+        minThickness: 1,
+        maxThickness: null
+      } },
+      batchVariation: {
+        mode: 'sweep',
+        variants: [
+          { gridHeight: 10, layering: { maxZ: 2 } },
+          { gridHeight: 11, layering: { maxZ: 3 } },
+          { gridHeight: 12, layering: { maxZ: 4 } }
+        ]
       }
-     }
     },
     {
       templateId: 'ring',

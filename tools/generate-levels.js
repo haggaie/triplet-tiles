@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { generateOneLevel, generateOneRandomLevel, mulberry32 } = require('./levelgen/generator');
+const { resolveBatchVariation, resolveBatchLevelCount } = require('./levelgen/batch-variation');
 const { scoreLevel } = require('./levelgen/score');
 
 function scoreOptionsFromConfig(config, seed) {
@@ -104,11 +105,11 @@ function main() {
       scored.push(withScore);
     }
   } else {
-    const totalTarget = config.levels.reduce((s, b) => s + Math.max(1, b.count || 1), 0);
-    let batchIndex = 0;
-    for (const batch of config.levels) {
-      batchIndex += 1;
-      const want = Math.max(1, batch.count || 1);
+    const totalTarget = config.levels.reduce((s, b) => s + resolveBatchLevelCount(b), 0);
+    for (let batchIdx = 0; batchIdx < config.levels.length; batchIdx += 1) {
+      const batch = config.levels[batchIdx];
+      const batchIndex = batchIdx + 1;
+      const want = resolveBatchLevelCount(batch);
       const solverConstraints = batch.solverConstraints || {};
       const requireMinSlackAtMost = Number.isInteger(solverConstraints.requireMinSlackAtMost)
         ? solverConstraints.requireMinSlackAtMost
@@ -140,7 +141,12 @@ function main() {
 
         const levelSeed = Math.floor(rng() * 2 ** 31) ^ (nextId * 2654435761);
         const levelRng = mulberry32(levelSeed);
-        const level = generateOneLevel(levelRng, batch, nextId);
+        const resolvedBatch = resolveBatchVariation(batch, {
+          slotIndex: made,
+          batchIndex: batchIdx,
+          seed
+        });
+        const level = generateOneLevel(levelRng, resolvedBatch, nextId);
         nextId += 1;
 
         const scoredLevel = scoreLevel(level, scoreOpts);
