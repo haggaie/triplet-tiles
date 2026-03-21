@@ -102,14 +102,37 @@ module.exports = {
     },
     {
       templateId: 'circle',
-      templateParams: { radius: 3 },
+      /** Ellipse radii live under templateParams (sweep merges here); grid must fit resolveRadii clamps. */
+      templateParams: { radiusX: 3, radiusY: 4 },
       gridWidth: 8,
-      gridHeight: 11,
-      count: 2,
+      gridHeight: 10,
       tileTypeCount: 8,
       solverConstraints: { requireMinSlackAtMost: 3 },
-      distribution: { mode: 'zipf', totalTriplets: 18, exponent: 0.5 },
-      layering: { minZ: 0, maxZ: 3, overlap: 'medium', maxStackPerCell: 3, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.16, minCellFraction: 0.18, allowShift: false } }
+      distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.5 },
+      layering: {
+        minZ: 0,
+        maxZ: 2,
+        overlap: 'medium',
+        maxStackPerCell: 3,
+        full: true,
+        layerShape: 'paramSweep',
+        layerShapeOptions: {
+          sweep: 'radius',
+          minRadius: 1,
+          maxRadius: null
+        },
+        interleavePlacement: false
+      },
+      batchVariation: {
+        mode: 'sweep',
+        variants: [
+          { gridHeight: 7, templateParams: { radiusY: 3 } },
+          { gridHeight: 9, templateParams: { radiusY: 4 } },
+          { gridHeight: 10, templateParams: { radiusY: 4 } },
+          { gridHeight: 11, templateParams: { radiusY: 5 } },
+          { gridHeight: 12, templateParams: { radiusY: 5 } }
+        ]
+      }
     },
     // Medium
     {
