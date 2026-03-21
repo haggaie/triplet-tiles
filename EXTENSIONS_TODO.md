@@ -9,7 +9,7 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 ## Design
 
 - [ ] **Icons alongside or instead of some chrome text** — Reduce label noise; keep clarity for first-time players (tooltips or `aria-label` where text is removed).
-- [ ] **Audio & haptics** — Background music (optional mute), sound effects for pick/match/tray/loss/win, and **vibration** on supported devices (respect system “reduce motion” / accessibility preferences where applicable). Spec: [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
+- [ ] **Audio & haptics** — Background music (optional mute), sound effects for pick/match/tray/loss/win, and **vibration** on supported devices (respect system “reduce motion” / accessibility preferences where applicable). Spec: [AUDIO_DESIGN.md](AUDIO_DESIGN.md); implementation order & asset prompts: [AUDIO_IMPLEMENTATION_PLAN.md](AUDIO_IMPLEMENTATION_PLAN.md).
 - [ ] **Vertical-scroll-only level layouts** — Redesign levels / level-select flow so the primary navigation is **vertical scrolling** only (aligns with a calmer mobile reading pattern; may affect board scroll UX and level carousel — see mobile constraints in [TESTING.md](TESTING.md)).
 
 *From repo notes:*
@@ -68,6 +68,7 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 |-----|-----------|
 | [GAME_SPEC.md](GAME_SPEC.md) | Roadmap phases, optional mechanics, platform targets |
 | [AUDIO_DESIGN.md](AUDIO_DESIGN.md) | Music, SFX, haptics, mixer, accessibility |
+| [AUDIO_IMPLEMENTATION_PLAN.md](AUDIO_IMPLEMENTATION_PLAN.md) | Phased implementation, asset list, generation prompts |
 | [.impeccable.md](.impeccable.md) | Brand, themes, future design passes |
 | [WOOD_DESIGN_PLAN.md](WOOD_DESIGN_PLAN.md) | Visual system, Phase E QA |
 | [LEVELGEN.md](LEVELGEN.md) | Difficulty metrics, generator modes |

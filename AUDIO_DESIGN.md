@@ -93,3 +93,5 @@ Gate on **user setting** and **`prefers-reduced-motion`** policy (recommended: o
 | [GAME_SPEC.md](GAME_SPEC.md) §7 | Ambient loop, pick / tray / match / win / fail, separate music & SFX |
 | [EXTENSIONS_TODO.md](EXTENSIONS_TODO.md) | Mute, SFX set, vibration, reduced-motion / a11y |
 | [.impeccable.md](.impeccable.md) | Brand voice, calm tactile feedback, non-exploitative engagement |
+
+**Implementation:** Prioritized tasks, hooks, and asset-generation prompts — [AUDIO_IMPLEMENTATION_PLAN.md](AUDIO_IMPLEMENTATION_PLAN.md).
