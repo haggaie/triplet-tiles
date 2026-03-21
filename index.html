@@ -87,15 +87,25 @@
             <h2 id="level-select-heading">Choose Level</h2>
             <button id="level-select-close" class="btn btn-ghost" aria-label="Close">✕</button>
           </div>
-          <div class="level-select-difficulty">
-            <button id="level-select-easy" class="btn btn-ghost">Easy</button>
-            <button id="level-select-medium" class="btn btn-ghost">Medium</button>
-            <button id="level-select-hard" class="btn btn-ghost">Hard</button>
+          <div id="level-select-debug" class="level-select-debug hidden">
+            <label for="level-select-group-by" class="level-select-debug-label">Group by</label>
+            <select id="level-select-group-by" class="level-select-group-by" aria-label="Group levels by">
+              <option value="difficulty">Difficulty (thirds)</option>
+              <option value="shape">Board shape</option>
+            </select>
           </div>
-          <div class="level-select-carousel-wrap">
-            <button id="level-select-prev" class="carousel-nav carousel-prev" aria-label="Previous">‹</button>
-            <div id="level-select-carousel" class="level-select-carousel"></div>
-            <button id="level-select-next" class="carousel-nav carousel-next" aria-label="Next">›</button>
+          <div id="level-select-difficulty-row" class="level-select-difficulty">
+            <button type="button" id="level-select-all" class="btn btn-ghost level-select-band">All</button>
+            <button type="button" id="level-select-easy" class="btn btn-ghost level-select-band">Easy</button>
+            <button type="button" id="level-select-medium" class="btn btn-ghost level-select-band">Medium</button>
+            <button type="button" id="level-select-hard" class="btn btn-ghost level-select-band">Hard</button>
+          </div>
+          <div id="level-select-shape-row" class="level-select-shape-row hidden">
+            <label for="level-select-shape" class="level-select-shape-label">Shape</label>
+            <select id="level-select-shape" class="level-select-shape-select" aria-label="Filter by board template shape"></select>
+          </div>
+          <div class="level-select-scroll">
+            <div id="level-select-carousel" class="level-select-grid"></div>
           </div>
           <p id="level-select-hint" class="level-select-hint">Click a level to play</p>
         </div>

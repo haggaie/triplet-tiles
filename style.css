@@ -641,8 +641,8 @@ body {
   background: var(--chrome-panel-bg);
   border-radius: 24px;
   padding: 1.25rem 1.5rem;
-  max-width: 520px;
-  width: 92vw;
+  max-width: min(960px, 96vw);
+  width: 96vw;
   box-shadow:
     var(--chrome-panel-shadow),
     0 0 0 1px var(--chrome-panel-edge),
@@ -667,61 +667,99 @@ body {
   line-height: 1;
 }
 
+.level-select-debug {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.level-select-debug-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.level-select-group-by {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid var(--chrome-line-soft);
+  background: rgb(24 20 17 / 0.85);
+  color: var(--text);
+  max-width: 100%;
+}
+
 .level-select-difficulty {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .level-select-difficulty .btn {
   font-size: 0.8rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.35rem 0.65rem;
 }
 
-.level-select-carousel-wrap {
+.level-select-band.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.level-select-shape-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.carousel-nav {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.level-select-shape-row.hidden {
+  display: none !important;
+}
+
+.level-select-shape-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.level-select-shape-select {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 10px;
   border: 1px solid var(--chrome-line-soft);
-  background: rgb(30 26 22 / 0.95);
+  background: rgb(24 20 17 / 0.85);
   color: var(--text);
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
-  transition: background 0.15s ease, border-color 0.15s ease;
+  min-width: 12rem;
+  max-width: 100%;
 }
 
-.carousel-nav:hover:not(:disabled) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+.level-select-scroll {
+  max-height: min(62vh, 520px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+  padding: 0.15rem;
+  border-radius: 14px;
+  border: 1px solid rgb(235 213 184 / 0.1);
+  background: rgb(12 10 8 / 0.35);
+  -webkit-overflow-scrolling: touch;
 }
 
-.carousel-nav:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.level-select-carousel {
-  flex: 1;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 120px;
-  overflow: hidden;
+.level-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 0.65rem;
+  justify-items: center;
+  align-items: start;
+  min-height: 80px;
 }
 
 .level-select-card {
@@ -744,30 +782,6 @@ body {
   border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgb(var(--accent-rgb) / 0.2);
-}
-
-/* Prev/Next slide animation: exit */
-.level-select-carousel.carousel-exit-next .level-select-card {
-  transform: translateX(-120%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.level-select-carousel.carousel-exit-prev .level-select-card {
-  transform: translateX(120%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Prev/Next slide animation: enter (removed after one frame to trigger transition in) */
-.level-select-card.carousel-enter-from-right {
-  transform: translateX(120%);
-  opacity: 0;
-}
-
-.level-select-card.carousel-enter-from-left {
-  transform: translateX(-120%);
-  opacity: 0;
 }
 
 .level-select-card-current {

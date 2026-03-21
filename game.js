@@ -415,6 +415,13 @@ let _waitingForRoom = [];
 
 const ui = {};
 
+/** Level picker: null = all levels; easy/medium/hard = tertile band (see getDifficultyBands). */
+let levelSelectDifficultyFilter = null;
+/** When debug + shape mode: filter by template name parsed from level title (e.g. DIAMOND). */
+let levelSelectShapeFilter = null;
+/** debug=1 only: 'difficulty' | 'shape'. */
+let levelSelectGroupBy = 'difficulty';
+
 function initDomRefs() {
   ui.boardScroll = document.getElementById('board-scroll');
   ui.board = document.getElementById('board');
@@ -439,8 +446,13 @@ function initDomRefs() {
   ui.levelSelectOverlay = document.getElementById('level-select-overlay');
   ui.levelSelectClose = document.getElementById('level-select-close');
   ui.levelSelectCarousel = document.getElementById('level-select-carousel');
-  ui.levelSelectPrev = document.getElementById('level-select-prev');
-  ui.levelSelectNext = document.getElementById('level-select-next');
+  ui.levelSelectScroll = document.querySelector('.level-select-scroll');
+  ui.levelSelectDebug = document.getElementById('level-select-debug');
+  ui.levelSelectDifficultyRow = document.getElementById('level-select-difficulty-row');
+  ui.levelSelectShapeRow = document.getElementById('level-select-shape-row');
+  ui.levelSelectGroupBy = document.getElementById('level-select-group-by');
+  ui.levelSelectShape = document.getElementById('level-select-shape');
+  ui.levelSelectAll = document.getElementById('level-select-all');
   ui.levelSelectEasy = document.getElementById('level-select-easy');
   ui.levelSelectMedium = document.getElementById('level-select-medium');
   ui.levelSelectHard = document.getElementById('level-select-hard');
@@ -519,20 +531,33 @@ function bindEvents() {
       if (e.target === ui.levelSelectOverlay) hideLevelSelect();
     });
   }
-  if (ui.levelSelectPrev) {
-    ui.levelSelectPrev.addEventListener('click', () => levelSelectCarouselPrev());
-  }
-  if (ui.levelSelectNext) {
-    ui.levelSelectNext.addEventListener('click', () => levelSelectCarouselNext());
+  if (ui.levelSelectAll) {
+    ui.levelSelectAll.addEventListener('click', () => setLevelSelectDifficultyFilter(null));
   }
   if (ui.levelSelectEasy) {
-    ui.levelSelectEasy.addEventListener('click', () => levelSelectGoToDifficulty('easy'));
+    ui.levelSelectEasy.addEventListener('click', () => setLevelSelectDifficultyFilter('easy'));
   }
   if (ui.levelSelectMedium) {
-    ui.levelSelectMedium.addEventListener('click', () => levelSelectGoToDifficulty('medium'));
+    ui.levelSelectMedium.addEventListener('click', () => setLevelSelectDifficultyFilter('medium'));
   }
   if (ui.levelSelectHard) {
-    ui.levelSelectHard.addEventListener('click', () => levelSelectGoToDifficulty('hard'));
+    ui.levelSelectHard.addEventListener('click', () => setLevelSelectDifficultyFilter('hard'));
+  }
+  if (ui.levelSelectGroupBy) {
+    ui.levelSelectGroupBy.addEventListener('change', () => {
+      levelSelectGroupBy = ui.levelSelectGroupBy.value === 'shape' ? 'shape' : 'difficulty';
+      if (levelSelectGroupBy === 'difficulty') levelSelectShapeFilter = null;
+      else levelSelectDifficultyFilter = null;
+      syncLevelSelectToolbar();
+      buildLevelSelectGrid();
+    });
+  }
+  if (ui.levelSelectShape) {
+    ui.levelSelectShape.addEventListener('change', () => {
+      const v = ui.levelSelectShape.value;
+      levelSelectShapeFilter = v === '' ? null : v;
+      buildLevelSelectGrid();
+    });
   }
 
   ui.board.addEventListener('click', onBoardClick);
@@ -1780,20 +1805,34 @@ function hideOverlay() {
   _focusBeforeGameOverlay = null;
 }
 
-// --- Level selection carousel ---
-const LEVEL_SELECT_CARD_WIDTH = 88;
-const LEVEL_SELECT_GAP = 12;
-
-function getLevelSelectVisibleCount() {
-  if (!ui.levelSelectCarousel) return 4;
-  const w = ui.levelSelectCarousel.clientWidth;
-  if (w <= 0) return 4;
-  const perCard = LEVEL_SELECT_CARD_WIDTH + LEVEL_SELECT_GAP;
-  const count = Math.floor(w / perCard);
-  return Math.max(3, Math.min(4, count));
+// --- Level selection grid ---
+function isLevelSelectDebugEnabled() {
+  try {
+    return new URLSearchParams(window.location.search).get('debug') === '1';
+  } catch {
+    return false;
+  }
 }
 
-let levelSelectCarouselIndex = 0;
+/**
+ * Template / board shape from generated level names (`DIAMOND 12` → `DIAMOND`).
+ * Tutorial and fallback titles without a trailing number → `Other`.
+ */
+function getLevelShapeKey(level) {
+  const m = String(level.name || '').match(/^(.+?)\s+(\d+)\s*$/);
+  if (m) return m[1].trim();
+  return 'Other';
+}
+
+function collectLevelShapeKeys() {
+  const set = new Set();
+  for (const lvl of LEVELS) set.add(getLevelShapeKey(lvl));
+  return [...set].sort((a, b) => {
+    if (a === 'Other') return 1;
+    if (b === 'Other') return -1;
+    return a.localeCompare(b);
+  });
+}
 
 function getDifficultyBands() {
   const n = LEVELS.length;
@@ -1813,9 +1852,80 @@ function getDifficultyForIndex(index) {
   return 'hard';
 }
 
-function getFirstIndexForDifficulty(difficulty) {
-  const bands = getDifficultyBands()[difficulty];
-  return bands ? bands[0] : 0;
+function getLevelIndicesForPicker() {
+  let indices = LEVELS.map((_, i) => i);
+  if (isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape') {
+    if (levelSelectShapeFilter) {
+      indices = indices.filter((i) => getLevelShapeKey(LEVELS[i]) === levelSelectShapeFilter);
+    }
+  } else if (levelSelectDifficultyFilter) {
+    const bands = getDifficultyBands();
+    const band = bands[levelSelectDifficultyFilter];
+    if (band) {
+      const [lo, hi] = band;
+      indices = indices.filter((i) => i >= lo && i < hi);
+    }
+  }
+  return indices;
+}
+
+function populateLevelSelectShapeOptions() {
+  if (!ui.levelSelectShape) return;
+  const keys = collectLevelShapeKeys();
+  const cur = levelSelectShapeFilter ?? '';
+  ui.levelSelectShape.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = '';
+  allOpt.textContent = 'All shapes';
+  ui.levelSelectShape.appendChild(allOpt);
+  for (const k of keys) {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    if (k === cur) opt.selected = true;
+    ui.levelSelectShape.appendChild(opt);
+  }
+  if (cur && !keys.includes(cur)) {
+    ui.levelSelectShape.value = '';
+    levelSelectShapeFilter = null;
+  }
+  ui.levelSelectShape.value = levelSelectShapeFilter === null ? '' : levelSelectShapeFilter;
+}
+
+function syncLevelSelectToolbar() {
+  const debug = isLevelSelectDebugEnabled();
+  if (ui.levelSelectDebug) {
+    ui.levelSelectDebug.classList.toggle('hidden', !debug);
+    ui.levelSelectDebug.setAttribute('aria-hidden', debug ? 'false' : 'true');
+  }
+  if (ui.levelSelectGroupBy) {
+    ui.levelSelectGroupBy.value = levelSelectGroupBy === 'shape' ? 'shape' : 'difficulty';
+  }
+  const shapeMode = debug && levelSelectGroupBy === 'shape';
+  if (ui.levelSelectDifficultyRow) {
+    ui.levelSelectDifficultyRow.classList.toggle('hidden', shapeMode);
+  }
+  if (ui.levelSelectShapeRow) {
+    ui.levelSelectShapeRow.classList.toggle('hidden', !shapeMode);
+  }
+
+  const bandButtons = [
+    ['all', ui.levelSelectAll, null],
+    ['easy', ui.levelSelectEasy, 'easy'],
+    ['medium', ui.levelSelectMedium, 'medium'],
+    ['hard', ui.levelSelectHard, 'hard']
+  ];
+  for (const [, el, filt] of bandButtons) {
+    if (!el) continue;
+    const on = filt === null ? levelSelectDifficultyFilter === null : levelSelectDifficultyFilter === filt;
+    el.classList.toggle('is-active', on);
+  }
+}
+
+function setLevelSelectDifficultyFilter(difficulty) {
+  levelSelectDifficultyFilter = difficulty;
+  syncLevelSelectToolbar();
+  buildLevelSelectGrid();
 }
 
 function renderMiniLevel(wrapEl, level, levelIndex) {
@@ -1868,22 +1978,17 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
   wrapEl.appendChild(board);
 }
 
-function buildLevelSelectCarousel(enterDirection = null) {
+function buildLevelSelectGrid() {
   if (!ui.levelSelectCarousel) return;
-  const visibleCount = getLevelSelectVisibleCount();
-  ui.levelSelectCarousel.classList.remove('carousel-exit-next', 'carousel-exit-prev');
   ui.levelSelectCarousel.innerHTML = '';
-  const start = Math.max(0, levelSelectCarouselIndex);
-  const end = Math.min(LEVELS.length, start + visibleCount);
+  const indices = getLevelIndicesForPicker();
 
-  for (let i = start; i < end; i += 1) {
+  for (const i of indices) {
     const level = LEVELS[i];
     const card = document.createElement('div');
     card.className = 'level-select-card';
     card.dataset.levelIndex = String(i);
     if (i === state.currentLevelIndex) card.classList.add('level-select-card-current');
-    if (enterDirection === 'next') card.classList.add('carousel-enter-from-right');
-    if (enterDirection === 'prev') card.classList.add('carousel-enter-from-left');
 
     const mini = document.createElement('div');
     mini.className = 'level-select-mini-wrap';
@@ -1895,10 +2000,14 @@ function buildLevelSelectCarousel(enterDirection = null) {
     label.textContent = `${level.id}: ${level.name}`;
     card.appendChild(label);
 
-    const diff = document.createElement('span');
-    diff.className = 'level-select-card-difficulty';
-    diff.textContent = getDifficultyForIndex(i);
-    card.appendChild(diff);
+    const meta = document.createElement('span');
+    meta.className = 'level-select-card-difficulty';
+    const shape = getLevelShapeKey(level);
+    meta.textContent =
+      isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
+        ? shape
+        : getDifficultyForIndex(i);
+    card.appendChild(meta);
 
     const pickLevel = () => {
       startLevel(i);
@@ -1908,7 +2017,9 @@ function buildLevelSelectCarousel(enterDirection = null) {
     card.setAttribute('tabindex', '0');
     card.setAttribute(
       'aria-label',
-      `Level ${level.id}: ${level.name}, ${getDifficultyForIndex(i)} difficulty`
+      isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
+        ? `Level ${level.id}: ${level.name}, shape ${shape}`
+        : `Level ${level.id}: ${level.name}, ${getDifficultyForIndex(i)} difficulty`
     );
     card.addEventListener('click', pickLevel);
     card.addEventListener('keydown', (ev) => {
@@ -1919,76 +2030,10 @@ function buildLevelSelectCarousel(enterDirection = null) {
     ui.levelSelectCarousel.appendChild(card);
   }
 
-  if (enterDirection) {
-    requestAnimationFrame(() => {
-      const cards = ui.levelSelectCarousel.querySelectorAll('.level-select-card');
-      cards.forEach((c) => c.classList.remove('carousel-enter-from-right', 'carousel-enter-from-left'));
-    });
+  if (ui.levelSelectHint) {
+    ui.levelSelectHint.textContent =
+      indices.length === 0 ? 'No levels match this filter.' : 'Click a level to play';
   }
-
-  if (ui.levelSelectPrev) ui.levelSelectPrev.disabled = levelSelectCarouselIndex <= 0;
-  if (ui.levelSelectNext) ui.levelSelectNext.disabled = levelSelectCarouselIndex >= Math.max(0, LEVELS.length - visibleCount);
-}
-
-const CAROUSEL_ANIMATION_MS = 280;
-const CAROUSEL_FALLBACK_MS = CAROUSEL_ANIMATION_MS + 50;
-
-function levelSelectCarouselPrev() {
-  if (levelSelectCarouselIndex <= 0) return;
-  const carousel = ui.levelSelectCarousel;
-  carousel.classList.add('carousel-exit-prev');
-
-  let done = false;
-  const onDone = () => {
-    if (done) return;
-    done = true;
-    carousel.removeEventListener('transitionend', onTransitionEnd);
-    carousel.classList.remove('carousel-exit-prev');
-    levelSelectCarouselIndex = Math.max(0, levelSelectCarouselIndex - 1);
-    buildLevelSelectCarousel('prev');
-  };
-
-  const onTransitionEnd = (e) => {
-    if (e.target.classList.contains('level-select-card') && e.propertyName === 'transform') {
-      onDone();
-    }
-  };
-  carousel.addEventListener('transitionend', onTransitionEnd);
-  setTimeout(onDone, motionMs(CAROUSEL_FALLBACK_MS));
-}
-
-function levelSelectCarouselNext() {
-  const visibleCount = getLevelSelectVisibleCount();
-  const maxIndex = Math.max(0, LEVELS.length - visibleCount);
-  if (levelSelectCarouselIndex >= maxIndex) return;
-
-  const carousel = ui.levelSelectCarousel;
-  carousel.classList.add('carousel-exit-next');
-
-  let done = false;
-  const onDone = () => {
-    if (done) return;
-    done = true;
-    carousel.removeEventListener('transitionend', onTransitionEnd);
-    carousel.classList.remove('carousel-exit-next');
-    levelSelectCarouselIndex = Math.min(maxIndex, levelSelectCarouselIndex + 1);
-    buildLevelSelectCarousel('next');
-  };
-
-  const onTransitionEnd = (e) => {
-    if (e.target.classList.contains('level-select-card') && e.propertyName === 'transform') {
-      onDone();
-    }
-  };
-  carousel.addEventListener('transitionend', onTransitionEnd);
-  setTimeout(onDone, motionMs(CAROUSEL_FALLBACK_MS));
-}
-
-function levelSelectGoToDifficulty(difficulty) {
-  const visibleCount = getLevelSelectVisibleCount();
-  const idx = getFirstIndexForDifficulty(difficulty);
-  levelSelectCarouselIndex = Math.min(idx, Math.max(0, LEVELS.length - visibleCount));
-  buildLevelSelectCarousel();
 }
 
 function showLevelSelect() {
@@ -1996,13 +2041,17 @@ function showLevelSelect() {
   _focusBeforeLevelSelect = document.activeElement;
   setModalBackdropInert('level-select');
   ui.levelSelectOverlay.classList.remove('hidden');
+  if (!isLevelSelectDebugEnabled()) {
+    levelSelectGroupBy = 'difficulty';
+    levelSelectShapeFilter = null;
+  }
+  populateLevelSelectShapeOptions();
+  syncLevelSelectToolbar();
   requestAnimationFrame(() => {
-    const visibleCount = getLevelSelectVisibleCount();
-    levelSelectCarouselIndex = Math.min(
-      state.currentLevelIndex,
-      Math.max(0, LEVELS.length - visibleCount)
-    );
-    buildLevelSelectCarousel();
+    if (ui.levelSelectScroll) ui.levelSelectScroll.scrollTop = 0;
+    buildLevelSelectGrid();
+    const cur = ui.levelSelectCarousel?.querySelector('.level-select-card-current');
+    cur?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     requestAnimationFrame(() => focusElementIfStillMounted(ui.levelSelectClose));
   });
 }
