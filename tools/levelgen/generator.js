@@ -26,27 +26,27 @@ function shuffleInPlace(rng, arr) {
   return arr;
 }
 
-function weightedTripletsToCounts(totalTriplets, weights, tileTypes, options = {}) {
+function weightedTripletsToCounts(totalTriplets, weights, typeIds, options = {}) {
   if (!Number.isInteger(totalTriplets) || totalTriplets <= 0) {
     throw new Error(`totalTriplets must be a positive integer (got ${totalTriplets})`);
   }
-  const wSum = tileTypes.reduce((sum, t) => sum + (weights[t] || 0), 0);
+  const wSum = typeIds.reduce((sum, t) => sum + (weights[t] || 0), 0);
   if (wSum <= 0) throw new Error('weights must sum to > 0');
 
   const minTripletsPerType = Number.isInteger(options.minTripletsPerType) ? options.minTripletsPerType : 0;
-  const minNeeded = minTripletsPerType * tileTypes.length;
+  const minNeeded = minTripletsPerType * typeIds.length;
   if (minNeeded > totalTriplets) {
     throw new Error(`minTripletsPerType=${minTripletsPerType} is too high for totalTriplets=${totalTriplets}`);
   }
 
   const triplets = {};
-  tileTypes.forEach(t => {
+  typeIds.forEach(t => {
     triplets[t] = minTripletsPerType;
   });
 
   let allocated = 0;
   const distributableTriplets = totalTriplets - minNeeded;
-  tileTypes.forEach(t => {
+  typeIds.forEach(t => {
     const w = weights[t] || 0;
     const n = Math.floor((w / wSum) * distributableTriplets);
     triplets[t] += n;
@@ -54,7 +54,7 @@ function weightedTripletsToCounts(totalTriplets, weights, tileTypes, options = {
   });
 
   const remaining = distributableTriplets - allocated;
-  const ordered = tileTypes
+  const ordered = typeIds
     .slice()
     .sort((a, b) => (weights[b] || 0) - (weights[a] || 0));
   for (let i = 0; i < remaining; i += 1) {
@@ -62,13 +62,13 @@ function weightedTripletsToCounts(totalTriplets, weights, tileTypes, options = {
   }
 
   const counts = {};
-  tileTypes.forEach(t => {
+  typeIds.forEach(t => {
     counts[t] = triplets[t] * 3;
   });
   return counts;
 }
 
-function distributionToCounts(distribution, tileTypes) {
+function distributionToCounts(distribution, typeIds) {
   if (!distribution || typeof distribution !== 'object') {
     throw new Error('distribution is required');
   }
@@ -76,7 +76,7 @@ function distributionToCounts(distribution, tileTypes) {
   if (distribution.mode === 'explicitCounts') {
     const counts = distribution.explicitCounts || {};
     const out = {};
-    tileTypes.forEach(t => {
+    typeIds.forEach(t => {
       const n = counts[t] || 0;
       if (n % 3 !== 0) {
         throw new Error(`explicitCounts for "${t}" must be multiple of 3 (got ${n})`);
@@ -90,7 +90,7 @@ function distributionToCounts(distribution, tileTypes) {
 
   if (distribution.mode === 'weightedTriplets') {
     const weights = distribution.weights || {};
-    return weightedTripletsToCounts(distribution.totalTriplets, weights, tileTypes);
+    return weightedTripletsToCounts(distribution.totalTriplets, weights, typeIds);
   }
 
   if (distribution.mode === 'zipf') {
@@ -101,20 +101,27 @@ function distributionToCounts(distribution, tileTypes) {
     }
     const order = Array.isArray(distribution.order) && distribution.order.length > 0
       ? distribution.order
-      : tileTypes;
+      : typeIds;
     const rankWeights = {};
     order.forEach((t, idx) => {
-      if (!tileTypes.includes(t)) return;
+      if (!typeIds.includes(t)) return;
       rankWeights[t] = 1 / ((idx + 1) ** exponent);
     });
-    tileTypes.forEach(t => {
+    typeIds.forEach(t => {
       if (rankWeights[t] == null) rankWeights[t] = 1e-9;
     });
-    const minTripletsPerType = totalTriplets >= tileTypes.length ? 1 : 0;
-    return weightedTripletsToCounts(totalTriplets, rankWeights, tileTypes, { minTripletsPerType });
+    const minTripletsPerType = totalTriplets >= typeIds.length ? 1 : 0;
+    return weightedTripletsToCounts(totalTriplets, rankWeights, typeIds, { minTripletsPerType });
   }
 
   throw new Error(`Unknown distribution mode "${distribution.mode}"`);
+}
+
+function coerceCountTypeKey(typeKey) {
+  if (typeof typeKey === 'string' && /^\d+$/.test(typeKey)) {
+    return parseInt(typeKey, 10);
+  }
+  return typeKey;
 }
 
 /**
@@ -124,7 +131,8 @@ function distributionToCounts(distribution, tileTypes) {
  */
 function buildTypeSequence(rng, countsByType, _options = {}) {
   const bag = [];
-  Object.entries(countsByType).forEach(([type, count]) => {
+  Object.entries(countsByType).forEach(([typeKey, count]) => {
+    const type = coerceCountTypeKey(typeKey);
     for (let i = 0; i < count; i += 1) bag.push(type);
   });
   if (bag.length === 0) {
@@ -344,10 +352,23 @@ function normalizeBatchGrid(batch) {
   throw new Error('Level batch must specify gridWidth and gridHeight (or legacy gridSize)');
 }
 
+/** Abstract tile type indices `0 .. count - 1` (no dependency on game `TILE_TYPES` names). */
+function rangeTileTypes(count) {
+  if (!Number.isInteger(count) || count < 1) {
+    throw new Error(`tileTypeCount must be a positive integer (got ${count})`);
+  }
+  return Array.from({ length: count }, (_, i) => i);
+}
+
 function generateOneLevel(rng, batch, levelId) {
   const { gridWidth, gridHeight } = normalizeBatchGrid(batch);
   const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight);
-  const countsByType = distributionToCounts(batch.distribution, batch.tileTypes);
+  const n = batch.tileTypeCount;
+  if (!Number.isInteger(n) || n < 1) {
+    throw new Error(`Level batch must set tileTypeCount to a positive integer (got ${batch.tileTypeCount})`);
+  }
+  const typeIds = rangeTileTypes(n);
+  const countsByType = distributionToCounts(batch.distribution, typeIds);
   const seq = buildTypeSequence(rng, countsByType);
   const layout = generateLayoutFromSequence(
     rng,
@@ -389,6 +410,8 @@ function generateLevelsFromConfig(config) {
 
 const DEFAULT_POOL_PARAM_RANGES = {
   templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter', 'circle', 'triangle', 'hexagon', 'cross', 'ring', 't', 'u'],
+  /** Pool of abstract ids `0 .. tileTypePoolSize - 1` for random sampling before each level. */
+  tileTypePoolSize: 12,
   /** @type {Array<[number, number]>} [gridWidth, gridHeight] pairs */
   gridDimensions: [
     [7, 7],
@@ -455,10 +478,11 @@ function sampleTemplateParams(templateId, gridSize, rng) {
  */
 function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const ranges = { ...DEFAULT_POOL_PARAM_RANGES, ...paramRanges };
-  const tileTypesPool = ranges.tileTypesPool;
-  if (!Array.isArray(tileTypesPool) || tileTypesPool.length < 3) {
-    throw new Error('paramRanges.tileTypesPool must be an array of at least 3 tile type ids');
+  const poolSize = ranges.tileTypePoolSize;
+  if (!Number.isInteger(poolSize) || poolSize < 3) {
+    throw new Error('paramRanges.tileTypePoolSize must be an integer >= 3');
   }
+  const poolIds = rangeTileTypes(poolSize);
 
   const templateId = choice(rng, ranges.templateIds);
   const gridDimensions = ranges.gridDimensions || ranges.gridSizes?.map((g) => [g, g]) || [[7, 7]];
@@ -469,11 +493,11 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const templateParams = sampleTemplateParams(templateId, gMin, rng);
 
   const numTypesMin = Math.max(2, ranges.numTypesMin ?? 4);
-  const numTypesMax = Math.min(tileTypesPool.length, ranges.numTypesMax ?? 12);
+  const numTypesMax = Math.min(poolIds.length, ranges.numTypesMax ?? 12);
   const numTypes = numTypesMin + Math.floor(rng() * (numTypesMax - numTypesMin + 1));
-  const shuffled = tileTypesPool.slice();
+  const shuffled = poolIds.slice();
   shuffleInPlace(rng, shuffled);
-  const tileTypes = shuffled.slice(0, numTypes);
+  const typeIds = shuffled.slice(0, numTypes);
 
   const tripletsMin = Math.max(5, ranges.totalTripletsMin ?? 15);
   const tripletsMax = Math.min(50, ranges.totalTripletsMax ?? 40);
@@ -482,7 +506,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const zipfExponentMin = ranges.zipfExponentMin ?? 0.3;
   const zipfExponentMax = ranges.zipfExponentMax ?? 2.0;
   const exponent = zipfExponentMin + (rng() * (zipfExponentMax - zipfExponentMin));
-  const order = tileTypes.slice();
+  const order = typeIds.slice();
   shuffleInPlace(rng, order);
   const distribution = {
     mode: 'zipf',
@@ -516,7 +540,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
 
   try {
     const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight);
-    const countsByType = distributionToCounts(distribution, tileTypes);
+    const countsByType = distributionToCounts(distribution, typeIds);
     const seq = buildTypeSequence(rng, countsByType);
     const layout = generateLayoutFromSequence(
       rng,
@@ -545,6 +569,7 @@ module.exports = {
   generateOneRandomLevel,
   mulberry32,
   DEFAULT_POOL_PARAM_RANGES,
-  normalizeBatchGrid
+  normalizeBatchGrid,
+  rangeTileTypes
 };
 

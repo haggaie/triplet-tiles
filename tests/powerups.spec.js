@@ -91,7 +91,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
   });
 
   test('remove tile type removes that type from both tray and board and decrements charges', async ({ page }) => {
-    // Use a level that has tappable leaves (Level 1 has leaves covered by flowers). Start at level index 2.
+    // Level index 2 is the first generated level; tray `type` values are integer indices (0…).
     await page.evaluate(() => {
       window.__tripletTestHooks.startLevel(2);
     });
@@ -102,39 +102,36 @@ test.describe('Triplet Tiles - Power-ups', () => {
       window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
     });
 
-    // Put a known tile type into the tray (use a real tile type like 'leaf').
-    await page.evaluate(() => {
+    const chosenType = await page.evaluate(() => {
       const hooks = window.__tripletTestHooks;
-      const leafTile = hooks.getTappableTiles().find(t => t.type === 'leaf');
-      if (leafTile) {
-        hooks.clickTileById(leafTile.id);
-      }
+      const tap = hooks.getTappableTiles()[0];
+      if (!tap) return null;
+      hooks.clickTileById(tap.id);
+      return tap.type;
     });
+    expect(chosenType != null).toBe(true);
     await page.evaluate(() => window.__tripletTestHooks.waitForActionComplete());
 
-    // Count how many leaf tiles remain on the board before removal.
-    const beforeLeafCount = await page.evaluate(() => {
+    const beforeBoardCount = await page.evaluate(ty => {
       const state = window.__tripletTestHooks.getState();
-      return state.boardTiles.filter(t => !t.removed && t.type === 'leaf').length;
-    });
-    expect(beforeLeafCount).toBeGreaterThan(0);
+      return state.boardTiles.filter(t => !t.removed && t.type === ty).length;
+    }, chosenType);
+    expect(beforeBoardCount).toBeGreaterThan(0);
 
     // Activate remove-type mode and click the tray tile.
     await page.locator('#remove-type-button').click();
     await page.locator('.tray-tile').first().click();
 
-    // Now, no leaf tiles should remain on the board.
-    const afterLeafCount = await page.evaluate(() => {
+    const afterBoardCount = await page.evaluate(ty => {
       const state = window.__tripletTestHooks.getState();
-      return state.boardTiles.filter(t => !t.removed && t.type === 'leaf').length;
-    });
-    expect(afterLeafCount).toBe(0);
+      return state.boardTiles.filter(t => !t.removed && t.type === ty).length;
+    }, chosenType);
+    expect(afterBoardCount).toBe(0);
 
-    // Tray should no longer contain leaf tiles.
     const trayTypes = await page.evaluate(() => {
       return window.__tripletTestHooks.getState().trayTiles.map(t => t.type);
     });
-    expect(trayTypes).not.toContain('leaf');
+    expect(trayTypes).not.toContain(chosenType);
 
     // Remove-type charge should be decremented and button disabled.
     const removeTypeCountText = await page.locator('#remove-type-count').textContent();
@@ -147,7 +144,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
     await page.evaluate(() => {
       window.__tripletTestHooks.setSkipAnimations(true);
       window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
-      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }, { type: 'flower' }]);
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 0 }, { type: 1 }]);
     });
 
     await page.locator('#remove-type-button').click();
@@ -159,7 +156,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
     const trayTypes = await page.evaluate(() =>
       window.__tripletTestHooks.getState().trayTiles.map((t) => t.type)
     );
-    expect(trayTypes).toEqual(['leaf']);
+    expect(trayTypes).toEqual([0]);
 
     const removeLeft = await page.locator('#remove-type-count').textContent();
     expect(Number(removeLeft || '0')).toBe(0);
@@ -169,7 +166,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
     await page.evaluate(() => {
       window.__tripletTestHooks.setSkipAnimations(true);
       window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
-      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }]);
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 0 }]);
     });
 
     await page.locator('#remove-type-button').click();
@@ -187,7 +184,7 @@ test.describe('Triplet Tiles - Power-ups', () => {
     await page.evaluate(() => {
       window.__tripletTestHooks.setSkipAnimations(true);
       window.__tripletTestHooks.setPowerupsForTest({ removeType: 1 });
-      window.__tripletTestHooks.setTrayTilesForTest([{ type: 'leaf' }]);
+      window.__tripletTestHooks.setTrayTilesForTest([{ type: 0 }]);
     });
 
     await page.locator('#remove-type-button').click();

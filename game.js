@@ -7,7 +7,8 @@ import {
   getProjectedTray,
   shouldQueueWaitForRoom,
   shouldTriggerTrayOverflowLoss,
-  applyCommittedPick
+  applyCommittedPick,
+  getTripleRemovalTypeOrder
 } from './lib/game-model.js';
 
 const TL = globalThis.TripletTileLayering;
@@ -28,6 +29,8 @@ const TILE_TYPES = [
   { id: 'bee', emoji: '🐝' }
 ];
 
+/** Layout `type` values are indices into `TILE_TYPES` (0 = leaf, 1 = flower, 2 = clover, …). */
+
 /** Two fixed tutorial levels: short and simple, always first so players learn mechanics before harder levels. */
 const TUTORIAL_LEVELS = [
   {
@@ -36,12 +39,12 @@ const TUTORIAL_LEVELS = [
     gridWidth: 6,
     gridHeight: 6,
     layout: [
-      { type: 'flower', x: 1, y: 2, z: 1 },
-      { type: 'flower', x: 2, y: 2, z: 1 },
-      { type: 'flower', x: 3, y: 2, z: 1 },
-      { type: 'leaf', x: 1, y: 1, z: 0 },
-      { type: 'leaf', x: 2, y: 1, z: 0 },
-      { type: 'leaf', x: 3, y: 1, z: 0 }
+      { type: 1, x: 1, y: 2, z: 1 },
+      { type: 1, x: 2, y: 2, z: 1 },
+      { type: 1, x: 3, y: 2, z: 1 },
+      { type: 0, x: 1, y: 1, z: 0 },
+      { type: 0, x: 2, y: 1, z: 0 },
+      { type: 0, x: 3, y: 1, z: 0 }
     ]
   },
   {
@@ -50,15 +53,15 @@ const TUTORIAL_LEVELS = [
     gridWidth: 6,
     gridHeight: 6,
     layout: [
-      { type: 'leaf', x: 1, y: 1, z: 0 },
-      { type: 'leaf', x: 2, y: 1, z: 0 },
-      { type: 'leaf', x: 3, y: 1, z: 0 },
-      { type: 'flower', x: 1, y: 2, z: 0 },
-      { type: 'flower', x: 2, y: 2, z: 0 },
-      { type: 'flower', x: 3, y: 2, z: 0 },
-      { type: 'flower', x: 1, y: 2, z: 1 },
-      { type: 'flower', x: 2, y: 2, z: 1 },
-      { type: 'flower', x: 3, y: 2, z: 1 }
+      { type: 0, x: 1, y: 1, z: 0 },
+      { type: 0, x: 2, y: 1, z: 0 },
+      { type: 0, x: 3, y: 1, z: 0 },
+      { type: 1, x: 1, y: 2, z: 0 },
+      { type: 1, x: 2, y: 2, z: 0 },
+      { type: 1, x: 3, y: 2, z: 0 },
+      { type: 1, x: 1, y: 2, z: 1 },
+      { type: 1, x: 2, y: 2, z: 1 },
+      { type: 1, x: 3, y: 2, z: 1 }
     ]
   }
 ];
@@ -71,15 +74,15 @@ const FALLBACK_LEVELS = [
     gridWidth: 6,
     gridHeight: 6,
     layout: [
-      { type: 'leaf', x: 1, y: 1, z: 1 },
-      { type: 'leaf', x: 2, y: 1, z: 1 },
-      { type: 'leaf', x: 3, y: 1, z: 1 },
-      { type: 'flower', x: 1, y: 2, z: 0 },
-      { type: 'flower', x: 2, y: 2, z: 0 },
-      { type: 'flower', x: 3, y: 2, z: 0 },
-      { type: 'clover', x: 1, y: 3, z: 0 },
-      { type: 'clover', x: 2, y: 3, z: 0 },
-      { type: 'clover', x: 3, y: 3, z: 0 }
+      { type: 0, x: 1, y: 1, z: 1 },
+      { type: 0, x: 2, y: 1, z: 1 },
+      { type: 0, x: 3, y: 1, z: 1 },
+      { type: 1, x: 1, y: 2, z: 0 },
+      { type: 1, x: 2, y: 2, z: 0 },
+      { type: 1, x: 3, y: 2, z: 0 },
+      { type: 2, x: 1, y: 3, z: 0 },
+      { type: 2, x: 2, y: 3, z: 0 },
+      { type: 2, x: 3, y: 3, z: 0 }
     ]
   }
 ];
@@ -213,6 +216,21 @@ function normalizeGridDims(level) {
   return { gridWidth: 6, gridHeight: 6 };
 }
 
+/**
+ * Maps level layout `type` to runtime tile kind: **integer indices** into `TILE_TYPES`, or digit strings
+ * from JSON; other strings (e.g. overflow test types) pass through unchanged.
+ */
+function normalizeLevelTileType(type) {
+  if (typeof type === 'number' && Number.isInteger(type) && type >= 0 && type < TILE_TYPES.length) {
+    return type;
+  }
+  if (typeof type === 'string' && /^\d+$/.test(type)) {
+    const idx = parseInt(type, 10);
+    if (idx >= 0 && idx < TILE_TYPES.length) return idx;
+  }
+  return type;
+}
+
 function getTileVisual(typeId) {
   if (typeof typeId === 'number' && typeId >= 0 && typeId < TILE_TYPES.length) {
     return TILE_TYPES[typeId].emoji;
@@ -221,8 +239,7 @@ function getTileVisual(typeId) {
     const idx = parseInt(typeId, 10);
     return TILE_TYPES[idx]?.emoji ?? '?';
   }
-  const found = TILE_TYPES.find(t => t.id === typeId);
-  return found ? found.emoji : '?';
+  return '?';
 }
 
 const scoreFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
@@ -239,8 +256,7 @@ function getTileTypeLabel(typeId) {
   if (typeof typeId === 'string' && /^\d+$/.test(typeId)) {
     return TILE_TYPES[parseInt(typeId, 10)]?.id ?? 'tile';
   }
-  const found = TILE_TYPES.find(t => t.id === typeId);
-  return found ? found.id : 'tile';
+  return 'tile';
 }
 
 function focusElementIfStillMounted(el) {
@@ -623,7 +639,7 @@ function startLevel(index) {
   const level = LEVELS[clampedIndex];
   state.boardTiles = level.layout.map((tile, i) => ({
     id: `t_${clampedIndex}_${i}`,
-    type: typeof tile.type === 'number' ? String(tile.type) : tile.type,
+    type: normalizeLevelTileType(tile.type),
     x: tile.x,
     y: tile.y,
     z: tile.z,
@@ -1399,11 +1415,11 @@ function handleMatchingInTray() {
 
 /** Returns types that currently have 3+ in tray (for animation). */
 function getMatchingTypesInTray() {
-  const counts = {};
+  const counts = new Map();
   state.trayTiles.forEach(t => {
-    counts[t.type] = (counts[t.type] || 0) + 1;
+    counts.set(t.type, (counts.get(t.type) || 0) + 1);
   });
-  return Object.keys(counts).filter(type => counts[type] >= 3);
+  return getTripleRemovalTypeOrder(state.trayTiles, counts);
 }
 
 const FLY_DURATION_MS = 450;
@@ -1597,7 +1613,8 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
 
 function animateMatchCombine(type, onComplete) {
   const trayTiles = Array.from(ui.tray.querySelectorAll('.tray-tile'));
-  const byType = trayTiles.filter(el => el.dataset.type === type);
+  const typeKey = String(type);
+  const byType = trayTiles.filter(el => el.dataset.type === typeKey);
   const toAnimate = byType.slice(0, 3);
   if (toAnimate.length < 3) {
     onComplete([]);
@@ -2136,15 +2153,15 @@ function renderTray(forceRebuild = false) {
       const existingTileEl = inner.querySelector('.tray-tile');
       if (tile) {
         if (existingTileEl) {
-          if (existingTileEl.dataset.type !== tile.type) {
-            existingTileEl.dataset.type = tile.type;
+          if (existingTileEl.dataset.type !== String(tile.type)) {
+            existingTileEl.dataset.type = String(tile.type);
             existingTileEl.textContent = getTileVisual(tile.type);
           }
         } else {
           const tileEl = document.createElement('div');
           tileEl.className = 'tray-tile';
           tileEl.textContent = getTileVisual(tile.type);
-          tileEl.dataset.type = tile.type;
+          tileEl.dataset.type = String(tile.type);
           inner.appendChild(tileEl);
         }
       } else if (existingTileEl) {
@@ -2163,7 +2180,7 @@ function renderTray(forceRebuild = false) {
   for (let i = 0; i < maxSlots; i += 1) {
     const tile = state.trayTiles[i];
     const tileContent = tile
-      ? `<div class="tray-tile" data-type="${tile.type}">${getTileVisual(tile.type)}</div>`
+      ? `<div class="tray-tile" data-type="${String(tile.type)}">${getTileVisual(tile.type)}</div>`
       : '';
     html += `<div class="tray-slot"><div class="tray-slot-inner">${tileContent}</div></div>`;
   }
@@ -2230,7 +2247,7 @@ if (typeof window !== 'undefined') {
     setTrayTilesForTest(trayTiles) {
       state.trayTiles = trayTiles.map((tile, index) => ({
         id: tile.id || `test_${index}`,
-        type: tile.type
+        type: normalizeLevelTileType(tile.type)
       }));
       renderTray();
       renderHud();

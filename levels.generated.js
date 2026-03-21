@@ -1,5 +1,5 @@
 // AUTO-GENERATED FILE. DO NOT EDIT.
-// Generated at: 2026-03-21T05:40:05.259Z
+// Generated at: 2026-03-21T05:49:53.521Z
 // Seed: 1337
 
 window.__TRIPLET_GENERATED_LEVELS__ = [
@@ -11,217 +11,217 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4339798232909948,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 1
@@ -236,325 +236,325 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4490746057921814,
     "layout": [
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 7,
         "z": 1
@@ -569,649 +569,649 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4610347895240545,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 8,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 8,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 9,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 9,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 9,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 9,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 0,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 8,
         "z": 1
@@ -1226,433 +1226,433 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4680426140989399,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 8,
         "z": 1
@@ -1667,325 +1667,325 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4709162015264814,
     "layout": [
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 1
@@ -2000,217 +2000,217 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.47237078532253807,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 1
@@ -2225,487 +2225,487 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.48057634790389747,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 1,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 0,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 1
@@ -2720,433 +2720,433 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.49356423112997566,
     "layout": [
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 2,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 8,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 8,
         "z": 1
@@ -3161,217 +3161,217 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.4981193368437797,
     "layout": [
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 5,
         "z": 1
@@ -3386,487 +3386,487 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5067563852051051,
     "layout": [
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 0,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 0,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 1
@@ -3881,433 +3881,433 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5079083279780595,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 1
@@ -4322,649 +4322,649 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5097222627005213,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 8,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 9,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 9,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 9,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 8,
         "y": 9,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 9,
         "y": 9,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 0,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 0,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 8,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 8,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 9,
         "z": 1
@@ -4979,487 +4979,487 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5102166606122999,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 0,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 0,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 7,
         "z": 1
@@ -5474,613 +5474,613 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.522775950761415,
     "layout": [
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 0,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 3,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 9,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 6,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 3,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 2
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 4,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 6,
         "z": 2
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 7,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 7,
         "z": 2
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 8,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 8,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 8,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 9,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 9,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 9,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 2
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 3,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 4,
         "z": 3
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 6,
         "z": 3
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 8,
         "y": 8,
         "z": 3
@@ -6095,541 +6095,541 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5243680927029399,
     "layout": [
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 8,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 0,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 1,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 2,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 3,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 3,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 2,
         "y": 5,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 6,
         "z": 2
@@ -6644,505 +6644,505 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5299946878157107,
     "layout": [
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 8,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 8,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 8,
         "z": 1
@@ -7157,685 +7157,685 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5315915787053948,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 0,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 0,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 0,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 0,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 6,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 1,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 1,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 9,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 8,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 9,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 9,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 0,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 9,
         "y": 0,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 1,
         "z": 2
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 1,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 4,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 8,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 9,
         "z": 2
@@ -7850,505 +7850,505 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.536607561332833,
     "layout": [
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 0,
         "y": 7,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 8,
         "z": 1
@@ -8363,685 +8363,685 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5437328776076868,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 0,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 0,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 7,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 0,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 0,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 0,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 0,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 0,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 0,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 1,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 1,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 2,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 9,
         "y": 2,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 9,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 0,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 0,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 0,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 1,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 4,
         "z": 2
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 7,
         "y": 5,
         "z": 2
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 6,
         "z": 2
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 7,
         "y": 7,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 9,
         "z": 2
@@ -9056,721 +9056,721 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5576279599836105,
     "layout": [
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 9,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 9,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 9,
         "y": 9,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 3,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 6,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 7,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 0,
         "y": 9,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 8,
         "y": 9,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 3,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 5,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 0,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 6,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 7,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 7,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 8,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 2,
         "y": 8,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 8,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 8,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 8,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 3,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 3
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 4,
         "z": 3
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 5,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 6,
         "z": 3
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 1,
         "y": 6,
         "z": 3
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 7,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 7,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 8,
         "z": 3
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 9,
         "y": 8,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 9,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 9,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 9,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 9,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 9,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 9,
         "z": 3
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 9,
         "z": 3
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 9,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 9,
         "z": 3
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 0,
         "y": 5,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 7,
         "z": 4
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 8,
         "z": 4
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 8,
         "z": 4
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 0,
         "y": 9,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 9,
         "z": 4
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 2,
         "y": 9,
         "z": 4
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 9,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 9,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 4
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 9,
         "z": 4
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 9,
         "z": 4
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 2,
         "y": 5,
         "z": 5
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 6,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 5
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 9,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 7,
         "z": 6
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 8,
         "z": 6
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 9,
         "z": 6
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 6,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 7
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 8,
         "z": 7
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 8,
         "z": 7
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 8,
         "z": 7
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 8,
         "z": 7
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 9,
         "z": 8
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 9,
         "z": 8
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 9,
         "z": 8
@@ -9785,613 +9785,613 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5576320915084962,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 8,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 5,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 8,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 8,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 7,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 3,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 3,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 3,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 5,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 5,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 5,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 6,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 7,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 7,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 7,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 7,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 8,
         "z": 2
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 6,
         "y": 8,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 3
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 7,
         "y": 3,
         "z": 3
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 5,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 7,
         "z": 3
@@ -10406,721 +10406,721 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5597085814346365,
     "layout": [
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 9,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 1,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 0,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 2,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 9,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 6,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 1,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 6,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 0,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 7,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 9,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 9,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 9,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 9,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 9,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 9,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 9,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 9,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 9,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 9,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 9,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 9,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 0,
         "y": 3,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 3,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 0,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 7,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 7,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 8,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 8,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 9,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 9,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 9,
         "z": 2
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 9,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 9,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 9,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 9,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 9,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 5,
         "z": 3
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 7,
         "z": 3
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 8,
         "z": 3
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 8,
         "z": 3
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 9,
         "z": 3
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 9,
         "z": 3
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 3,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 4,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 4
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 0,
         "y": 6,
         "z": 4
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 7,
         "z": 4
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 9,
         "y": 7,
         "z": 4
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 0,
         "y": 8,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 8,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 4
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 8,
         "z": 4
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 8,
         "z": 4
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 8,
         "z": 4
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 8,
         "z": 4
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 8,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 8,
         "z": 4
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 9,
         "y": 8,
         "z": 4
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 5
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 6,
         "z": 5
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 7,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 8,
         "z": 5
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 8,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 5
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 8,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 8,
         "z": 5
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 8,
         "z": 5
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 8,
         "z": 5
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 8,
         "z": 5
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 5,
         "z": 6
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 1,
         "y": 6,
         "z": 6
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 1,
         "y": 7,
         "z": 6
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 1,
         "y": 8,
         "z": 6
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 8,
         "z": 6
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 8,
         "z": 6
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 4,
         "y": 8,
         "z": 6
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 8,
         "z": 6
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 8,
         "z": 6
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 8,
         "z": 6
@@ -11135,541 +11135,541 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5626768841497739,
     "layout": [
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 8,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 4,
         "z": 2
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 5,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 5,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 7,
         "y": 5,
         "z": 2
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 6,
         "z": 2
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 7,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 2
@@ -11684,613 +11684,613 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5642646956913955,
     "layout": [
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 9,
         "y": 5,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 6,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 7,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 8,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 9,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 1,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 6,
         "y": 1,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 7,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 2,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 9,
         "y": 2,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 8,
         "y": 3,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 9,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 8,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 9,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 5,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 8,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 6,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 5,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 7,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 7,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 8,
         "y": 7,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 2,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 2,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 8,
         "y": 2,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 2,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 3,
         "y": 3,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 3,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 9,
         "y": 3,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 4,
         "z": 2
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 4,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 4,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 8,
         "y": 4,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 9,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 5,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 6,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 6,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 7,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 6,
         "y": 7,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 2
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 8,
         "y": 7,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 6,
         "y": 8,
         "z": 2
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 3,
         "z": 3
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 4,
         "z": 3
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 4,
         "y": 6,
         "z": 3
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 7,
         "z": 3
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 8,
         "z": 3
@@ -12305,541 +12305,541 @@ window.__TRIPLET_GENERATED_LEVELS__ = [
     "difficultyScore": 0.5851073153034675,
     "layout": [
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 0,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 0,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 0,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 1,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 1,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 5,
         "y": 1,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 2,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 2,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 2,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 3,
         "y": 3,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 4,
         "y": 3,
         "z": 0
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 3,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 3,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 8,
         "y": 3,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 0,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 1,
         "y": 4,
         "z": 0
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 2,
         "y": 4,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 4,
         "z": 0
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 4,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 4,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 6,
         "y": 4,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 7,
         "y": 4,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 4,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 0,
         "y": 5,
         "z": 0
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 1,
         "y": 5,
         "z": 0
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 0
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 4,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 5,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 6,
         "y": 5,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 7,
         "y": 5,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 5,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 5,
         "y": 6,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 0
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 7,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 7,
         "z": 0
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 8,
         "z": 0
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 4,
         "y": 8,
         "z": 0
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 5,
         "y": 8,
         "z": 0
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 3,
         "y": 0,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 4,
         "y": 0,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 1,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 3,
         "y": 1,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 1,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 2,
         "y": 2,
         "z": 1
       },
       {
-        "type": "apple",
+        "type": 9,
         "x": 3,
         "y": 2,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 1
       },
       {
-        "type": "clover",
+        "type": 2,
         "x": 1,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 3,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 5,
         "y": 3,
         "z": 1
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 6,
         "y": 3,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 7,
         "y": 3,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 1,
         "y": 4,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 2,
         "y": 4,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 4,
         "z": 1
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 5,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 6,
         "y": 4,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 7,
         "y": 4,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 0,
         "y": 5,
         "z": 1
       },
       {
-        "type": "sunflower",
+        "type": 8,
         "x": 1,
         "y": 5,
         "z": 1
       },
       {
-        "type": "butterfly",
+        "type": 7,
         "x": 2,
         "y": 5,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 5,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 5,
         "z": 1
       },
       {
-        "type": "bee",
+        "type": 11,
         "x": 5,
         "y": 5,
         "z": 1
       },
       {
-        "type": "star",
+        "type": 3,
         "x": 6,
         "y": 5,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 2,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 3,
         "y": 6,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 4,
         "y": 6,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 2,
         "y": 7,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 7,
         "z": 1
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 4,
         "y": 7,
         "z": 1
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 2,
         "y": 8,
         "z": 1
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 4,
         "y": 2,
         "z": 2
       },
       {
-        "type": "carrot",
+        "type": 10,
         "x": 3,
         "y": 3,
         "z": 2
       },
       {
-        "type": "acorn",
+        "type": 4,
         "x": 8,
         "y": 3,
         "z": 2
       },
       {
-        "type": "mushroom",
+        "type": 5,
         "x": 3,
         "y": 4,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 4,
         "z": 2
       },
       {
-        "type": "leaf",
+        "type": 0,
         "x": 3,
         "y": 5,
         "z": 2
       },
       {
-        "type": "flower",
+        "type": 1,
         "x": 8,
         "y": 5,
         "z": 2
       },
       {
-        "type": "cherry",
+        "type": 6,
         "x": 4,
         "y": 7,
         "z": 2

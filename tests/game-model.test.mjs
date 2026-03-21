@@ -51,6 +51,21 @@ test('removeMatchingTriplesOneRound: multiple types in one round', () => {
   assert.deepEqual(removedTypes, ['x', 'y']);
 });
 
+test('removeMatchingTriplesOneRound: first-appearance order when types differ left-to-right', () => {
+  const tray = [
+    { id: '1', type: 'y' },
+    { id: '2', type: 'y' },
+    { id: '3', type: 'y' },
+    { id: '4', type: 'x' },
+    { id: '5', type: 'x' },
+    { id: '6', type: 'x' }
+  ];
+  const { trayTiles, scoreDelta, removedTypes } = removeMatchingTriplesOneRound(tray);
+  assert.equal(trayTiles.length, 0);
+  assert.equal(scoreDelta, 60);
+  assert.deepEqual(removedTypes, ['y', 'x']);
+});
+
 test('removeMatchingTriplesOneRound: only types with initial count ≥ 3', () => {
   const tray = [
     { id: '1', type: 'x' },

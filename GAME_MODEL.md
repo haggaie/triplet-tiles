@@ -35,9 +35,13 @@ Index where a new tile of `type` is inserted (grouped after the last tile of the
 
 New array; `newTile` is `{ id, type }`. Does not mutate `trayTiles`.
 
+### `getTripleRemovalTypeOrder(trayTiles, counts) → Array<type>`
+
+`counts` is a `Map` from type → count. Returns types that have count ≥ 3, ordered by **first left-to-right appearance** of each distinct type in `trayTiles`. Shared with `removeMatchingTriplesOneRound` and the live game’s `getMatchingTypesInTray`.
+
 ### `removeMatchingTriplesOneRound(trayTiles) → { trayTiles, scoreDelta, removedTypes }`
 
-One **full** round: compute types with count ≥ 3 at the start, then for each such type (in `Object.keys(counts)` order) remove the first three left-to-right and add **30** score per type removed. Matches `handleMatchingInTray()`.
+One **full** round: compute types with count ≥ 3 at the start, then for each such type (in **first-appearance order** — `getTripleRemovalTypeOrder`) remove the first three of that type left-to-right and add **30** score per type removed. Matches `handleMatchingInTray()`.
 
 ### `removeTriplesForTypesSequential(trayTiles, typesInOrder) → { trayTiles, scoreDelta, removedTypes }`
 

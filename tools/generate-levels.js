@@ -40,10 +40,12 @@ function main() {
     const keep = Number.isInteger(config.pool.keep) ? config.pool.keep : null;
     const paramRanges = {
       ...config.pool.paramRanges,
-      tileTypesPool: config.ALL_TILE_TYPES || config.pool.paramRanges?.tileTypesPool
+      tileTypePoolSize: config.pool.paramRanges?.tileTypePoolSize ?? config.tileTypePoolSize
     };
-    if (!paramRanges.tileTypesPool || paramRanges.tileTypesPool.length < 3) {
-      throw new Error('randomPool requires config.ALL_TILE_TYPES or pool.paramRanges.tileTypesPool');
+    if (!Number.isInteger(paramRanges.tileTypePoolSize) || paramRanges.tileTypePoolSize < 3) {
+      throw new Error(
+        'randomPool requires config.tileTypePoolSize (>= 3) or pool.paramRanges.tileTypePoolSize (>= 3)'
+      );
     }
     for (let i = 0; i < N; i += 1) {
       const levelSeed = Math.floor(rng() * 2 ** 31) ^ ((i + 1) * 2654435761);

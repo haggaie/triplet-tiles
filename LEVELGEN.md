@@ -39,7 +39,8 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - Global:
     - `seed`: base RNG seed for reproducible generation.
     - `generationMode`: `'batches'` (default) or `'randomPool'`. With `'batches'`, the CLI uses the `levels` array and applies per-batch constraints. With `'randomPool'`, it generates a large pool of random candidates, keeps only solvable ones, sorts by difficulty score, and optionally takes the first N levels for a better difficulty spread (see **Random pool mode** below).
-    - `pool`: when `generationMode === 'randomPool'`, an object `{ count, keep?, paramRanges? }`. `count` is how many candidate levels to generate. `keep` (optional) is how many to keep after sorting by difficulty (default: keep all solvable). `paramRanges` (optional) overrides default sampling ranges (templates, grid sizes, tile type count, triplets, layering, etc.); the generator merges these with built-in defaults and requires `tileTypesPool` (or `config.ALL_TILE_TYPES`) for the set of tile type ids to sample from.
+    - `tileTypePoolSize`: when `generationMode === 'randomPool'`, the maximum abstract type index is `tileTypePoolSize - 1` (pool is `[0, 1, …, N-1]`). Set at the top level (default **12** in `config.js`) or override with `pool.paramRanges.tileTypePoolSize`. Must be ≥ 3.
+    - `pool`: when `generationMode === 'randomPool'`, an object `{ count, keep?, paramRanges? }`. `count` is how many candidate levels to generate. `keep` (optional) is how many to keep after sorting by difficulty (default: keep all solvable). `paramRanges` (optional) overrides default sampling ranges (templates, grid sizes, `tileTypePoolSize`, triplets, layering, etc.); merged with built-in defaults in `generator.js` (`DEFAULT_POOL_PARAM_RANGES`).
     - `output`:
       - `outFile`: typically `levels.generated.js`.
       - `includeSolverStats`: if `true`, embeds extra solver metrics per level (debugging/tuning only).
@@ -50,7 +51,8 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
     - `gridWidth`, `gridHeight`: board cell counts used by the template and layout (`x` in `[0, gridWidth)`, `y` in `[0, gridHeight)`; both ≥ 5 for templates). Legacy `gridSize` is still accepted in generator config as shorthand for a square grid.
     - `count`: how many levels to generate for this batch.
-    - `tileTypes`: list of tile type identifiers — either **tile id strings** (from `TILE_TYPES` in `game.js`) or **0-based integer indices** into `TILE_TYPES`. Distribution `weights` and `explicitCounts` use the same type identifiers (strings or integers) as keys.
+    - `tileTypeCount`: number of distinct **abstract** tile kinds in this batch — type ids `0 .. tileTypeCount - 1` only (no dependency on emoji or `TILE_TYPES` names).
+    - Distribution `weights`, `explicitCounts`, and Zipf `order` use those same type ids as keys (integers `0..N-1`).
     - `distribution`: how many tiles of each type to place (see section 3).
     - `layering`:
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).
@@ -144,6 +146,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - `game.js` uses:
     - `window.__TRIPLET_GENERATED_LEVELS__` if available.
     - Otherwise, a small built-in `FALLBACK_LEVELS` array.
+  - **Tile type assignment**: layouts (including tutorials and generated levels) store `type` as **JSON numbers** — 0-based indices into `TILE_TYPES` in `game.js` (same order as the emoji list). `normalizeLevelTileType` converts layout values to **integer indices** in runtime state; DOM `data-type` attributes use the string form of those indices for HTML.
 
 - **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. Tile-type order is the same **uniform shuffle** as in batch mode. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
 
@@ -157,9 +160,9 @@ Distribution controls how many tiles of each type are in a level. All modes ensu
 
 - `distribution.mode: 'explicitCounts'`
 - Fields:
-  - `explicitCounts: { [typeId]: number }` (each `number` must be multiple of 3).
+  - `explicitCounts: { [typeId]: number }` (each `number` must be multiple of 3; `typeId` is an abstract integer `0..N-1` when using `tileTypeCount`).
 - Use when you want precise control, e.g.:
-  - 30 leaf tiles, 30 flower tiles, 15 clover tiles, 15 star tiles.
+  - counts per abstract type id (often paired with `tileTypeCount` so keys are `0`, `1`, …).
 
 #### 3.2. Weighted triplets (current)
 
@@ -178,9 +181,9 @@ Distribution controls how many tiles of each type are in a level. All modes ensu
 
 The **number of tile types** in a level strongly affects difficulty: more types mean more distinct symbols in the tray, so the tray fills with singletons and pairs more often and the player must plan to avoid overflow. The game defines a fixed set of tile types in `game.js` (`TILE_TYPES`); the tray holds at most **7** tiles. So:
 
-- **Upper bound**: The game defines a fixed set of types in `game.js` (currently **12**: leaf, flower, clover, star, acorn, mushroom, cherry, butterfly, sunflower, apple, carrot, bee). Levels cannot use more than that without changing the game.
-- **Per-level**: Each batch's `tileTypes` array chooses a *subset*. Using more types in a batch (e.g. 8–12) increases tray pressure and strategic difficulty; using fewer (e.g. 2–4) keeps levels easier.
-- **Setting it**: You can either set `tileTypes` explicitly per batch (as now) or derive it from a single list, e.g. `tileTypes: ALL_TYPES.slice(0, 4)` for "first 4 types" so type count is explicit and easy to tune. Letting the generator *choose* type count automatically (e.g. to hit a target difficulty) would require coupling generation to the solver/scorer and is usually not worth the complexity; configuring per batch is simpler and predictable.
+- **Upper bound**: The game defines a fixed set of types in `game.js` (currently **12**: leaf, flower, clover, star, acorn, mushroom, cherry, butterfly, sunflower, apple, carrot, bee). Set `tileTypeCount` to at most **12** unless you extend `TILE_TYPES`.
+- **Per-level**: Each batch's `tileTypeCount` fixes how many distinct abstract kinds appear. Using more types (e.g. 8–12) increases tray pressure and strategic difficulty; using fewer (e.g. 2–4) keeps levels easier.
+- **Setting it**: Prefer `tileTypeCount: N` so the generator uses ids `0..N-1` with no shared name list in the levelgen config. Letting the generator *choose* type count automatically (e.g. to hit a target difficulty) would require coupling generation to the solver/scorer and is usually not worth the complexity; configuring per batch is simpler and predictable.
 
 So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "many types" dimension. The tray holds 7 tiles, so with up to 12 types you still avoid the "7 singletons = instant loss" case. To raise difficulty for medium/hard, use **more types** in those batches (e.g. all 12) and combine with more triplets, heavier overlap, and/or more layers.
 
@@ -204,7 +207,7 @@ distribution: {
   mode: 'zipf',
   totalTriplets: 36,
   exponent: 1.1,            // s in 1 / k^s, controls skewness
-  order: ['leaf', 'flower', 'clover', 'star', 'acorn', 'mushroom'] // rank order
+  order: [0, 1, 2, 3, 4, 5] // rank order (abstract type ids; optional — defaults to 0..tileTypeCount-1)
 }
 ```
 
@@ -251,7 +254,7 @@ npx playwright install
 3. **Edit the generator config** to your liking:
    - File: `tools/levelgen/config.js`
    - Adjust:
-     - `levels` batches (templates, counts, tileTypes, distributions, layering).
+     - `levels` batches (templates, counts, `tileTypeCount`, distributions, layering).
      - `seed` if you want a different procedural “universe” of levels.
 
 4. **Generate levels:**

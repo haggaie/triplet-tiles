@@ -4,6 +4,20 @@ const path = require('path');
 
 const { solveLevel } = require('../tools/levelgen/solver');
 
+/** Must match `TILE_TYPES.length` in `game.js` — same rules as `normalizeLevelTileType` (integer indices in sim). */
+const GAME_TILE_TYPE_COUNT = 12;
+
+function normalizeLevelTileTypeForTest(type) {
+  if (typeof type === 'number' && Number.isInteger(type) && type >= 0 && type < GAME_TILE_TYPE_COUNT) {
+    return type;
+  }
+  if (typeof type === 'string' && /^\d+$/.test(type)) {
+    const idx = parseInt(type, 10);
+    if (idx >= 0 && idx < GAME_TILE_TYPE_COUNT) return idx;
+  }
+  return type;
+}
+
 function loadGeneratedLevels() {
   const projectRoot = path.resolve(__dirname, '..');
   const filePath = path.resolve(projectRoot, 'levels.generated.js');
@@ -38,11 +52,19 @@ function simulateSolutionScore(level, solution) {
     tray.splice(insertIndex, 0, type);
   }
 
-  /** One round per move: remove 3 of each type that has >= 3 (matches game's handleMatchingInTray). */
+  /** One round per move: remove 3 of each type that has >= 3 (matches `getTripleRemovalTypeOrder` + handleMatchingInTray). */
   function removeTriples() {
-    const counts = {};
-    tray.forEach(t => { counts[t] = (counts[t] || 0) + 1; });
-    const toRemove = Object.keys(counts).filter(t => counts[t] >= 3);
+    const cMap = new Map();
+    tray.forEach(t => {
+      cMap.set(t, (cMap.get(t) || 0) + 1);
+    });
+    const seen = new Set();
+    const toRemove = [];
+    for (const t of tray) {
+      if (seen.has(t)) continue;
+      seen.add(t);
+      if ((cMap.get(t) || 0) >= 3) toRemove.push(t);
+    }
     for (const type of toRemove) {
       let removed = 0;
       tray = tray.filter(t => {
@@ -57,7 +79,7 @@ function simulateSolutionScore(level, solution) {
   }
 
   for (const idx of solution) {
-    const type = layout[idx].type;
+    const type = normalizeLevelTileTypeForTest(layout[idx].type);
     insertByShape(type);
     removeTriples();
   }
