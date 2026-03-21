@@ -118,15 +118,20 @@ module.exports = {
     // Hard: deeper stacks, 12 types, higher skew and pressure.
     {
       templateId: 'cross',
-      templateParams: { radius: 4, thickness: 2 },
+      templateParams: { thickness: 2 },
       gridWidth: 8,
       gridHeight: 12,
       count: 3,
       maxGenerateAttempts: 2800,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 22, exponent: 1.15 },
-      layering: { minZ: 0, maxZ: 7, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.22, minCellFraction: 0.08, allowShift: true } }
+      distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 1.15 },
+      layering: { minZ: 0, maxZ: 2, full: true, layerShape: 'paramSweep', layerShapeOptions: {
+        "sweep": "thickness",
+        "minThickness": 1,
+        "maxThickness": null
+      }
+     }
     },
     {
       templateId: 'ring',
