@@ -102,6 +102,8 @@ function main() {
       if (config.output.reportFile) {
         withScore._reportMetrics = scoredLevel.metrics;
       }
+      withScore._batchIndex = null;
+      withScore._batchTemplateId = null;
       scored.push(withScore);
     }
   } else {
@@ -173,6 +175,8 @@ function main() {
         if (config.output.reportFile) {
           withScore._reportMetrics = scoredLevel.metrics;
         }
+        withScore._batchIndex = batchIdx;
+        withScore._batchTemplateId = batch.templateId;
         scored.push(withScore);
         made += 1;
       }
@@ -193,7 +197,9 @@ function main() {
   }));
 
   const banner = `// AUTO-GENERATED FILE. DO NOT EDIT.\n// Generated at: ${new Date().toISOString()}\n// Seed: ${seed}\n\n`;
-  const levelsForFile = levels.map(({ _reportMetrics, layerSilhouettes, ...rest }) => rest);
+  const levelsForFile = levels.map(
+    ({ _reportMetrics, layerSilhouettes, _batchIndex, _batchTemplateId, ...rest }) => rest
+  );
   const contents =
     banner +
     `window.__TRIPLET_GENERATED_LEVELS__ = ${JSON.stringify(levelsForFile, null, 2)};\n`;
@@ -419,6 +425,20 @@ function buildDifficultyReport(levels, seed, rejected) {
     format(stats(withMetrics, l => l._reportMetrics.difficultyVariance).mean)
   );
   md += `\n`;
+
+  const batchIndices = [
+    ...new Set(withMetrics.map(l => l._batchIndex).filter(i => Number.isInteger(i)))
+  ].sort((a, b) => a - b);
+  if (batchIndices.length > 0) {
+    md += `## By batch\n\n`;
+    md += `Aggregate metrics for each config batch (before difficulty tertiles; level \`id\` order is by difficulty score).\n\n`;
+    for (const bi of batchIndices) {
+      const inBatch = withMetrics.filter(l => l._batchIndex === bi);
+      const tmpl = inBatch.length > 0 ? inBatch[0]._batchTemplateId : '';
+      const tmplPart = tmpl != null && tmpl !== '' ? ` — \`${String(tmpl)}\`` : '';
+      md += section(`Batch ${bi + 1}${tmplPart}`, inBatch);
+    }
+  }
 
   md += `## By difficulty band\n\n`;
   md += `Bands are **tertiles** (bottom/middle/top third by difficulty score).\n\n`;
