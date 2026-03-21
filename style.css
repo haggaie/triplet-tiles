@@ -352,8 +352,7 @@ body {
 
 /* Plank + seamless noise + line grain (top). Noise uses soft-light so mid-gray stays neutral on wood. */
 .tile,
-.tray-tile,
-.level-select-mini-tile {
+.tray-tile {
   background-image: var(--tile-bg-grain), var(--tile-bg-noise), var(--tile-bg-plank);
   background-size: auto, var(--tile-noise-tile-size) var(--tile-noise-tile-size), auto;
   background-repeat: repeat, repeat, no-repeat;
@@ -805,20 +804,17 @@ body {
   transform-origin: top left;
 }
 
-.level-select-mini-tile {
+/* Level picker: filled footprint only (no per-tile icons) */
+.level-select-mini-silhouette-cell {
   position: absolute;
   border-radius: 22%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ink);
-  box-shadow:
-    0 2px 6px rgb(22 14 10 / 0.55),
-    0 0 0 1px var(--wood-edge),
-    inset 1px 1px 2px rgb(255 255 255 / 0.3),
-    inset -1px -2px 3px rgb(0 0 0 / 0.22);
   transform: translate(-50%, -50%);
   pointer-events: none;
+  background: rgb(var(--accent-rgb) / 0.42);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 -1px 2px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(235 213 184 / 0.2);
 }
 
 .level-select-card-label {

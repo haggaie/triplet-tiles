@@ -1928,6 +1928,9 @@ function setLevelSelectDifficultyFilter(difficulty) {
   buildLevelSelectGrid();
 }
 
+/**
+ * Top-down footprint of occupied grid cells (one cell per x,y), no tile types — for level picker previews.
+ */
 function renderMiniLevel(wrapEl, level, levelIndex) {
   if (!wrapEl || !level) return;
   const { gridWidth, gridHeight } = normalizeGridDims(level);
@@ -1941,9 +1944,14 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
   const miniH = th * scale;
   const cellSize = scale;
 
-  const tiles = (level.layout || [])
-    .slice()
-    .sort((a, b) => (a.z - b.z));
+  const seen = new Set();
+  const footprint = [];
+  for (const t of level.layout || []) {
+    const k = `${t.x},${t.y}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    footprint.push({ x: t.x, y: t.y });
+  }
 
   wrapEl.innerHTML = '';
   wrapEl.className = 'level-select-mini-wrap';
@@ -1954,25 +1962,22 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
   board.style.width = `${miniW}px`;
   board.style.height = `${miniH}px`;
 
-  const miniTilePx = Math.max(6, cellSize * 0.7);
-  const miniHalf = miniTilePx / 2;
-  const tileModels = tiles.map((t) => ({ x: t.x, y: t.y, z: t.z || 0 }));
+  const miniCellPx = Math.max(4, cellSize * 0.72);
+  const miniHalf = miniCellPx / 2;
+  const tileModels = footprint.map((t) => ({ x: t.x, y: t.y, z: 0 }));
   const off = computeBoardContentOffsetPx(miniW, miniH, cellSize, tileModels, miniHalf);
 
-  tiles.forEach((tile) => {
+  footprint.forEach((tile) => {
     const el = document.createElement('div');
-    el.className = 'level-select-mini-tile';
-    el.textContent = getTileVisual(tile.type);
+    el.className = 'level-select-mini-silhouette-cell';
     const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(
-      { x: tile.x, y: tile.y, z: tile.z || 0 },
+      { x: tile.x, y: tile.y, z: 0 },
       cellSize
     );
-    el.style.width = `${miniTilePx}px`;
-    el.style.height = `${miniTilePx}px`;
+    el.style.width = `${miniCellPx}px`;
+    el.style.height = `${miniCellPx}px`;
     el.style.left = `${layeredLeft + off.x}px`;
     el.style.top = `${layeredTop + off.y}px`;
-    el.style.fontSize = `${Math.max(8, cellSize * 0.5)}px`;
-    el.style.zIndex = String(10 + (tile.z || 0));
     board.appendChild(el);
   });
   wrapEl.appendChild(board);
