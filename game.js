@@ -326,6 +326,117 @@ let levelSelectShapeFilter = null;
 /** debug=1 only: 'difficulty' | 'shape'. */
 let levelSelectGroupBy = 'difficulty';
 
+/** True while applying scroll from URL (avoid syncing scroll back mid-restore). */
+let _levelSelectRestoringScroll = false;
+let _levelSelectScrollSyncTimer = 0;
+
+/**
+ * Level picker UI in the URL (refresh-safe). Params are stripped when the dialog closes.
+ * - `ls=1` — dialog open
+ * - `lsGroup` — `difficulty` | `shape` (only when `debug=1`)
+ * - `lsDiff` — `easy` | `medium` | `hard` (omit or empty = all)
+ * - `lsShape` — shape key when grouping by shape
+ * - `lss` — scroll offset (px) of `.level-select-scroll`
+ */
+function syncLevelSelectUrl() {
+  if (!ui.levelSelectOverlay || ui.levelSelectOverlay.classList.contains('hidden')) return;
+  try {
+    const url = new URL(window.location.href);
+    const sp = url.searchParams;
+    sp.set('ls', '1');
+    const debug = isLevelSelectDebugEnabled();
+    if (debug) {
+      sp.set('lsGroup', levelSelectGroupBy === 'shape' ? 'shape' : 'difficulty');
+      if (levelSelectGroupBy === 'shape') {
+        if (levelSelectShapeFilter) sp.set('lsShape', levelSelectShapeFilter);
+        else sp.delete('lsShape');
+        sp.delete('lsDiff');
+      } else {
+        sp.delete('lsShape');
+        if (levelSelectDifficultyFilter) sp.set('lsDiff', levelSelectDifficultyFilter);
+        else sp.delete('lsDiff');
+      }
+    } else {
+      sp.delete('lsGroup');
+      sp.delete('lsShape');
+      if (levelSelectDifficultyFilter) sp.set('lsDiff', levelSelectDifficultyFilter);
+      else sp.delete('lsDiff');
+    }
+    if (ui.levelSelectScroll) {
+      const st = Math.round(ui.levelSelectScroll.scrollTop);
+      if (st > 0) sp.set('lss', String(st));
+      else sp.delete('lss');
+    }
+    window.history.replaceState(window.history.state, '', url);
+  } catch {
+    /* ignore invalid URL in exotic environments */
+  }
+}
+
+function stripLevelSelectFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const sp = url.searchParams;
+    sp.delete('ls');
+    sp.delete('lsGroup');
+    sp.delete('lsDiff');
+    sp.delete('lsShape');
+    sp.delete('lss');
+    const qs = sp.toString();
+    url.search = qs ? `?${qs}` : '';
+    window.history.replaceState(window.history.state, '', url);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Reads `ls*` params from the current location into picker state (no-op if `ls` is not set). */
+function applyLevelSelectParamsFromUrl() {
+  let sp;
+  try {
+    sp = new URLSearchParams(window.location.search);
+  } catch {
+    return;
+  }
+  if (sp.get('ls') !== '1') return;
+  const debug = isLevelSelectDebugEnabled();
+  if (debug && sp.get('lsGroup') === 'shape') {
+    levelSelectGroupBy = 'shape';
+    levelSelectDifficultyFilter = null;
+    const sf = sp.get('lsShape');
+    levelSelectShapeFilter = sf && sf.length ? sf : null;
+  } else {
+    levelSelectGroupBy = 'difficulty';
+    levelSelectShapeFilter = null;
+    const d = sp.get('lsDiff');
+    levelSelectDifficultyFilter =
+      d === 'easy' || d === 'medium' || d === 'hard' ? d : null;
+  }
+}
+
+function parseLevelSelectInitialScrollFromUrl() {
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('ls') !== '1') return 0;
+    const raw = sp.get('lss');
+    if (raw == null || raw === '') return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function installLevelSelectScrollUrlSync() {
+  if (!ui.levelSelectScroll) return;
+  ui.levelSelectScroll.addEventListener('scroll', () => {
+    if (_levelSelectRestoringScroll) return;
+    if (ui.levelSelectOverlay?.classList.contains('hidden')) return;
+    clearTimeout(_levelSelectScrollSyncTimer);
+    _levelSelectScrollSyncTimer = setTimeout(() => syncLevelSelectUrl(), 160);
+  });
+}
+
 function initDomRefs() {
   ui.boardScroll = document.getElementById('board-scroll');
   ui.board = document.getElementById('board');
@@ -454,6 +565,7 @@ function bindEvents() {
       else levelSelectDifficultyFilter = null;
       syncLevelSelectToolbar();
       buildLevelSelectGrid();
+      syncLevelSelectUrl();
     });
   }
   if (ui.levelSelectShape) {
@@ -461,6 +573,7 @@ function bindEvents() {
       const v = ui.levelSelectShape.value;
       levelSelectShapeFilter = v === '' ? null : v;
       buildLevelSelectGrid();
+      syncLevelSelectUrl();
     });
   }
 
@@ -1830,6 +1943,7 @@ function setLevelSelectDifficultyFilter(difficulty) {
   levelSelectDifficultyFilter = difficulty;
   syncLevelSelectToolbar();
   buildLevelSelectGrid();
+  syncLevelSelectUrl();
 }
 
 /**
@@ -1945,28 +2059,51 @@ function buildLevelSelectGrid() {
   }
 }
 
-function showLevelSelect() {
+/**
+ * @param {{ restoreFromUrl?: boolean, initialScroll?: number }} [opts]
+ */
+function showLevelSelect(opts = {}) {
+  const restoreFromUrl = opts.restoreFromUrl === true;
+  const initialScroll =
+    typeof opts.initialScroll === 'number' && Number.isFinite(opts.initialScroll) ? opts.initialScroll : 0;
+
   if (!ui.levelSelectOverlay) return;
   _focusBeforeLevelSelect = document.activeElement;
   setModalBackdropInert('level-select');
   ui.levelSelectOverlay.classList.remove('hidden');
-  if (!isLevelSelectDebugEnabled()) {
+  if (restoreFromUrl) {
+    applyLevelSelectParamsFromUrl();
+  } else if (!isLevelSelectDebugEnabled()) {
     levelSelectGroupBy = 'difficulty';
     levelSelectShapeFilter = null;
   }
   populateLevelSelectShapeOptions();
   syncLevelSelectToolbar();
   requestAnimationFrame(() => {
-    if (ui.levelSelectScroll) ui.levelSelectScroll.scrollTop = 0;
+    if (!restoreFromUrl && ui.levelSelectScroll) ui.levelSelectScroll.scrollTop = 0;
     buildLevelSelectGrid();
-    const cur = ui.levelSelectCarousel?.querySelector('.level-select-card-current');
-    cur?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const useStoredScroll = restoreFromUrl && initialScroll > 0;
+    if (useStoredScroll && ui.levelSelectScroll) {
+      _levelSelectRestoringScroll = true;
+      const el = ui.levelSelectScroll;
+      const maxScroll = Math.max(0, el.scrollHeight - el.clientHeight);
+      el.scrollTop = Math.min(initialScroll, maxScroll);
+      requestAnimationFrame(() => {
+        _levelSelectRestoringScroll = false;
+        syncLevelSelectUrl();
+      });
+    } else {
+      const cur = ui.levelSelectCarousel?.querySelector('.level-select-card-current');
+      cur?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      syncLevelSelectUrl();
+    }
     requestAnimationFrame(() => focusElementIfStillMounted(ui.levelSelectClose));
   });
 }
 
 function hideLevelSelect() {
   if (ui.levelSelectOverlay) ui.levelSelectOverlay.classList.add('hidden');
+  stripLevelSelectFromUrl();
   setModalBackdropInert('none');
   focusElementIfStillMounted(_focusBeforeLevelSelect);
   _focusBeforeLevelSelect = null;
@@ -2256,8 +2393,13 @@ function main() {
   initDomRefs();
   bindEvents();
   installBoardScrollResizeObserver();
+  installLevelSelectScrollUrlSync();
   loadProgression();
   startLevel(state.currentLevelIndex);
+  if (new URLSearchParams(window.location.search).get('ls') === '1') {
+    const scroll = parseLevelSelectInitialScrollFromUrl();
+    showLevelSelect({ restoreFromUrl: true, initialScroll: scroll });
+  }
 }
 
 if (document.readyState === 'loading') {
