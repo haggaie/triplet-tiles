@@ -168,7 +168,11 @@ function main() {
 
 /** Structural fields used in reports (see LEVELGEN.md "Level configuration"). */
 function levelGridSize(l) {
-  return Number.isFinite(l.gridSize) ? l.gridSize : null;
+  const gw = l.gridWidth;
+  const gh = l.gridHeight;
+  if (Number.isFinite(gw) && Number.isFinite(gh)) return Math.max(gw, gh);
+  if (Number.isFinite(l.gridSize)) return l.gridSize;
+  return null;
 }
 
 function levelTileCount(l) {

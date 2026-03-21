@@ -7,8 +7,8 @@ function keyXY(x, y) {
   return `${x},${y}`;
 }
 
-function inBounds(x, y, gridSize) {
-  return x >= 0 && y >= 0 && x < gridSize && y < gridSize;
+function inBounds(x, y, gridWidth, gridHeight) {
+  return x >= 0 && y >= 0 && x < gridWidth && y < gridHeight;
 }
 
 /**
@@ -56,14 +56,15 @@ function cellSet(cells) {
  * cardinal neighbors (up, down, left, right) inside the silhouette.
  * Produces a "pyramid" inner layer.
  * @param {Array<{x: number, y: number}>} cells
- * @param {number} gridSize
+ * @param {number} gridWidth
+ * @param {number} gridHeight
  * @returns {Array<{x: number, y: number}>} interior cells only
  */
-function shrinkSilhouette(cells, gridSize) {
+function shrinkSilhouette(cells, gridWidth, gridHeight) {
   const set = cellSet(cells);
   const out = [];
   for (const { x, y } of cells) {
-    if (!inBounds(x, y, gridSize)) continue;
+    if (!inBounds(x, y, gridWidth, gridHeight)) continue;
     const hasL = set.has(keyXY(x - 1, y));
     const hasR = set.has(keyXY(x + 1, y));
     const hasU = set.has(keyXY(x, y - 1));
@@ -78,15 +79,16 @@ function shrinkSilhouette(cells, gridSize) {
  * [base, shrunk once, shrunk twice, ...] up to N+1 levels, stopping when
  * a shrink yields no cells.
  * @param {Array<{x: number, y: number}>} cells
- * @param {number} gridSize
+ * @param {number} gridWidth
+ * @param {number} gridHeight
  * @param {number} steps max number of shrink steps
  * @returns {Array<Array<{x: number, y: number}>>}
  */
-function pyramidSilhouettes(cells, gridSize, steps = 10) {
+function pyramidSilhouettes(cells, gridWidth, gridHeight, steps = 10) {
   const result = [cells];
   let current = cells;
   for (let i = 0; i < steps; i += 1) {
-    const next = shrinkSilhouette(current, gridSize);
+    const next = shrinkSilhouette(current, gridWidth, gridHeight);
     if (next.length === 0) break;
     result.push(next);
     current = next;
@@ -99,15 +101,16 @@ function pyramidSilhouettes(cells, gridSize, steps = 10) {
  * @param {Array<{x: number, y: number}>} cells
  * @param {number} dx
  * @param {number} dy
- * @param {number} gridSize
+ * @param {number} gridWidth
+ * @param {number} gridHeight
  * @returns {Array<{x: number, y: number}>}
  */
-function shiftSilhouette(cells, dx, dy, gridSize) {
+function shiftSilhouette(cells, dx, dy, gridWidth, gridHeight) {
   const out = [];
   for (const { x, y } of cells) {
     const nx = x + dx;
     const ny = y + dy;
-    if (inBounds(nx, ny, gridSize)) out.push({ x: nx, y: ny });
+    if (inBounds(nx, ny, gridWidth, gridHeight)) out.push({ x: nx, y: ny });
   }
   return out;
 }
@@ -152,7 +155,7 @@ function edgeCells(cells) {
   return out;
 }
 
-function randomErosionSilhouette(baseCells, gridSize, layerIndex, options = {}, rng) {
+function randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, options = {}, rng) {
   const random = typeof rng === 'function' ? rng : Math.random;
   if (layerIndex <= 0) return baseCells;
 
@@ -194,7 +197,7 @@ function randomErosionSilhouette(baseCells, gridSize, layerIndex, options = {}, 
   if (allowShift && layerIndex > 0) {
     const dx = randomInt(random, -1, 1);
     const dy = randomInt(random, -1, 1);
-    const shifted = shiftSilhouette(current, dx, dy, gridSize);
+    const shifted = shiftSilhouette(current, dx, dy, gridWidth, gridHeight);
     if (shifted.length >= minCells) current = shifted;
   }
 
@@ -204,14 +207,15 @@ function randomErosionSilhouette(baseCells, gridSize, layerIndex, options = {}, 
 /**
  * Get the silhouette for a given layer index (0 = base) using the chosen strategy.
  * @param {Array<{x: number, y: number}>} baseCells
- * @param {number} gridSize
+ * @param {number} gridWidth
+ * @param {number} gridHeight
  * @param {string} layerShape 'full' | 'pyramid' | 'shift'
  * @param {number} layerIndex 0-based layer index (0 = bottom)
  * @param {{ shiftDx?: number, shiftDy?: number, erosionRate?: number, minCellFraction?: number, allowShift?: boolean }} options
  * @param {Function} [rng]
  * @returns {Array<{x: number, y: number}>} cells allowed for that layer
  */
-function getLayerSilhouette(baseCells, gridSize, layerShape, layerIndex, options = {}, rng) {
+function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerIndex, options = {}, rng) {
   if (layerIndex === 0) return baseCells;
 
   switch (layerShape) {
@@ -219,7 +223,7 @@ function getLayerSilhouette(baseCells, gridSize, layerShape, layerIndex, options
       return baseCells;
 
     case 'pyramid': {
-      const pyramids = pyramidSilhouettes(baseCells, gridSize, layerIndex + 1);
+      const pyramids = pyramidSilhouettes(baseCells, gridWidth, gridHeight, layerIndex + 1);
       const idx = Math.min(layerIndex, pyramids.length - 1);
       return pyramids[idx].length > 0 ? pyramids[idx] : baseCells;
     }
@@ -227,12 +231,18 @@ function getLayerSilhouette(baseCells, gridSize, layerShape, layerIndex, options
     case 'shift': {
       const perLayerDx = options.shiftDx != null ? options.shiftDx : 1;
       const perLayerDy = options.shiftDy != null ? options.shiftDy : 0;
-      const shifted = shiftSilhouette(baseCells, perLayerDx * layerIndex, perLayerDy * layerIndex, gridSize);
+      const shifted = shiftSilhouette(
+        baseCells,
+        perLayerDx * layerIndex,
+        perLayerDy * layerIndex,
+        gridWidth,
+        gridHeight
+      );
       return shifted.length > 0 ? shifted : baseCells;
     }
 
     case 'randomErosion':
-      return randomErosionSilhouette(baseCells, gridSize, layerIndex, options, rng);
+      return randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, options, rng);
 
     default:
       return baseCells;

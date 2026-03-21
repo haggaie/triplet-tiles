@@ -28,7 +28,8 @@ test.describe('Generated levels', () => {
     for (const lvl of levels.slice(0, 10)) {
       expect(typeof lvl.id).toBe('number');
       expect(typeof lvl.name).toBe('string');
-      expect(typeof lvl.gridSize).toBe('number');
+      expect(typeof lvl.gridWidth).toBe('number');
+      expect(typeof lvl.gridHeight).toBe('number');
       expect(Array.isArray(lvl.layout)).toBeTruthy();
       expect(typeof lvl.difficultyScore).toBe('number');
     }
@@ -68,7 +69,8 @@ test.describe('Generated levels', () => {
   test('heuristic solver wins on a flat triple', async () => {
     const lvl = {
       id: 999,
-      gridSize: 3,
+      gridWidth: 3,
+      gridHeight: 3,
       layout: [
         { type: 't0', x: 0, y: 0, z: 0 },
         { type: 't0', x: 1, y: 0, z: 0 },
@@ -88,7 +90,8 @@ test.describe('Generated levels', () => {
   test('computeForcedRatioK returns bounded ratio for exact path', async () => {
     const lvl = {
       id: 998,
-      gridSize: 3,
+      gridWidth: 3,
+      gridHeight: 3,
       layout: [
         { type: 't0', x: 0, y: 0, z: 0 },
         { type: 't0', x: 1, y: 0, z: 0 },

@@ -176,7 +176,7 @@ function partitionTilesToLayers(seqLength, nBase, layerCapacities) {
   return [nBase, ...counts];
 }
 
-function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering) {
+function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeight, layering) {
   const { minZ, maxZ, overlap, maxStackPerCell, full, layerShape, layerShapeOptions, interleavePlacement } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
@@ -191,7 +191,7 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   const layerCellsByIndex = [];
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     layerCellsByIndex.push(
-      getLayerSilhouette(templateCells, gridSize, shapeStrategy, layerIdx, shapeOpts, rng)
+      getLayerSilhouette(templateCells, gridWidth, gridHeight, shapeStrategy, layerIdx, shapeOpts, rng)
     );
   }
 
@@ -333,15 +333,35 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering)
   return layout;
 }
 
+function normalizeBatchGrid(batch) {
+  if (Number.isInteger(batch.gridWidth) && Number.isInteger(batch.gridHeight)) {
+    return { gridWidth: batch.gridWidth, gridHeight: batch.gridHeight };
+  }
+  if (Number.isInteger(batch.gridSize)) {
+    const g = batch.gridSize;
+    return { gridWidth: g, gridHeight: g };
+  }
+  throw new Error('Level batch must specify gridWidth and gridHeight (or legacy gridSize)');
+}
+
 function generateOneLevel(rng, batch, levelId) {
-  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, batch.gridSize);
+  const { gridWidth, gridHeight } = normalizeBatchGrid(batch);
+  const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight);
   const countsByType = distributionToCounts(batch.distribution, batch.tileTypes);
   const seq = buildTypeSequence(rng, countsByType);
-  const layout = generateLayoutFromSequence(rng, templateCells, seq, batch.gridSize, batch.layering);
+  const layout = generateLayoutFromSequence(
+    rng,
+    templateCells,
+    seq,
+    gridWidth,
+    gridHeight,
+    batch.layering
+  );
   return {
     id: levelId,
     name: `${String(batch.templateId).toUpperCase()} ${levelId}`,
-    gridSize: batch.gridSize,
+    gridWidth,
+    gridHeight,
     difficultyScore: 0,
     layout
   };
@@ -369,7 +389,13 @@ function generateLevelsFromConfig(config) {
 
 const DEFAULT_POOL_PARAM_RANGES = {
   templateIds: ['rectangle', 'diamond', 'heart', 'spiral', 'letter', 'circle', 'triangle', 'hexagon', 'cross', 'ring', 't', 'u'],
-  gridSizes: [7, 8, 9, 10],
+  /** @type {Array<[number, number]>} [gridWidth, gridHeight] pairs */
+  gridDimensions: [
+    [7, 7],
+    [8, 8],
+    [9, 9],
+    [10, 10]
+  ],
   numTypesMin: 6,
   numTypesMax: 12,
   totalTripletsMin: 15,
@@ -435,8 +461,12 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   }
 
   const templateId = choice(rng, ranges.templateIds);
-  const gridSize = choice(rng, ranges.gridSizes);
-  const templateParams = sampleTemplateParams(templateId, gridSize, rng);
+  const gridDimensions = ranges.gridDimensions || ranges.gridSizes?.map((g) => [g, g]) || [[7, 7]];
+  const [gw, gh] = choice(rng, gridDimensions);
+  const gridWidth = gw;
+  const gridHeight = gh;
+  const gMin = Math.min(gridWidth, gridHeight);
+  const templateParams = sampleTemplateParams(templateId, gMin, rng);
 
   const numTypesMin = Math.max(2, ranges.numTypesMin ?? 4);
   const numTypesMax = Math.min(tileTypesPool.length, ranges.numTypesMax ?? 12);
@@ -485,14 +515,22 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   };
 
   try {
-    const templateCells = getTemplateCells(templateId, templateParams, gridSize);
+    const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight);
     const countsByType = distributionToCounts(distribution, tileTypes);
     const seq = buildTypeSequence(rng, countsByType);
-    const layout = generateLayoutFromSequence(rng, templateCells, seq, gridSize, layering);
+    const layout = generateLayoutFromSequence(
+      rng,
+      templateCells,
+      seq,
+      gridWidth,
+      gridHeight,
+      layering
+    );
     return {
       id: levelId,
       name: `${String(templateId).toUpperCase()} ${levelId}`,
-      gridSize,
+      gridWidth,
+      gridHeight,
       difficultyScore: 0,
       layout
     };
@@ -506,6 +544,7 @@ module.exports = {
   generateOneLevel,
   generateOneRandomLevel,
   mulberry32,
-  DEFAULT_POOL_PARAM_RANGES
+  DEFAULT_POOL_PARAM_RANGES,
+  normalizeBatchGrid
 };
 

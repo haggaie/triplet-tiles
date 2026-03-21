@@ -33,7 +33,8 @@ const TUTORIAL_LEVELS = [
   {
     id: 1,
     name: 'First Steps',
-    gridSize: 6,
+    gridWidth: 6,
+    gridHeight: 6,
     layout: [
       { type: 'flower', x: 1, y: 2, z: 1 },
       { type: 'flower', x: 2, y: 2, z: 1 },
@@ -46,7 +47,8 @@ const TUTORIAL_LEVELS = [
   {
     id: 2,
     name: 'Getting the Hang of It',
-    gridSize: 6,
+    gridWidth: 6,
+    gridHeight: 6,
     layout: [
       { type: 'leaf', x: 1, y: 1, z: 0 },
       { type: 'leaf', x: 2, y: 1, z: 0 },
@@ -66,7 +68,8 @@ const FALLBACK_LEVELS = [
   {
     id: 3,
     name: 'Gentle Grove (Fallback)',
-    gridSize: 6,
+    gridWidth: 6,
+    gridHeight: 6,
     layout: [
       { type: 'leaf', x: 1, y: 1, z: 1 },
       { type: 'leaf', x: 2, y: 1, z: 1 },
@@ -152,27 +155,24 @@ function rootRemToPx(rem) {
 const BOARD_SCROLL_ALIGN_PAD_PX = 24;
 
 /**
- * Largest square side for the “comfortable” cap: min(448px, 92vw, scrollport inner square).
- * Uses #board-scroll’s box so the fit cap matches the real playfield (not a coarse vh − chrome guess).
- * Fallback ~matches tightened `.board` CSS (100dvh − ~14.25rem) when scrollport isn’t ready.
+ * Max width/height (px) for the board mat inside #board-scroll (padding accounted for).
+ * Matches prior square cap when grid is square: min(maxW,maxH) was the old fit side.
  */
-function getBoardFitSquareSidePx() {
+function getBoardFitRectPx() {
   const vw = document.documentElement.clientWidth;
   const vh = window.innerHeight;
-  let cap = Math.min(448, vw * 0.92);
+  let maxW = Math.min(448, vw * 0.92);
+  let maxH = Math.min(448, vh - rootRemToPx(14.25));
   const scroll = ui.boardScroll;
   if (scroll && scroll.clientWidth > 0 && scroll.clientHeight > 0) {
     const innerW = scroll.clientWidth - BOARD_SCROLL_ALIGN_PAD_PX;
     const innerH = scroll.clientHeight - BOARD_SCROLL_ALIGN_PAD_PX;
     if (innerW > 0 && innerH > 0) {
-      cap = Math.min(cap, innerW, innerH);
-    } else {
-      cap = Math.min(cap, vh - rootRemToPx(14.25));
+      maxW = Math.min(maxW, innerW);
+      maxH = Math.min(maxH, innerH);
     }
-  } else {
-    cap = Math.min(cap, vh - rootRemToPx(14.25));
   }
-  return Math.max(120, cap);
+  return { maxW: Math.max(120, maxW), maxH: Math.max(120, maxH) };
 }
 
 function readBoardCellMinPx() {
@@ -182,15 +182,35 @@ function readBoardCellMinPx() {
 }
 
 /**
- * Square playfield side and cell size for gridSize (cell = side / (gridSize + 2), floored by --board-cell-min).
+ * Playfield size and cell size from grid dimensions (+2 margin cells).
+ * Single cellSize so tiles stay square; board may be rectangular if gridWidth !== gridHeight.
  */
-function measureBoardLayout(gridSize) {
-  const g = Math.max(1, gridSize);
-  const fitSide = getBoardFitSquareSidePx();
-  const cellBase = fitSide / (g + 2);
+function measureBoardLayout(gridWidth, gridHeight) {
+  const gw = Math.max(1, gridWidth);
+  const gh = Math.max(1, gridHeight);
+  const { maxW, maxH } = getBoardFitRectPx();
+  const cellBaseW = maxW / (gw + 2);
+  const cellBaseH = maxH / (gh + 2);
+  const cellBase = Math.min(cellBaseW, cellBaseH);
   const cellSize = Math.max(cellBase, readBoardCellMinPx());
-  const sidePx = cellSize * (g + 2);
-  return { cellSize, sidePx };
+  const widthPx = cellSize * (gw + 2);
+  const heightPx = cellSize * (gh + 2);
+  return { cellSize, widthPx, heightPx };
+}
+
+/** @param {{ gridWidth?: number, gridHeight?: number, gridSize?: number }} level */
+function normalizeGridDims(level) {
+  const gw = level.gridWidth;
+  const gh = level.gridHeight;
+  if (Number.isFinite(gw) && Number.isFinite(gh) && gw >= 1 && gh >= 1) {
+    return { gridWidth: Math.floor(gw), gridHeight: Math.floor(gh) };
+  }
+  const gs = level.gridSize;
+  if (Number.isFinite(gs) && gs >= 1) {
+    const g = Math.floor(gs);
+    return { gridWidth: g, gridHeight: g };
+  }
+  return { gridWidth: 6, gridHeight: 6 };
 }
 
 function getTileVisual(typeId) {
@@ -675,9 +695,10 @@ let _trayRemoveTypeFocusSlotIndex = -1;
 
 function getBoardKeyboardLayoutMetrics() {
   const level = LEVELS[state.currentLevelIndex];
-  const { cellSize, sidePx } = measureBoardLayout(level.gridSize);
+  const { gridWidth, gridHeight } = normalizeGridDims(level);
+  const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
   const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const layoutOffset = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
+  const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
   return { cellSize, layoutOffset };
 }
 
@@ -1485,10 +1506,10 @@ function clearTrayMakeRoomAnimation() {
  */
 function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete) {
   const level = LEVELS[state.currentLevelIndex];
-  const size = level.gridSize;
-  const { cellSize, sidePx } = measureBoardLayout(size);
+  const { gridWidth, gridHeight } = normalizeGridDims(level);
+  const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
   const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const off = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
+  const off = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
   const boardRect = ui.board.getBoundingClientRect();
   const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
 
@@ -1782,11 +1803,16 @@ function getFirstIndexForDifficulty(difficulty) {
 
 function renderMiniLevel(wrapEl, level, levelIndex) {
   if (!wrapEl || !level) return;
-  const size = level.gridSize;
+  const { gridWidth, gridHeight } = normalizeGridDims(level);
   const padding = 2;
-  const total = size + padding;
-  const miniSize = 80;
-  const cellSize = miniSize / total;
+  const tw = gridWidth + padding;
+  const th = gridHeight + padding;
+  const maxMini = 80;
+  const long = Math.max(tw, th);
+  const scale = maxMini / long;
+  const miniW = tw * scale;
+  const miniH = th * scale;
+  const cellSize = scale;
 
   const tiles = (level.layout || [])
     .slice()
@@ -1798,13 +1824,13 @@ function renderMiniLevel(wrapEl, level, levelIndex) {
 
   const board = document.createElement('div');
   board.className = 'level-select-mini-board';
-  board.style.width = `${miniSize}px`;
-  board.style.height = `${miniSize}px`;
+  board.style.width = `${miniW}px`;
+  board.style.height = `${miniH}px`;
 
   const miniTilePx = Math.max(6, cellSize * 0.7);
   const miniHalf = miniTilePx / 2;
   const tileModels = tiles.map((t) => ({ x: t.x, y: t.y, z: t.z || 0 }));
-  const off = computeBoardContentOffsetPx(miniSize, miniSize, cellSize, tileModels, miniHalf);
+  const off = computeBoardContentOffsetPx(miniW, miniH, cellSize, tileModels, miniHalf);
 
   tiles.forEach((tile) => {
     const el = document.createElement('div');
@@ -2035,10 +2061,10 @@ function renderBoard(withSettleAnimation = false) {
   }
 
   const level = LEVELS[state.currentLevelIndex];
-  const size = level.gridSize;
-  const { cellSize, sidePx } = measureBoardLayout(size);
-  ui.board.style.width = `${sidePx}px`;
-  ui.board.style.height = `${sidePx}px`;
+  const { gridWidth, gridHeight } = normalizeGridDims(level);
+  const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
+  ui.board.style.width = `${widthPx}px`;
+  ui.board.style.height = `${heightPx}px`;
   document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
   const tappableIds = new Set(getTappableTiles().map(t => t.id));
@@ -2052,7 +2078,7 @@ function renderBoard(withSettleAnimation = false) {
     .sort((a, b) => a.z - b.z);
 
   const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const layoutOffset = computeBoardContentOffsetPx(sidePx, sidePx, cellSize, layoutFootprint);
+  const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
 
   const existingById = new Map();
   for (const child of ui.board.children) {
@@ -2174,6 +2200,12 @@ if (typeof window !== 'undefined') {
       if (!tile || tile.removed) return null;
       const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
       return boardTileCenterInBoardSpace(tile, cellSize, layoutOffset);
+    },
+    /** Playwright: expected #board size from current level grid (matches measureBoardLayout). */
+    getBoardPixelDims() {
+      const level = LEVELS[state.currentLevelIndex];
+      const { gridWidth, gridHeight } = normalizeGridDims(level);
+      return { gridWidth, gridHeight, ...measureBoardLayout(gridWidth, gridHeight) };
     },
     /** Returns a promise that resolves when the current move's animations (fly + any match-3) have finished. */
     waitForActionComplete() {

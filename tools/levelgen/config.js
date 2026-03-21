@@ -14,7 +14,7 @@
  *   - batch fields:
  *     - templateId: string
  *     - templateParams: object (template-specific)
- *     - gridSize: number (odd-ish recommended; must match template output range)
+ *     - gridWidth, gridHeight: number (cell counts; odd-ish recommended; min dimension >= 5 for templates)
  *     - count: number (how many levels to generate for this batch)
  *     - tileTypes: string[] | number[] — tile id strings (from game’s TILE_TYPES) or 0-based integer indices into TILE_TYPES
  *     - distribution:
@@ -61,7 +61,8 @@ module.exports = {
     {
       templateId: 'diamond',
       templateParams: { radius: 3 },
-      gridSize: 7,
+      gridWidth: 7,
+      gridHeight: 7,
       count: 3,
       tileTypes: ALL_TILE_TYPES.slice(0, 7),
       solverConstraints: { requireMinSlackAtMost: 3 },
@@ -71,7 +72,8 @@ module.exports = {
     {
       templateId: 'circle',
       templateParams: { radius: 3 },
-      gridSize: 8,
+      gridWidth: 8,
+      gridHeight: 8,
       count: 2,
       tileTypes: ALL_TILE_TYPES.slice(0, 8),
       solverConstraints: { requireMinSlackAtMost: 3 },
@@ -82,7 +84,8 @@ module.exports = {
     {
       templateId: 'heart',
       templateParams: { radius: 4, thickness: 2 },
-      gridSize: 9,
+      gridWidth: 9,
+      gridHeight: 9,
       count: 3,
       tileTypes: ALL_TILE_TYPES.slice(0, 10),
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -92,7 +95,8 @@ module.exports = {
     {
       templateId: 'hexagon',
       templateParams: { radius: 4 },
-      gridSize: 9,
+      gridWidth: 9,
+      gridHeight: 9,
       count: 3,
       tileTypes: ALL_TILE_TYPES,
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -102,7 +106,8 @@ module.exports = {
     {
       templateId: 'triangle',
       templateParams: { radius: 4 },
-      gridSize: 9,
+      gridWidth: 9,
+      gridHeight: 9,
       count: 2,
       tileTypes: ALL_TILE_TYPES,
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -113,7 +118,8 @@ module.exports = {
     {
       templateId: 'cross',
       templateParams: { radius: 4, thickness: 2 },
-      gridSize: 9,
+      gridWidth: 9,
+      gridHeight: 9,
       count: 3,
       maxGenerateAttempts: 2800,
       tileTypes: ALL_TILE_TYPES,
@@ -124,7 +130,8 @@ module.exports = {
     {
       templateId: 'ring',
       templateParams: { radius: 4, thickness: 2 },
-      gridSize: 10,
+      gridWidth: 10,
+      gridHeight: 10,
       count: 3,
       maxGenerateAttempts: 3000,
       tileTypes: ALL_TILE_TYPES,
@@ -135,7 +142,8 @@ module.exports = {
     {
       templateId: 'spiral',
       templateParams: { radius: 4, thickness: 2 },
-      gridSize: 10,
+      gridWidth: 10,
+      gridHeight: 10,
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypes: ALL_TILE_TYPES,
@@ -146,7 +154,8 @@ module.exports = {
     {
       templateId: 't',
       templateParams: { radius: 5, thickness: 2 },
-      gridSize: 10,
+      gridWidth: 10,
+      gridHeight: 10,
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypes: ALL_TILE_TYPES,
@@ -157,7 +166,8 @@ module.exports = {
     {
       templateId: 'u',
       templateParams: { radius: 5, thickness: 2 },
-      gridSize: 10,
+      gridWidth: 10,
+      gridHeight: 10,
       count: 2,
       maxGenerateAttempts: 3400,
       tileTypes: ALL_TILE_TYPES,

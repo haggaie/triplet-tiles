@@ -22,7 +22,7 @@
   --text: #e5e7eb;
   --muted: #9ca3af;
   --tile-size: 64px;
-  /* Floor for board cell = board width / (gridSize + 2); keeps tiles legible / tappable on wide grids (see GAME_SPEC §4.1). */
+  /* Floor for board cell = board width / (gridWidth + 2); keeps tiles legible / tappable on wide grids (see GAME_SPEC §4.1). */
   --board-cell-min: 40px;
   /* Rounded-square silhouette: 28.125% of side (18/64). Absolute length tracks JS-updated --tile-size; tray pocket inner matches. */
   --tile-corner-radius: calc(var(--tile-size) * 0.28125);
@@ -315,11 +315,11 @@ body {
   pointer-events: auto;
   /* Intrinsic size is set in JS (fit cap × cell floor); fallback for no-JS / first paint. */
   box-sizing: border-box;
-  /* Tighter chrome budget than 16.75rem; scrollport-sized cap when container queries run */
+  /* Tighter chrome budget than 16.75rem; scrollport-sized cap when container queries run.
+     Runtime sets width/height from gridWidth × gridHeight; fallback is square until hydration. */
   width: min(448px, 92vw, calc(100dvh - 14.25rem));
+  height: min(448px, 92vw, calc(100dvh - 14.25rem));
   max-width: none;
-  aspect-ratio: 1;
-  height: auto;
   flex-shrink: 0;
   background: var(--board-felt);
   border-radius: 22px;
@@ -335,7 +335,8 @@ body {
 
 @supports (width: 1cqw) {
   .board {
-    width: min(448px, 92vw, calc(100cqw - 24px), calc(100cqh - 24px));
+    width: min(448px, 92vw, calc(100cqw - 24px));
+    height: min(448px, calc(100cqh - 24px));
   }
 }
 

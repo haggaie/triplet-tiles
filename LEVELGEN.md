@@ -24,7 +24,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
 
 | Metric | Target range | Current generation target |
 | --- | --- | --- |
-| Grid size | 7-10 | 7-10 |
+| Grid dimensions | 7-10 per axis | `gridWidth` × `gridHeight` (often equal); 7-10 typical |
 | Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ |
 | Layers/depth | 4-10 (most levels) | 4-10 |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 |
@@ -48,7 +48,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - `levels`: array of “batches” describing how to generate groups of levels:
     - `templateId`: name of a shape template (`rectangle`, `diamond`, `heart`, `spiral`, `letter`, `circle`, `triangle`, `hexagon`, `cross`, `ring`, `t`, `u`).
     - `templateParams`: template-specific parameters (e.g. `{ radius, thickness }`, or `{ letter }`).
-    - `gridSize`: board size used by the template (odd values like 11, 13, 15 recommended).
+    - `gridWidth`, `gridHeight`: board cell counts used by the template and layout (`x` in `[0, gridWidth)`, `y` in `[0, gridHeight)`; both ≥ 5 for templates). Legacy `gridSize` is still accepted in generator config as shorthand for a square grid.
     - `count`: how many levels to generate for this batch.
     - `tileTypes`: list of tile type identifiers — either **tile id strings** (from `TILE_TYPES` in `game.js`) or **0-based integer indices** into `TILE_TYPES`. Distribution `weights` and `explicitCounts` use the same type identifiers (strings or integers) as keys.
     - `distribution`: how many tiles of each type to place (see section 3).
@@ -64,7 +64,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - **Invariant**: At most one tile may exist at any `(x, y, z)` position. The generator enforces this.
 
 - **Templates**: `tools/levelgen/templates.js`
-  - `getTemplateCells(templateId, templateParams, gridSize)` returns an array of allowed `{ x, y }` cells that define the 2D silhouette.
+  - `getTemplateCells(templateId, templateParams, gridWidth, gridHeight)` returns an array of allowed `{ x, y }` cells that define the 2D silhouette.
   - Implemented templates:
     - `rectangle`: dense rectangle centred on the grid.
     - `diamond`: Manhattan-distance diamond (`|dx| + |dy| <= radius`).

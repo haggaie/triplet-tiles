@@ -113,10 +113,10 @@
 
 #### 4.1 Responsive board, minimum cell size, and scroll
 
-- **Problem**: Board width is capped to fit the phone (`min(448px, 92vw, 100dvh − header/tray budget)`). Cell size is `boardSide ÷ (gridSize + 2)`, so wide grids (e.g. 11–12) shrink tiles below comfortable tap and glyph size.
+- **Problem**: Board size is capped to fit the phone (separate width/height budgets from `#board-scroll`, plus `min(448px, 92vw)` on width). Cell size is shared for both axes: `widthPx = effectiveCell × (gridWidth + 2)` and `heightPx = effectiveCell × (gridHeight + 2)`, so large grids or a high `--board-cell-min` can still force panning inside `#board-scroll`.
 - **Approach**:
   1. **Floor** — CSS token `--board-cell-min` (default `40px`): effective cell size is `max(fitCell, boardCellMin)` so tiles stay legible.
-  2. **Pan** — The playfield (`#board`) is a square whose side is `(gridSize + 2) × effectiveCell`. When that square exceeds the visible scrollport (`#board-scroll`), the player scrolls horizontally and/or vertically inside that region. The document body should not gain horizontal scroll from the board. **`#board-scroll` must not use flex centering on itself** (it breaks max `scrollLeft` / `scrollTop` in some engines); centering is done on an inner `.board-scroll-align` (`width: max-content; margin-inline: auto`) with a little padding for shadows.
+  2. **Pan** — The playfield (`#board`) is a rectangle (often square when `gridWidth === gridHeight`) sized by those formulas. When it exceeds the visible scrollport (`#board-scroll`), the player scrolls horizontally and/or vertically inside that region. The document body should not gain horizontal scroll from the board. **`#board-scroll` must not use flex centering on itself** (it breaks max `scrollLeft` / `scrollTop` in some engines); centering is done on an inner `.board-scroll-align` (`width: max-content; margin-inline: auto`) with a little padding for shadows.
   3. **Resize** — A `ResizeObserver` on `#board-scroll` re-runs layout when the scrollport size changes (rotation, toolbars).
 - **Implementation**: `style.css` (`--board-cell-min`, `.board-scroll`), `game.js` (`measureBoardLayout`, `renderBoard`, fly-to-tray), `index.html` (`#board-scroll`).
 

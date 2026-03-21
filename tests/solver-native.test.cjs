@@ -7,7 +7,8 @@ const { solveLevel, computeForcedRatioK } = require('../tools/levelgen/solver');
 
 const flatTriple = {
   id: 1,
-  gridSize: 3,
+  gridWidth: 3,
+  gridHeight: 3,
   layout: [
     { type: 'a', x: 0, y: 0, z: 0 },
     { type: 'a', x: 1, y: 0, z: 0 },

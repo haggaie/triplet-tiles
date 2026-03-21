@@ -42,17 +42,23 @@ async function assertNoHorizontalPageOverflow(page) {
  * Every in-play tile must lie fully inside the board's clip rect; otherwise `overflow: hidden`
  * visually truncates tiles without changing document scroll width (easy to miss with layout-only tests).
  */
-async function assertBoardIsSquarePlayfield(page) {
+async function assertBoardPlayfieldMatchesLevelGrid(page) {
   const d = await page.evaluate(() => {
     const b = document.getElementById('board');
-    if (!b) return null;
+    const hooks = window.__tripletTestHooks;
+    if (!b || !hooks || typeof hooks.getBoardPixelDims !== 'function') return null;
+    const exp = hooks.getBoardPixelDims();
     const r = b.getBoundingClientRect();
-    return { w: r.width, h: r.height };
+    return { exp, rw: r.width, rh: r.height };
   });
   expect(d).toBeTruthy();
   expect(
-    Math.abs(d.w - d.h),
-    `#board must stay square (got ${d.w}×${d.h}px); mismatched flex axes used to clip tiles vertically`
+    Math.abs(d.rw - d.exp.widthPx),
+    `#board width should match layout (got ${d.rw}px vs ${d.exp.widthPx}px)`
+  ).toBeLessThanOrEqual(BOARD_CLIP_TOLERANCE_PX);
+  expect(
+    Math.abs(d.rh - d.exp.heightPx),
+    `#board height should match layout (got ${d.rh}px vs ${d.exp.heightPx}px)`
   ).toBeLessThanOrEqual(BOARD_CLIP_TOLERANCE_PX);
 }
 
@@ -150,7 +156,7 @@ for (const vp of MOBILE_VIEWPORTS) {
       }) => {
         await loadLevel(page, levelIndex);
         await assertNoHorizontalPageOverflow(page);
-        await assertBoardIsSquarePlayfield(page);
+        await assertBoardPlayfieldMatchesLevelGrid(page);
         await assertBoardScrollportVisibleInViewport(page);
         await assertBoardTilesFullyInsidePlayfield(page);
         await assertElementContainedHorizontally(page, '#board-scroll');
@@ -236,7 +242,7 @@ test.describe('iPhone 12 device metrics (Chromium)', () => {
   test('first generated-style level fits without horizontal overflow', async ({ page }) => {
     await loadLevel(page, 2);
     await assertNoHorizontalPageOverflow(page);
-    await assertBoardIsSquarePlayfield(page);
+    await assertBoardPlayfieldMatchesLevelGrid(page);
     await assertBoardScrollportVisibleInViewport(page);
     await assertBoardTilesFullyInsidePlayfield(page);
     await assertElementContainedHorizontally(page, '#board-scroll');

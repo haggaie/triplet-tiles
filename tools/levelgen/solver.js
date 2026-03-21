@@ -14,7 +14,7 @@ const native = require(nativePath);
 const forcedLookaheadDefaults = require('./forced-lookahead-defaults');
 
 /**
- * @param {object} level - { layout: [...], gridSize?, id? }
+ * @param {object} level - { layout: [...], id? } (grid dimensions optional; solver uses layout only)
  * @param {object} [options]
  * @param {'exact'|'heuristic'} [options.mode='exact']
  * @param {number} [options.maxNodes=200000] - exact mode
