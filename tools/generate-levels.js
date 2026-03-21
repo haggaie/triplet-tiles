@@ -289,6 +289,11 @@ function buildDifficultyReport(levels, seed, rejected) {
     const minSlackS = stats(m, l => l._reportMetrics.minSlack);
     const forcedRatioS = stats(m, l => l._reportMetrics.forcedRatio);
     const forcedRatioKS = stats(m, l => l._reportMetrics.forcedRatioK);
+    const visibilityHardS = stats(m, l => l._reportMetrics.visibilityHard);
+    const strategicPressureS = stats(m, l => l._reportMetrics.strategicPressureHard);
+    const digHardS = stats(m, l => l._reportMetrics.digHard);
+    const skillRevealS = stats(m, l => l._reportMetrics.skillRevealRate);
+    const chanceRevealS = stats(m, l => l._reportMetrics.chanceRevealRate);
     const failureRateS = stats(m, l => l._reportMetrics.failureRate);
     const avgTappableS = stats(m, l => l._reportMetrics.avgTappable);
     const minTappableS = stats(m, l => l._reportMetrics.minTappable);
@@ -310,9 +315,14 @@ function buildDifficultyReport(levels, seed, rejected) {
     out += `| Layer depth (distinct z with tiles) | ${format(layersS.min)} | ${format(layersS.max)} | ${format(layersS.mean)} |\n`;
     out += `| Tile type count | ${format(typesS.min)} | ${format(typesS.max)} | ${format(typesS.mean)} |\n`;
     out += `| Difficulty score | ${format(scoreS.min)} | ${format(scoreS.max)} | ${format(scoreS.mean)} |\n`;
+    out += `| Visibility hardness (start) | ${format(visibilityHardS.min)} | ${format(visibilityHardS.max)} | ${format(visibilityHardS.mean)} |\n`;
+    out += `| Strategic pressure (slack + rollout) | ${format(strategicPressureS.min)} | ${format(strategicPressureS.max)} | ${format(strategicPressureS.mean)} |\n`;
+    out += `| Dig hardness (skill + chance reveals) | ${format(digHardS.min)} | ${format(digHardS.max)} | ${format(digHardS.mean)} |\n`;
+    out += `| Skill reveal share (same-column digs) | ${format(skillRevealS.min)} | ${format(skillRevealS.max)} | ${format(skillRevealS.mean)} |\n`;
+    out += `| Chance reveal share (cross-cell digs) | ${format(chanceRevealS.min)} | ${format(chanceRevealS.max)} | ${format(chanceRevealS.mean)} |\n`;
     out += `| Min tray slack (7 - tray size) | ${format(minSlackS.min)} | ${format(minSlackS.max)} | ${format(minSlackS.mean)} |\n`;
-    out += `| Forced-move ratio | ${format(forcedRatioS.min)} | ${format(forcedRatioS.max)} | ${format(forcedRatioS.mean)} |\n`;
-    out += `| Forced-move ratio (depth-k) | ${format(forcedRatioKS.min)} | ${format(forcedRatioKS.max)} | ${format(forcedRatioKS.mean)} |\n`;
+    out += `| Forced-move ratio (heuristic, report-only) | ${format(forcedRatioS.min)} | ${format(forcedRatioS.max)} | ${format(forcedRatioS.mean)} |\n`;
+    out += `| Forced-move ratio (depth-k, report-only) | ${format(forcedRatioKS.min)} | ${format(forcedRatioKS.max)} | ${format(forcedRatioKS.mean)} |\n`;
     out += `| Dead-end (rollout) failure rate | ${format(failureRateS.min)} | ${format(failureRateS.max)} | ${format(failureRateS.mean)} |\n`;
     out += `| Avg tappable tiles per step | ${format(avgTappableS.min)} | ${format(avgTappableS.max)} | ${format(avgTappableS.mean)} |\n`;
     out += `| Min tappable tiles (bottleneck) | ${format(minTappableS.min)} | ${format(minTappableS.max)} | ${format(minTappableS.mean)} |\n`;
@@ -364,9 +374,32 @@ function buildDifficultyReport(levels, seed, rejected) {
     `${format(overallScore.min)} – ${format(overallScore.max)} (mean ${format(overallScore.mean)})`
   );
   md += overallTargetsRow('Min tray slack', formatRangeMean(overallMinSlack));
-  md += overallTargetsRow('Mean forced-move ratio', format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean));
   md += overallTargetsRow(
-    'Mean forced-move ratio (depth-k lookahead)',
+    'Mean visibility hardness',
+    format(stats(withMetrics, l => l._reportMetrics.visibilityHard).mean)
+  );
+  md += overallTargetsRow(
+    'Mean strategic pressure (slack + rollout)',
+    format(stats(withMetrics, l => l._reportMetrics.strategicPressureHard).mean)
+  );
+  md += overallTargetsRow(
+    'Mean dig hardness',
+    format(stats(withMetrics, l => l._reportMetrics.digHard).mean)
+  );
+  md += overallTargetsRow(
+    'Mean skill reveal share',
+    format(stats(withMetrics, l => l._reportMetrics.skillRevealRate).mean)
+  );
+  md += overallTargetsRow(
+    'Mean chance reveal share',
+    format(stats(withMetrics, l => l._reportMetrics.chanceRevealRate).mean)
+  );
+  md += overallTargetsRow(
+    'Mean forced-move ratio (report-only)',
+    format(stats(withMetrics, l => l._reportMetrics.forcedRatio).mean)
+  );
+  md += overallTargetsRow(
+    'Mean forced-move ratio (depth-k lookahead, report-only)',
     format(stats(withMetrics, l => l._reportMetrics.forcedRatioK).mean)
   );
   md += overallTargetsRow('Mean rollout failure rate', format(stats(withMetrics, l => l._reportMetrics.failureRate).mean));

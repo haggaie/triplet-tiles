@@ -6,6 +6,19 @@ function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
 
+/** Blend (1 - surfaceTripletShare) vs coveredFraction in visibility family [PLACEHOLDER — tune with playtests] */
+const W_VISIBILITY_TRIPLET = 0.6;
+/** Slack vs rollout failure in strategicPressureHard */
+const W_STRATEGIC_SLACK = 0.5;
+/** Chance vs skill dig contribution inside digHard */
+const DIG_WEIGHT_CHANCE = 0.65;
+const DIG_WEIGHT_SKILL = 0.35;
+/** Final difficultyScore weights (sum = 1) [PLACEHOLDER] */
+const W_SCORE_VISIBILITY = 0.28;
+const W_SCORE_STRATEGIC = 0.38;
+const W_SCORE_DIG = 0.27;
+const W_SCORE_EFFORT = 0.07;
+
 function computeCoverers(layout) {
   const coverers = Array.from({ length: layout.length }, () => []);
   for (let i = 0; i < layout.length; i += 1) {
@@ -86,6 +99,52 @@ function moveOrderingScore(trayCounts, traySize, type) {
   return score;
 }
 
+/**
+ * Initial-board visibility: surface triplet share + covered fraction → one scalar (anti double-count).
+ */
+function computeVisibilityMetrics(layout, coverers) {
+  const removed = makeBitset(layout.length);
+  const tap0 = getTappable(layout, removed, coverers);
+  const N = layout.length;
+  if (N === 0) {
+    return {
+      surfaceTripletShare: 0,
+      coveredFraction: 0,
+      visibilityHard: 0,
+      surfaceTriplets: 0
+    };
+  }
+  const byType = Object.create(null);
+  for (const i of tap0) {
+    const k = String(layout[i].type);
+    byType[k] = (byType[k] || 0) + 1;
+  }
+  let surfaceTriplets = 0;
+  for (const k of Object.keys(byType)) {
+    surfaceTriplets += Math.floor(byType[k] / 3);
+  }
+  const totalTriplets = Math.max(1, Math.floor(N / 3));
+  const surfaceTripletShare = surfaceTriplets / totalTriplets;
+  const coveredFraction = 1 - tap0.length / N;
+  const visibilityHard = clamp01(
+    W_VISIBILITY_TRIPLET * (1 - surfaceTripletShare) +
+      (1 - W_VISIBILITY_TRIPLET) * coveredFraction
+  );
+  return { surfaceTripletShare, coveredFraction, visibilityHard, surfaceTriplets };
+}
+
+function layoutArray(levelOrLayout) {
+  return Array.isArray(levelOrLayout) ? levelOrLayout : levelOrLayout.layout;
+}
+
+function isSkillReveal(levelOrLayout, removerIdx, revealedIdx) {
+  const layout = layoutArray(levelOrLayout);
+  const r = layout[removerIdx];
+  const t = layout[revealedIdx];
+  if (!r || !t) return false;
+  return r.x === t.x && r.y === t.y && r.z > t.z;
+}
+
 function simulatePathMetrics(level, solution) {
   const layout = level.layout;
   const coverers = computeCoverers(layout);
@@ -99,22 +158,23 @@ function simulatePathMetrics(level, solution) {
   let steps = 0;
   let minSlack = 7;
 
-  /** Per-step values for temporal uniformity: slack after step, forced flag, tappable count. */
+  let skillReveals = 0;
+  let chanceReveals = 0;
+
   const stepSlacks = [];
   const stepForced = [];
   const stepTappable = [];
 
   for (const idx of solution) {
     if (traySize >= 7) break;
-    const tappable = getTappable(layout, removed, coverers);
-    const tappableCount = tappable.length;
+    const tappableBefore = getTappable(layout, removed, coverers);
+    const beforeSet = new Set(tappableBefore);
+    const tappableCount = tappableBefore.length;
 
     sumTappable += tappableCount;
     minTappable = Math.min(minTappable, tappableCount);
 
-    // Approx forced move: count how many tappable moves look “safe” by tray heuristic.
-    // If only 1 looks safe, treat as forced-ish.
-    const scored = tappable.map(i => ({
+    const scored = tappableBefore.map(i => ({
       i,
       s: moveOrderingScore(trayCounts, traySize, layout[i].type)
     }));
@@ -127,8 +187,15 @@ function simulatePathMetrics(level, solution) {
     stepTappable.push(tappableCount);
     stepForced.push(isForced ? 1 : 0);
 
-    // Apply the intended move.
     bitsetAdd(removed, idx);
+    const tappableAfter = getTappable(layout, removed, coverers);
+    for (const i of tappableAfter) {
+      if (!beforeSet.has(i)) {
+        if (isSkillReveal(level, idx, i)) skillReveals += 1;
+        else chanceReveals += 1;
+      }
+    }
+
     const type = layout[idx].type;
     const next = applyTrayAdd(trayCounts, traySize, type);
     trayCounts = next.trayCounts;
@@ -142,7 +209,16 @@ function simulatePathMetrics(level, solution) {
   const avgTappable = steps > 0 ? sumTappable / steps : 0;
   const forcedRatio = steps > 0 ? forcedMoves / steps : 1;
 
-  // Temporal uniformity: split solution into windows and compute hardness per window.
+  const totalRevealEvents = skillReveals + chanceReveals;
+  const skillRevealRate = totalRevealEvents > 0 ? skillReveals / totalRevealEvents : 0;
+  const chanceRevealRate = totalRevealEvents > 0 ? chanceReveals / totalRevealEvents : 0;
+  let digHard = 0;
+  if (totalRevealEvents > 0) {
+    digHard = clamp01(
+      DIG_WEIGHT_CHANCE * chanceRevealRate + DIG_WEIGHT_SKILL * skillRevealRate
+    );
+  }
+
   const NUM_DIFFICULTY_WINDOWS = 3;
   let difficultyVariance = 0;
   let difficultyRange = 0;
@@ -183,7 +259,12 @@ function simulatePathMetrics(level, solution) {
     minSlack,
     difficultyVariance,
     difficultyRange,
-    windowHardnesses
+    windowHardnesses,
+    skillReveals,
+    chanceReveals,
+    skillRevealRate,
+    chanceRevealRate,
+    digHard
   };
 }
 
@@ -207,7 +288,6 @@ function rolloutFailureRate(level, trials, rng) {
       const tappable = getTappable(layout, removed, coverers);
       if (tappable.length === 0) return false;
 
-      // Epsilon-greedy: mostly pick best tray heuristic, sometimes random.
       let pickIdx;
       if (rand() < 0.15) {
         pickIdx = tappable[Math.floor(rand() * tappable.length)];
@@ -231,7 +311,6 @@ function rolloutFailureRate(level, trials, rng) {
 
       safetySteps += 1;
       if (safetySteps > layout.length + 5) {
-        // Should not happen; defensive exit.
         return false;
       }
     }
@@ -265,7 +344,11 @@ function scoreLevel(level, options = {}) {
     };
   }
 
+  const layout = level.layout;
+  const coverers = computeCoverers(layout);
+  const visibility = computeVisibilityMetrics(layout, coverers);
   const pathMetrics = simulatePathMetrics(level, exact.solution);
+
   const forcedExtras = {};
   const fl = options.forcedLookahead;
   if (fl != null && typeof fl === 'object') {
@@ -283,23 +366,19 @@ function scoreLevel(level, options = {}) {
   const rng = mulberry32((options.rolloutSeed || 9001) ^ (level.id * 2654435761));
   const failureRate = rolloutFailureRate(level, options.rollouts || 30, rng);
 
-  // Normalize metrics into [0,1]-ish difficulty components.
-  const avgChoiceHard = clamp01(1 - pathMetrics.avgTappable / 12); // 0 if ~12+ choices, 1 if ~0
-  const minChoiceHard = clamp01(1 - pathMetrics.minTappable / 6);
-  const forcedHard = clamp01(pathMetrics.forcedRatio);
-  const slackHard = clamp01((3 - pathMetrics.minSlack) / 3); // minSlack>=3 => 0, minSlack=0 => 1
+  const slackHard = clamp01((3 - pathMetrics.minSlack) / 3);
   const deadEndHard = clamp01(failureRate);
-  const effortHard = clamp01(Math.log10(1 + exact.stats.nodesExpanded) / 6); // ~1 at 1e6
+  const strategicPressureHard = clamp01(
+    W_STRATEGIC_SLACK * slackHard + (1 - W_STRATEGIC_SLACK) * deadEndHard
+  );
+  const effortHard = clamp01(Math.log10(1 + exact.stats.nodesExpanded) / 6);
 
-  // Weighted sum: tuned so strategic factors (tray pressure, forced choices, dead-end risk)
-  // dominate — harder levels should require balancing opening tiles vs matching in tray.
-  const difficultyScore =
-    avgChoiceHard * 0.14 +
-    minChoiceHard * 0.10 +
-    forcedHard * 0.24 +
-    slackHard * 0.26 +
-    deadEndHard * 0.18 +
-    effortHard * 0.08;
+  const difficultyScore = clamp01(
+    W_SCORE_VISIBILITY * visibility.visibilityHard +
+      W_SCORE_STRATEGIC * strategicPressureHard +
+      W_SCORE_DIG * pathMetrics.digHard +
+      W_SCORE_EFFORT * effortHard
+  );
 
   return {
     solvable: true,
@@ -307,7 +386,12 @@ function scoreLevel(level, options = {}) {
     metrics: {
       ...pathMetrics,
       ...forcedExtras,
+      ...visibility,
+      strategicPressureHard,
+      slackHard,
+      deadEndHard,
       failureRate,
+      effortHard,
       nodesExpanded: exact.stats.nodesExpanded,
       memoSize: exact.stats.memoSize
     }
@@ -315,6 +399,8 @@ function scoreLevel(level, options = {}) {
 }
 
 module.exports = {
-  scoreLevel
+  scoreLevel,
+  computeCoverers,
+  computeVisibilityMetrics,
+  isSkillReveal
 };
-

@@ -102,25 +102,13 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
   - `computeForcedRatioK(level, solution, options)` (native): walks the **exact** solution; at each step scores every tappable first tap with the same lookahead as the heuristic solver (`lookaheadDepth`, `maxMovesPerNode`), then marks a step as **soft forced** when at most one tap falls in the top value band \([v^\* - \texttt{marginDelta}, v^\*]\). Returns `{ ok, forcedRatioK, forcedStepsK, steps, lookaheadNodes, stepForcedK }`. Still an **estimate**, not “unique exact-solvable child.”
   - Rust tests: `cargo test --no-default-features` in `crates/levelgen-solver` (no Node N-API required).
 
-- **Difficulty scoring**: `tools/levelgen/score.js`
-  - `scoreLevel(level, options)`:
-    - Runs `solveLevel(..., mode: 'exact')` to:
-      - Confirm solvability.
-      - Extract a solution path (sequence of tile indices).
-    - Simulates the solution path to derive:
-      - Average and minimum number of tappable tiles (branching factor).
-      - Approximate forced-move ratio (how often only one “safe” move exists under the immediate tray heuristic).
-      - Minimum tray slack (how close tray size gets to overflow).
-    - Optional `options.forcedLookahead`: if set (e.g. from `config.js` → `forcedLookahead`), adds **`forcedRatioK`** and related tallies via `computeForcedRatioK`. **Difficulty score** still uses the original `forcedRatio` weights; `forcedRatioK` is for reporting and tuning.
-    - Runs multiple heuristic rollouts from the start state to estimate:
-      - Dead-end susceptibility (fraction of runs that fail).
-    - Combines metrics into a single `difficultyScore` in roughly \[0,1\):
-      - Higher means harder (more forced moves, tighter tray, more dead ends, more search effort).
-  - **Focus on strategic thinking**: The score is designed so that harder levels are those that require *strategic play* — balancing opening new tiles vs matching what’s already in the tray — not just “spot a visible 3-set and tap it.” Key signals:
-    - **Tray pressure** (min slack): levels where the tray often gets full force the player to clear matches before opening more tiles.
-    - **Forced moves**: levels where only one move looks “safe” (complete a triplet, extend a pair, or avoid filling the tray) reward planning and punish random or greedy tapping.
-    - **Dead-end susceptibility**: levels where greedy/random play often loses reward looking ahead and managing the tray.
-    - Branching (avg/min tappable) and search effort matter too, but the weights are tuned so tray pressure and forced choices dominate, ensuring the curve favors strategic difficulty over sheer size or variety.
+- **Difficulty scoring** (`tools/levelgen/score.js`, **v2**): `scoreLevel(level, options)` builds a single `difficultyScore` in roughly \[0, 1\] from **four** families (weights are `[PLACEHOLDER]` — tune in `score.js`):
+  1. **Visibility / information at start** — one scalar `visibilityHard` (no separate occlusion term): blends **(a)** lack of complete triplets on the **initial** tappable set (`surfaceTripletShare`) and **(b)** **covered fraction** at start (`1 − |tap0|/N`), so surface triplets and occlusion are not double-counted.
+  2. **Strategic pressure** — `strategicPressureHard` blends **tray slack** (`minSlack` along the exact solution) and **rollout failure rate** (epsilon-greedy random rollouts). **Forced-move ratios are not used in the scalar** (cheaper than depth-k lookahead; rollout captures greedy/dead-end stress).
+  3. **Digs / reveals** — `digHard` from **skill** vs **chance** reveals along the exact solution: after each removal, tiles **newly** tappable are classified as **skill** (same `(x,y)` as the removed tile, remover `z` higher — column stack) vs **chance** (cross-cell cover). Blended with higher weight on chance reveals.
+  4. **Solver effort** — small weight on `log10(nodesExpanded)` (`effortHard`).
+  - Still simulates the path for **reporting**: avg/min tappable, heuristic `forcedRatio`, windowed difficulty range/variance (uniformity). Optional `options.forcedLookahead` adds **`forcedRatioK`** via `computeForcedRatioK` — **report-only**, not in `difficultyScore`.
+  - Runs multiple heuristic rollouts for **dead-end susceptibility** (used inside strategic pressure, not as a standalone large term).
 
 - **CLI & output**: `tools/generate-levels.js`
   - **Progress**: stderr shows batch/pool position and attempt counts; `--quiet` / `LEVELGEN_QUIET=1` silences it. The final summary line remains on stdout.
@@ -138,7 +126,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     7. **Difficulty report** (if `config.output.reportFile` is set):
        - Writes a markdown report to the given path (e.g. `levelgen-report.md`).
        - Report includes: overall difficulty score range and mean metrics; statistics by band (**easy** = bottom third, **medium** = middle third, **hard** = top third by score).
-       - Per band: level count, difficulty score min/max/mean, **grid width and grid height** (separate min/max/mean), and for each metric (min tray slack, forced-move ratio, rollout failure rate, avg/min tappable tiles, solution steps, solver nodes expanded) min/max/mean.
+       - Per band: level count, difficulty score min/max/mean, **grid width and grid height** (separate min/max/mean), and metrics including **visibility hardness**, **strategic pressure**, **dig hardness**, skill/chance reveal shares, min tray slack, heuristic/depth-k forced ratios (report-only), rollout failure rate, avg/min tappable tiles, solution steps, solver nodes expanded, difficulty range/variance.
 
 - **Runtime loading**:
   - `index.html` includes:

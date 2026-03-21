@@ -39,9 +39,7 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 
 - [ ] **Double-tap power move** — Double-tap to clear **adjacent** triplets when all three tiles are **fully visible** (rules & edge cases need spec: timing window, conflict with single-tap queue, undo).
 - [ ] **Queue discipline** — **Do not enqueue** taps on tiles that are not tappable (blocked / wrong layer); feedback only, no queue slot consumed.
-- [ ] **Difficulty progression** — Increase challenge over the level curve; investigate **structure and heuristics**:
-  - Distinguish **easy** patterns (complete triplets visible and spatially close) vs. **hard** patterns (triplets partially or fully hidden under stacks).
-  - Tie into generator: `difficultyScore`, `forcedRatio` / optional `forcedRatioK` (`forcedLookahead` in [LEVELGEN.md](LEVELGEN.md)), **`randomPool`** mode for broader easy→hard spread, template/layering params.
+- [ ] **Difficulty progression (tuning)** — **Scoring v2 is implemented** ([LEVELGEN.md](LEVELGEN.md), `tools/levelgen/score.js`): combined **visibility** at start, **strategic pressure** (slack + rollout), **skill vs chance** dig reveals, small **solver-effort** term; heuristic / depth-k **forced** metrics remain **report-only**. **Remaining work:** tune the level curve with it — adjust generator **batches** / **template & layering** params, optional **`randomPool`** for easy→hard spread, and **`[PLACEHOLDER]` weights** in `score.js` using `levelgen-report.md` + playtests until the curve feels right.
 
 *From [GAME_SPEC.md](GAME_SPEC.md):*
 
@@ -76,5 +74,3 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 | [TESTING.md](TESTING.md) | Playwright coverage, mobile viewport expectations |
 
 ---
-
-*Last updated: 2026-03-21 — incorporates explicit backlog items and TODO-style notes from the docs above.*
