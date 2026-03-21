@@ -86,10 +86,14 @@
               <option value="explicitCounts">explicitCounts</option>
             </select>
           </label>
-          <label class="field dist-zipf">
+          <div class="field dist-zipf dist-weighted-triplets">
             <span class="field__label">Total triplets</span>
-            <input type="number" id="totalTriplets" name="totalTriplets" min="1" max="80" step="1" />
-          </label>
+            <label class="field field--check">
+              <input type="checkbox" id="totalTripletsAuto" name="totalTripletsAuto" checked />
+              <span>Auto (from template)</span>
+            </label>
+            <input type="number" id="totalTriplets" name="totalTriplets" min="1" max="80" step="1" title="Used when Auto is off" />
+          </div>
           <label class="field dist-zipf">
             <span class="field__label">Zipf exponent</span>
             <input type="number" id="zipfExponent" name="zipfExponent" min="0" max="3" step="0.05" />

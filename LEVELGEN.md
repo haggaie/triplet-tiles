@@ -139,13 +139,27 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - Otherwise, a small built-in `FALLBACK_LEVELS` array.
   - **Tile type assignment**: layouts (including tutorials and generated levels) store `type` as **JSON numbers** — 0-based indices into `TILE_TYPES` in `game.js` (same order as the emoji list). `normalizeLevelTileType` converts layout values to **integer indices** in runtime state; DOM `data-type` attributes use the string form of those indices for HTML.
 
-- **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. Tile-type order is the same **uniform shuffle** as in batch mode. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
+- **Random pool mode**: When `generationMode === 'randomPool'`, the CLI does not use the `levels` batches. Instead it generates `pool.count` candidate levels by sampling template, grid size, tile types, distribution, and layering from (optional) `pool.paramRanges` and built-in defaults. **`totalTriplets` is derived from the template** by default: after sampling layering, the generator sums per-layer silhouette sizes (same construction as layout), sets `totalTriplets = floor(maxTiles * fillRatio / 3)` with `fillRatio` from `templateTripletFillRatio` (default 1), then clamps to `totalTripletsMin` / `totalTripletsMax` from param ranges. Set `deriveTotalTripletsFromTemplate: false` in `pool.paramRanges` to restore the older behavior (uniform random `totalTriplets` in the min/max range before layout). Tile-type order is the same **uniform shuffle** as in batch mode. After generation, every candidate is scored; unsolvable levels are discarded. The remaining levels are sorted by `difficultyScore` ascending. If `pool.keep` is set, only the first `pool.keep` levels are written. This yields a full easy-to-hard curve from a single random pool and often produces harder levels than the batch mode, which is tuned for a gentle ramp.
 
 ---
 
 ### 3. Tile type distribution modes
 
 Distribution controls how many tiles of each type are in a level. All modes ensure each tile type appears a multiple of 3 times (so it can form full triplets).
+
+#### 3.0. Auto `totalTriplets` (from template capacity)
+
+For `zipf` and `weightedTriplets`, you may set `totalTriplets: 'auto'` instead of a number. The generator then:
+
+1. Builds per-layer silhouettes from the template and layering (`layerShape`, `layerShapeOptions`, etc.) — the same step as layout placement.
+2. Computes `maxTiles` = sum of each layer’s cell count (one tile per cell per layer).
+3. Sets `totalTriplets = floor(maxTiles * templateTripletFillRatio / 3)` (default `templateTripletFillRatio` = 1), then applies optional `totalTripletsMin` / `totalTripletsMax` on the batch (or `pool.paramRanges` in random pool mode), and finally ensures `3 * totalTriplets ≤ maxTiles`.
+
+Optional batch fields: `templateTripletFillRatio` (0–1), `totalTripletsMin`, `totalTripletsMax`.
+
+**Reproducibility:** Batches with a numeric `totalTriplets` are unchanged (shuffle, then silhouettes). Batches with `'auto'` build silhouettes first, then shuffle — the RNG stream differs from numeric mode for the same seed.
+
+The interactive **level designer** defaults to **Auto (from template)** for zipf / weightedTriplets.
 
 #### 3.1. Explicit counts (current)
 
@@ -159,7 +173,7 @@ Distribution controls how many tiles of each type are in a level. All modes ensu
 
 - `distribution.mode: 'weightedTriplets'`
 - Fields:
-  - `totalTriplets: number` (total triplets over all types).
+  - `totalTriplets: number | 'auto'` (total triplets over all types, or derive from template — see §3.0).
   - `weights: { [typeId]: number }` (relative weights).
 - Behavior:
   - Computes ideal triplets per type proportional to weights.
@@ -196,7 +210,7 @@ So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "m
 ```js
 distribution: {
   mode: 'zipf',
-  totalTriplets: 36,
+  totalTriplets: 36, // or 'auto' to fill from template capacity (§3.0)
   exponent: 1.1,            // s in 1 / k^s, controls skewness
   order: [0, 1, 2, 3, 4, 5] // rank order (abstract type ids; optional — defaults to 0..tileTypeCount-1)
 }

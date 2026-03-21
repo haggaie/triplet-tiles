@@ -23,8 +23,10 @@
  *       - mode: "explicitCounts" | "weightedTriplets" | "zipf"
  *       - explicitCounts: { [typeId]: number } (typeId = integer index; each count multiple of 3)
  *         OR
- *       - totalTriplets: number (totalTiles = totalTriplets*3)
+ *       - totalTriplets: number | "auto" (totalTiles = totalTriplets*3; "auto" = derive from template capacity)
  *       - weights: { [typeId]: number } (typeId = integer; relative weights; generator rounds to multiples of 3)
+ *     - templateTripletFillRatio (optional): 0–1, default 1 — with totalTriplets "auto", use floor(maxTiles*ratio/3) triplets
+ *     - totalTripletsMin / totalTripletsMax (optional): optional clamps after derive (batch mode)
  *     - layering:
  *       - minZ: number (usually 0)
  *       - maxZ: number (inclusive)
@@ -32,6 +34,8 @@
  *       - maxStackPerCell: number
  * - forcedLookahead (optional): `{}` or partial overrides — depth-k forced metric; defaults from `forced-lookahead-defaults.js`
  * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
+ *   - paramRanges.deriveTotalTripletsFromTemplate: default true — derive triplets from template (else legacy random range)
+ *   - paramRanges.templateTripletFillRatio, totalTripletsMin, totalTripletsMax: same meaning as batch fields for derive/clamps
  */
 module.exports = {
   seed: 1337,

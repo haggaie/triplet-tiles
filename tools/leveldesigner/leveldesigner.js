@@ -226,21 +226,32 @@ function readBatchFromForm() {
   const mode = $('distMode').value;
   let distribution;
   if (mode === 'zipf') {
-    const totalTriplets = parseInt($('totalTriplets').value, 10);
     const exponent = parseFloat($('zipfExponent').value);
-    if (!Number.isInteger(totalTriplets) || totalTriplets < 1) {
-      throw new Error('totalTriplets must be a positive integer');
+    if ($('totalTripletsAuto').checked) {
+      distribution = { mode: 'zipf', totalTriplets: 'auto', exponent };
+    } else {
+      const totalTriplets = parseInt($('totalTriplets').value, 10);
+      if (!Number.isInteger(totalTriplets) || totalTriplets < 1) {
+        throw new Error('totalTriplets must be a positive integer');
+      }
+      distribution = { mode: 'zipf', totalTriplets, exponent };
     }
-    distribution = { mode: 'zipf', totalTriplets, exponent };
   } else if (mode === 'weightedTriplets') {
-    const totalTriplets = parseInt($('totalTriplets').value, 10);
     let weights;
     try {
       weights = JSON.parse($('weightsJson').value || '{}');
     } catch (e) {
       throw new Error(`weights JSON: ${e.message}`);
     }
-    distribution = { mode: 'weightedTriplets', totalTriplets, weights };
+    if ($('totalTripletsAuto').checked) {
+      distribution = { mode: 'weightedTriplets', totalTriplets: 'auto', weights };
+    } else {
+      const totalTriplets = parseInt($('totalTriplets').value, 10);
+      if (!Number.isInteger(totalTriplets) || totalTriplets < 1) {
+        throw new Error('totalTriplets must be a positive integer');
+      }
+      distribution = { mode: 'weightedTriplets', totalTriplets, weights };
+    }
   } else {
     let explicitCounts;
     try {
@@ -285,10 +296,15 @@ function syncDistUi() {
   const showZipf = mode === 'zipf';
   const showW = mode === 'weightedTriplets';
   const showE = mode === 'explicitCounts';
-  $('totalTriplets').closest('label').style.display = showZipf || showW ? '' : 'none';
+  const showTripletControls = showZipf || showW;
+  const tripletWrap = $('totalTriplets')?.closest('.dist-zipf');
+  if (tripletWrap) tripletWrap.style.display = showTripletControls ? '' : 'none';
   $('zipfExponent').closest('label').style.display = showZipf ? '' : 'none';
   $('explicitCountsJson').closest('label').hidden = !showE;
   $('weightsJson').closest('label').hidden = !showW;
+  const auto = $('totalTripletsAuto').checked;
+  $('totalTriplets').disabled = auto;
+  $('totalTriplets').style.opacity = auto ? '0.5' : '';
 }
 
 function applyTemplateDefaults() {
@@ -394,8 +410,16 @@ function applyDefaultsFromApi(data) {
     $('templateParamsJson').value = JSON.stringify(b.templateParams || {}, null, 2);
     if (b.distribution?.mode === 'zipf') {
       $('distMode').value = 'zipf';
-      $('totalTriplets').value = b.distribution.totalTriplets;
+      const tt = b.distribution.totalTriplets;
+      $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
       $('zipfExponent').value = b.distribution.exponent;
+      $('totalTripletsAuto').checked = true;
+    }
+    if (b.distribution?.mode === 'weightedTriplets') {
+      $('distMode').value = 'weightedTriplets';
+      const tt = b.distribution.totalTriplets;
+      $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
+      $('totalTripletsAuto').checked = true;
     }
     if (b.layering) {
       $('minZ').value = b.layering.minZ;
@@ -413,6 +437,11 @@ function applyDefaultsFromApi(data) {
   $('explicitCountsJson').value = '{"0":9,"1":9}';
   $('weightsJson').value = '{"0":1,"1":1,"2":1}';
   syncDistUi();
+}
+
+function onTotalTripletsAutoChange() {
+  syncDistUi();
+  debouncedGenerate();
 }
 
 function init() {
@@ -457,6 +486,8 @@ function init() {
     syncDistUi();
     debouncedGenerate();
   });
+
+  $('totalTripletsAuto').addEventListener('change', onTotalTripletsAutoChange);
 
   const inputs = document.querySelectorAll(
     '.panel--controls input, .panel--controls select, .panel--controls textarea'
