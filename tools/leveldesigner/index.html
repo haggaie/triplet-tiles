@@ -36,6 +36,23 @@
             <span class="field__label">Config seed</span>
             <input type="number" id="configSeed" name="configSeed" step="1" />
           </label>
+          <label class="field" id="batchIndexField">
+            <span class="field__label">Batch index</span>
+            <input
+              type="number"
+              id="batchIndex"
+              name="batchIndex"
+              min="0"
+              step="1"
+              value="0"
+              title="Index of this batch in tools/levelgen/config.js levels[] (used for batchVariation random seeding)"
+            />
+          </label>
+          <div id="configBatchSelectMountRng" class="config-batch-mount-rng" hidden></div>
+          <label class="field">
+            <span class="field__label">Slot</span>
+            <input type="number" id="slotIndex" name="slotIndex" min="0" step="1" value="0" title="Which level slot inside this batch (sweep variants or random variation draw)" />
+          </label>
           <label class="field">
             <span class="field__label">Level id</span>
             <input type="number" id="levelId" name="levelId" min="1" step="1" value="1" />
@@ -170,6 +187,34 @@
           <label class="field field--check">
             <input type="checkbox" id="forcedLookahead" />
             <span>forced lookahead (slower)</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="batch-sync">
+          <legend class="field__label">Batch config (tools/levelgen/config.js)</legend>
+          <p class="hint batch-sync__hint">
+            Load a full <code>levels[]</code> entry (including <code>batchVariation</code>), edit in the form or JSON, step
+            through slots, then copy JSON back into <code>config.js</code>. With <code>batchVariation.mode: &quot;sweep&quot;</code>,
+            <strong>Load from file</strong> moves next to Config seed (batch index is hidden).
+          </p>
+          <div id="configBatchSelectMountSidebar" class="batch-sync__load-wrap">
+            <div id="configBatchSelectShell" class="field field--block">
+              <span class="field__label">Load from file</span>
+              <select id="configBatchSelect" name="configBatchSelect" aria-label="Pick batch from config.js">
+                <option value="">— After connect, pick a batch —</option>
+              </select>
+            </div>
+          </div>
+          <p class="batch-sync__meta" id="batchMetaLine" aria-live="polite"></p>
+          <div class="batch-sync__row">
+            <button type="button" class="btn btn--ghost btn--sm" id="btnSlotPrev" title="Previous slot">◀ Slot</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btnSlotNext" title="Next slot">Slot ▶</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btnJsonToForm">Apply JSON → form</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btnFormToJson">Apply form → JSON</button>
+          </div>
+          <label class="field field--block">
+            <span class="field__label">Full batch JSON</span>
+            <textarea id="batchJson" name="batchJson" rows="12" spellcheck="false" class="batch-json"></textarea>
           </label>
         </fieldset>
 

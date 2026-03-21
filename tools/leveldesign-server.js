@@ -3,6 +3,9 @@
 /**
  * Local dev server for the interactive level designer.
  * Serves static UI from tools/leveldesigner/ and POST /api/preview runs generate + score.
+ * GET /api/defaults — config seed + first batch + template list (reloads config.js each request).
+ * GET /api/config — full levelgen config JSON (levels[], seed, …) for the batch picker.
+ * POST /api/batch-meta — { batch } → { slotCount } without generating.
  */
 
 const http = require('http');
@@ -13,6 +16,7 @@ const { URL } = require('url');
 const { generateOneLevel, mulberry32 } = require('./levelgen/generator');
 const { getTemplateCells } = require('./levelgen/templates');
 const { scoreLevel } = require('./levelgen/score');
+const { resolveBatchVariation, resolveBatchLevelCount } = require('./levelgen/batch-variation');
 
 const PORT = Number(process.env.LEVELDESIGN_PORT || 8765);
 const STATIC_ROOT = path.join(__dirname, 'leveldesigner');
@@ -65,13 +69,34 @@ function previewHandler(body) {
     throw new Error('Request body must include a "batch" object (see tools/levelgen/config.js).');
   }
 
+  const configSeed = Number.isFinite(body.seed) ? body.seed >>> 0 : 1337;
+  const batchIndex = Number.isInteger(body.batchIndex) && body.batchIndex >= 0 ? body.batchIndex : 0;
+  let slotCount;
+  try {
+    slotCount = resolveBatchLevelCount(batch);
+  } catch (e) {
+    throw new Error(e && e.message ? e.message : String(e));
+  }
+  let slotIndex = Number.isInteger(body.slotIndex) && body.slotIndex >= 0 ? body.slotIndex : 0;
+  if (slotCount >= 1) {
+    slotIndex = Math.min(slotIndex, slotCount - 1);
+  } else {
+    slotIndex = 0;
+  }
+
+  const resolvedBatch = resolveBatchVariation(batch, {
+    slotIndex,
+    batchIndex,
+    seed: configSeed
+  });
+
   const levelId = Number.isInteger(body.levelId) && body.levelId >= 1 ? body.levelId : 1;
   let levelSeed;
   if (Number.isFinite(body.levelSeed)) {
     levelSeed = body.levelSeed >>> 0;
   } else if (Number.isFinite(body.seed)) {
     // Match generateLevelsFromConfig: one global rng() draw per level before this id.
-    const rng = mulberry32(body.seed >>> 0);
+    const rng = mulberry32(configSeed);
     for (let i = 1; i < levelId; i += 1) rng();
     levelSeed = (Math.floor(rng() * 2 ** 31) ^ (levelId * 2654435761)) >>> 0;
   } else {
@@ -79,11 +104,11 @@ function previewHandler(body) {
   }
 
   const levelRng = mulberry32(levelSeed);
-  const level = generateOneLevel(levelRng, batch, levelId);
+  const level = generateOneLevel(levelRng, resolvedBatch, levelId);
 
   const { gridWidth, gridHeight } = level;
-  const { templateId, templateParams } = batch;
-  const layering = batch.layering || {};
+  const { templateId, templateParams } = resolvedBatch;
+  const layering = resolvedBatch.layering || {};
   const minZ = Number.isInteger(layering.minZ) ? layering.minZ : 0;
   const silhouetteCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight, { z: minZ });
 
@@ -92,6 +117,12 @@ function previewHandler(body) {
 
   return {
     levelSeed,
+    batchMeta: {
+      slotCount,
+      slotIndex,
+      batchIndex,
+      hadBatchVariation: !!(batch.batchVariation && typeof batch.batchVariation === 'object')
+    },
     silhouette: {
       cellCount: silhouetteCells.length,
       cells: silhouetteCells
@@ -190,8 +221,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && u.pathname === '/api/defaults') {
+    const configPath = path.join(__dirname, 'levelgen/config.js');
+    try {
+      delete require.cache[require.resolve(configPath)];
+    } catch (_) {
+      /* ignore */
+    }
     // eslint-disable-next-line import/no-dynamic-require, global-require
-    const config = require(path.join(__dirname, 'levelgen/config.js'));
+    const config = require(configPath);
     const first = config.levels && config.levels[0] ? config.levels[0] : null;
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(
@@ -214,6 +251,55 @@ const server = http.createServer(async (req, res) => {
         ]
       })
     );
+    return;
+  }
+
+  if (req.method === 'GET' && u.pathname === '/api/config') {
+    const configPath = path.join(__dirname, 'levelgen/config.js');
+    try {
+      delete require.cache[require.resolve(configPath)];
+    } catch (_) {
+      /* ignore */
+    }
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    const config = require(configPath);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(
+      JSON.stringify({
+        seed: config.seed,
+        generationMode: config.generationMode,
+        tileTypePoolSize: config.tileTypePoolSize,
+        output: config.output,
+        forcedLookahead: config.forcedLookahead,
+        levels: config.levels || []
+      })
+    );
+    return;
+  }
+
+  if (req.method === 'POST' && u.pathname === '/api/batch-meta') {
+    let body;
+    try {
+      body = await readBody(req);
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Invalid JSON body' }));
+      return;
+    }
+    const batch = body.batch;
+    if (!batch || typeof batch !== 'object') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Request body must include a "batch" object' }));
+      return;
+    }
+    try {
+      const slotCount = resolveBatchLevelCount(batch);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, slotCount }));
+    } catch (e) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: e && e.message ? e.message : String(e) }));
+    }
     return;
   }
 

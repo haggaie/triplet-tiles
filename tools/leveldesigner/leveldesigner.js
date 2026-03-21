@@ -211,6 +211,71 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+function applyBatchToForm(b) {
+  if (!b || typeof b !== 'object') return;
+  $('templateId').value = b.templateId || 'rectangle';
+  $('gridWidth').value = b.gridWidth ?? 7;
+  $('gridHeight').value = b.gridHeight ?? 7;
+  $('tileTypeCount').value = b.tileTypeCount ?? 6;
+  $('templateParamsJson').value = JSON.stringify(b.templateParams || {}, null, 2);
+
+  const d = b.distribution || { mode: 'zipf', totalTriplets: 'auto', exponent: 0.5 };
+  $('distMode').value = d.mode;
+  if (d.mode === 'zipf') {
+    $('zipfExponent').value = d.exponent ?? 0.5;
+    const tt = d.totalTriplets;
+    $('totalTripletsAuto').checked = tt === 'auto' || tt == null;
+    $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
+  } else if (d.mode === 'weightedTriplets') {
+    $('weightsJson').value = JSON.stringify(d.weights || {}, null, 2);
+    const tt = d.totalTriplets;
+    $('totalTripletsAuto').checked = tt === 'auto' || tt == null;
+    $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
+  } else if (d.mode === 'explicitCounts') {
+    $('explicitCountsJson').value = JSON.stringify(d.explicitCounts || {}, null, 2);
+  }
+
+  const ly = b.layering || {};
+  $('minZ').value = ly.minZ ?? 0;
+  $('maxZ').value = ly.maxZ ?? 0;
+  $('overlap').value = ly.overlap || 'medium';
+  $('maxStackPerCell').value = ly.maxStackPerCell ?? 3;
+  $('layerFull').checked = ly.full !== false;
+  $('layerShape').value = ly.layerShape || 'full';
+  $('interleavePlacement').checked = !!ly.interleavePlacement;
+  $('layerShapeOptionsJson').value = JSON.stringify(ly.layerShapeOptions || {}, null, 2);
+
+  syncDistUi();
+}
+
+function mergeFormIntoBatch(base) {
+  const f = readBatchFromForm();
+  return {
+    ...base,
+    templateId: f.templateId,
+    templateParams: f.templateParams,
+    gridWidth: f.gridWidth,
+    gridHeight: f.gridHeight,
+    tileTypeCount: f.tileTypeCount,
+    distribution: f.distribution,
+    layering: f.layering
+  };
+}
+
+function getBatchForPreview() {
+  const raw = $('batchJson').value.trim();
+  if (!raw) {
+    return readBatchFromForm();
+  }
+  try {
+    const base = JSON.parse(raw);
+    if (!base || typeof base !== 'object') throw new Error('batch must be an object');
+    return mergeFormIntoBatch(base);
+  } catch (e) {
+    throw new Error(`batch JSON: ${e.message}`);
+  }
+}
+
 function readBatchFromForm() {
   const templateId = $('templateId').value;
   let templateParams;
@@ -293,6 +358,49 @@ function readBatchFromForm() {
   };
 }
 
+function isSweepBatchFromBatchJson() {
+  const raw = $('batchJson').value.trim();
+  if (!raw) return false;
+  try {
+    const b = JSON.parse(raw);
+    return b?.batchVariation?.mode === 'sweep';
+  } catch {
+    return false;
+  }
+}
+
+let sweepUiTimer;
+function debouncedUpdateSweepUi() {
+  clearTimeout(sweepUiTimer);
+  sweepUiTimer = setTimeout(updateSweepUi, 300);
+}
+
+function updateSweepUi() {
+  const sweep = isSweepBatchFromBatchJson();
+  const mountRng = $('configBatchSelectMountRng');
+  const mountSidebar = $('configBatchSelectMountSidebar');
+  const shell = $('configBatchSelectShell');
+  const batchIdxField = $('batchIndexField');
+  if (!mountRng || !mountSidebar || !shell || !batchIdxField) return;
+
+  batchIdxField.hidden = sweep;
+  batchIdxField.style.display = sweep ? 'none' : '';
+
+  shell.classList.toggle('field--block', !sweep);
+
+  if (sweep) {
+    mountRng.hidden = false;
+    mountRng.style.display = '';
+    mountSidebar.style.display = 'none';
+    mountRng.appendChild(shell);
+  } else {
+    mountRng.hidden = true;
+    mountRng.style.display = 'none';
+    mountSidebar.style.display = '';
+    mountSidebar.appendChild(shell);
+  }
+}
+
 function syncDistUi() {
   const mode = $('distMode').value;
   const showZipf = mode === 'zipf';
@@ -318,9 +426,11 @@ function applyTemplateDefaults() {
 }
 
 function buildRequestBody() {
-  const batch = readBatchFromForm();
+  const batch = getBatchForPreview();
   const body = {
     batch,
+    batchIndex: parseInt($('batchIndex').value, 10) || 0,
+    slotIndex: parseInt($('slotIndex').value, 10) || 0,
     levelId: parseInt($('levelId').value, 10) || 1
   };
   if ($('useLevelSeed').checked) {
@@ -371,6 +481,7 @@ async function generate() {
     if (!data.ok) {
       status.textContent = data.error || 'Unknown error';
       status.classList.add('hint--err');
+      $('batchMetaLine').textContent = '';
       renderMetrics($('metricsSummary'), $('metricsBody'), null);
       $('fullLevelMount').innerHTML = '';
       $('layerSilhouettesMount').textContent = '';
@@ -378,6 +489,20 @@ async function generate() {
     }
 
     status.textContent = `OK · levelSeed ${data.levelSeed} · silhouette cells ${data.silhouette.cellCount} · layout tiles ${data.level.layout.length}`;
+
+    if (data.batchMeta) {
+      const m = data.batchMeta;
+      const sweep = isSweepBatchFromBatchJson();
+      const biPart = sweep ? '' : ` · batch index ${m.batchIndex}`;
+      $('batchMetaLine').textContent = `Slots in batch: ${m.slotCount} · slot ${m.slotIndex}${biPart}${
+        m.hadBatchVariation ? ' · batchVariation applied' : ''
+      }`;
+      $('slotIndex').value = String(m.slotIndex);
+      const maxSlot = Math.max(0, m.slotCount - 1);
+      $('slotIndex').setAttribute('max', String(maxSlot));
+    } else {
+      $('batchMetaLine').textContent = '';
+    }
 
     renderSilhouette($('silhouetteMount'), data.silhouette.cells, data.level.gridWidth, data.level.gridHeight);
     renderLayoutTop($('layoutMount'), data.level.layout, data.level.gridWidth, data.level.gridHeight);
@@ -404,41 +529,46 @@ function debouncedGenerate() {
 function applyDefaultsFromApi(data) {
   $('configSeed').value = data.configSeed ?? 1337;
   if (data.defaultBatch) {
-    const b = data.defaultBatch;
-    $('templateId').value = b.templateId;
-    $('gridWidth').value = b.gridWidth;
-    $('gridHeight').value = b.gridHeight;
-    $('tileTypeCount').value = b.tileTypeCount;
-    $('templateParamsJson').value = JSON.stringify(b.templateParams || {}, null, 2);
-    if (b.distribution?.mode === 'zipf') {
-      $('distMode').value = 'zipf';
-      const tt = b.distribution.totalTriplets;
-      $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
-      $('zipfExponent').value = b.distribution.exponent;
-      $('totalTripletsAuto').checked = true;
-    }
-    if (b.distribution?.mode === 'weightedTriplets') {
-      $('distMode').value = 'weightedTriplets';
-      const tt = b.distribution.totalTriplets;
-      $('totalTriplets').value = typeof tt === 'number' ? tt : 18;
-      $('totalTripletsAuto').checked = true;
-    }
-    if (b.layering) {
-      $('minZ').value = b.layering.minZ;
-      $('maxZ').value = b.layering.maxZ;
-      $('overlap').value = b.layering.overlap;
-      $('maxStackPerCell').value = b.layering.maxStackPerCell;
-      $('layerFull').checked = b.layering.full !== false;
-      $('layerShape').value = b.layering.layerShape || 'full';
-      $('interleavePlacement').checked = !!b.layering.interleavePlacement;
-      $('layerShapeOptionsJson').value = JSON.stringify(b.layering.layerShapeOptions || {}, null, 2);
-    }
+    $('batchJson').value = JSON.stringify(data.defaultBatch, null, 2);
+    applyBatchToForm(data.defaultBatch);
   } else {
     applyTemplateDefaults();
+    $('batchJson').value = JSON.stringify(readBatchFromForm(), null, 2);
   }
-  $('explicitCountsJson').value = '{"0":9,"1":9}';
-  $('weightsJson').value = '{"0":1,"1":1,"2":1}';
+  if (!data.defaultBatch) {
+    $('explicitCountsJson').value = '{"0":9,"1":9}';
+    $('weightsJson').value = '{"0":1,"1":1,"2":1}';
+  }
   syncDistUi();
+  updateSweepUi();
+}
+
+async function loadConfigBatchSelect() {
+  const sel = $('configBatchSelect');
+  try {
+    const r = await fetch('/api/config');
+    const cfg = await r.json();
+    const levels = cfg.levels || [];
+    sel.innerHTML = '';
+    const o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = `— ${levels.length} batch(es) in config.js —`;
+    sel.appendChild(o0);
+    levels.forEach((batch, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      const tid = batch.templateId || '?';
+      o.textContent = `levels[${i}] ${tid}`;
+      sel.appendChild(o);
+    });
+  } catch (_) {
+    sel.innerHTML = '';
+    const o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = '— /api/config unavailable —';
+    sel.appendChild(o0);
+  }
+  updateSweepUi();
 }
 
 function onTotalTripletsAutoChange() {
@@ -447,6 +577,7 @@ function onTotalTripletsAutoChange() {
 }
 
 function init() {
+  loadConfigBatchSelect();
   fetch('/api/defaults')
     .then((r) => r.json())
     .then((data) => {
@@ -468,6 +599,77 @@ function init() {
     });
 
   $('btnGenerate').addEventListener('click', generate);
+
+  $('configBatchSelect').addEventListener('change', () => {
+    const v = $('configBatchSelect').value;
+    if (v === '') return;
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        const batch = cfg.levels[parseInt(v, 10)];
+        if (!batch) return;
+        $('batchIndex').value = v;
+        $('batchJson').value = JSON.stringify(batch, null, 2);
+        applyBatchToForm(batch);
+        updateSweepUi();
+        $('slotIndex').value = '0';
+        generate();
+      })
+      .catch((e) => {
+        $('statusLine').textContent = String(e.message || e);
+        $('statusLine').classList.add('hint--err');
+      });
+  });
+
+  $('btnSlotPrev').addEventListener('click', () => {
+    const v = Math.max(0, (parseInt($('slotIndex').value, 10) || 0) - 1);
+    $('slotIndex').value = String(v);
+    generate();
+  });
+  $('btnSlotNext').addEventListener('click', () => {
+    const maxAttr = parseInt($('slotIndex').getAttribute('max'), 10);
+    const cur = parseInt($('slotIndex').value, 10) || 0;
+    const next = Number.isFinite(maxAttr) ? Math.min(maxAttr, cur + 1) : cur + 1;
+    $('slotIndex').value = String(next);
+    generate();
+  });
+
+  $('btnJsonToForm').addEventListener('click', () => {
+    try {
+      const raw = $('batchJson').value.trim();
+      if (!raw) throw new Error('empty JSON');
+      const b = JSON.parse(raw);
+      applyBatchToForm(b);
+      updateSweepUi();
+      $('statusLine').textContent = 'Applied JSON to form.';
+      $('statusLine').classList.remove('hint--err');
+    } catch (e) {
+      $('statusLine').textContent = e.message;
+      $('statusLine').classList.add('hint--err');
+    }
+  });
+
+  $('btnFormToJson').addEventListener('click', () => {
+    try {
+      const raw = $('batchJson').value.trim();
+      let base = {};
+      if (raw) {
+        try {
+          base = JSON.parse(raw);
+        } catch (_) {
+          base = {};
+        }
+      }
+      const merged = mergeFormIntoBatch(base);
+      $('batchJson').value = JSON.stringify(merged, null, 2);
+      updateSweepUi();
+      $('statusLine').textContent = 'Merged form into batch JSON.';
+      $('statusLine').classList.remove('hint--err');
+    } catch (e) {
+      $('statusLine').textContent = e.message;
+      $('statusLine').classList.add('hint--err');
+    }
+  });
 
   $('useLevelSeed').addEventListener('change', () => {
     $('levelSeed').disabled = !$('useLevelSeed').checked;
@@ -491,22 +693,39 @@ function init() {
 
   $('totalTripletsAuto').addEventListener('change', onTotalTripletsAutoChange);
 
+  const skipPreviewIds = new Set([
+    'batchJson',
+    'configBatchSelect',
+    'btnGenerate',
+    'btnCopyBatch',
+    'btnSlotPrev',
+    'btnSlotNext',
+    'btnJsonToForm',
+    'btnFormToJson'
+  ]);
   const inputs = document.querySelectorAll(
     '.panel--controls input, .panel--controls select, .panel--controls textarea'
   );
   inputs.forEach((el) => {
-    if (el.id === 'btnGenerate' || el.id === 'btnCopyBatch') return;
+    if (skipPreviewIds.has(el.id)) return;
     el.addEventListener('change', debouncedGenerate);
-    if (el.type === 'number' || el.tagName === 'TEXTAREA') {
+    if (el.type === 'number' || (el.tagName === 'TEXTAREA' && el.id !== 'batchJson')) {
       el.addEventListener('input', debouncedGenerate);
     }
   });
 
+  $('batchJson').addEventListener('change', () => {
+    debouncedUpdateSweepUi();
+    debouncedGenerate();
+  });
+  $('batchJson').addEventListener('input', debouncedUpdateSweepUi);
+
   $('btnCopyBatch').addEventListener('click', async () => {
     try {
-      const json = JSON.stringify(readBatchFromForm(), null, 2);
+      const json = JSON.stringify(getBatchForPreview(), null, 2);
       await navigator.clipboard.writeText(json);
-      $('statusLine').textContent = 'Batch JSON copied to clipboard.';
+      $('statusLine').textContent = 'Batch JSON copied to clipboard (form merged into JSON when present).';
+      $('statusLine').classList.remove('hint--err');
     } catch (e) {
       $('statusLine').textContent = e.message;
       $('statusLine').classList.add('hint--err');

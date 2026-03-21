@@ -398,3 +398,50 @@ input:disabled {
 .metrics-table tbody tr:hover td {
   background: oklch(0.26 0.02 78 / 0.5);
 }
+
+.batch-sync {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-top: 1rem;
+  background: oklch(0.19 0.018 74);
+}
+
+.batch-sync__hint {
+  margin-top: 0;
+  margin-bottom: 0.65rem;
+}
+
+.batch-sync__meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.35rem 0 0.5rem;
+  min-height: 1.2em;
+}
+
+.batch-sync__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+
+.batch-json {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.btn--sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.88rem;
+}
+
+.config-batch-mount-rng {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.batch-sync__load-wrap {
+  width: 100%;
+}
