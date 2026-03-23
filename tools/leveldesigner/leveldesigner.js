@@ -6,7 +6,6 @@
  */
 
 import { measureBoardLayoutFromFit, mountBoardTilesFill } from '/lib/board-view.js';
-import { getTileVisual } from '/lib/tile-types.js';
 
 const TEMPLATE_PARAM_DEFAULTS = {
   rectangle: { width: 5, height: 5 },
@@ -108,7 +107,6 @@ function renderFullLevelGameStyle(mount, layout, gridWidth, gridHeight) {
       cellSize,
       widthPx,
       heightPx,
-      getTileVisual,
       tileClassName: 'tile blocked'
     });
 

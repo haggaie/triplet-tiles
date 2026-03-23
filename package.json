@@ -9,6 +9,8 @@
     "style.css",
     "levels.generated.js",
     "assets/wood-grain-noise.webp",
+    "assets/openmoji/*.svg",
+    "assets/openmoji/ATTRIBUTION.txt",
     "assets/audio/music_ambient_loop_01.mp3",
     "lib/board-view.js",
     "lib/game-model.js",
