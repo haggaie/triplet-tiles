@@ -195,7 +195,7 @@ The interactive **level designer** defaults to **Auto (from template)** for zipf
 
 The **number of tile types** in a level strongly affects difficulty: more types mean more distinct symbols in the tray, so the tray fills with singletons and pairs more often and the player must plan to avoid overflow. The game defines a fixed set of tile types in `game.js` (`TILE_TYPES`); the tray holds at most **7** tiles. So:
 
-- **Upper bound**: The game defines a fixed set of types in `game.js` (currently **12**: leaf, flower, clover, star, acorn, mushroom, cherry, butterfly, sunflower, apple, carrot, bee). Set `tileTypeCount` to at most **12** unless you extend `TILE_TYPES`.
+- **Upper bound**: The game defines a fixed set of types in `game.js` (currently **12**: evergreen-tree, flower, grapes, star, acorn, mushroom, cherry, butterfly, sunflower, apple, carrot, lady-beetle). Set `tileTypeCount` to at most **12** unless you extend `TILE_TYPES`.
 - **Per-level**: Each batch's `tileTypeCount` fixes how many distinct abstract kinds appear. Using more types (e.g. 8–12) increases tray pressure and strategic difficulty; using fewer (e.g. 2–4) keeps levels easier.
 - **Setting it**: Prefer `tileTypeCount: N` so the generator uses ids `0..N-1` with no shared name list in the levelgen config. Letting the generator *choose* type count automatically (e.g. to hit a target difficulty) would require coupling generation to the solver/scorer and is usually not worth the complexity; configuring per batch is simpler and predictable.
 

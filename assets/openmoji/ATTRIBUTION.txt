@@ -1,0 +1,6 @@
+Tile artwork in this folder is from OpenMoji (https://openmoji.org/).
+
+License: Creative Commons Attribution-Share Alike 4.0 International (CC BY-SA 4.0)
+Source: https://github.com/hfg-gmuend/openmoji
+
+Individual SVG files correspond to Unicode code points in hexadecimal (e.g. 1F343.svg).

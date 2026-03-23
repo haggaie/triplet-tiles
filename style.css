@@ -122,6 +122,24 @@ body {
   flex-direction: column;
 }
 
+.openmoji-credit {
+  margin: 0;
+  padding: 0.5rem 1rem 1rem;
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.openmoji-credit a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.openmoji-credit a:hover {
+  color: var(--text);
+}
+
 .top-bar {
   display: flex;
   align-items: center;
@@ -395,6 +413,16 @@ body {
   background-size: auto, var(--tile-noise-tile-size) var(--tile-noise-tile-size), auto;
   background-repeat: repeat, repeat, no-repeat;
   background-blend-mode: normal, soft-light, normal;
+}
+
+.tile .tile-icon,
+.tray-tile .tile-icon {
+  width: 1em;
+  height: 1em;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .tile {

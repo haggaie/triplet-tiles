@@ -13,8 +13,9 @@ import {
 import { boardTileCenterPx, computeBoardContentOffsetPx, measureBoardLayoutFromFit } from './lib/board-view.js';
 import {
   buildTileTypeRemapForLayout,
-  getTileVisual,
+  getTileFaceInnerHtml,
   getTileTypeLabel,
+  mountTileFace,
   normalizeLevelTileType
 } from './lib/tile-types.js';
 import { createAudioService } from './lib/audio-service.js';
@@ -22,7 +23,7 @@ import { createAudioService } from './lib/audio-service.js';
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
 
-/** Layout `type` values are indices into `TILE_TYPES` (0 = leaf, 1 = flower, 2 = grapes, …). */
+/** Layout `type` values are indices into `TILE_TYPES` (0 = evergreen-tree, 1 = flower, 2 = grapes, …). */
 
 /** Two fixed tutorial levels: short and simple, always first so players learn mechanics before harder levels. */
 const TUTORIAL_LEVELS = [
@@ -1658,7 +1659,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
 
   const fly = document.createElement('div');
   fly.className = 'tray-tile tile-flying';
-  fly.textContent = getTileVisual(tile.type);
+  mountTileFace(fly, tile.type);
   fly.style.cssText = `
     position: fixed;
     left: ${tileCenterX}px;
@@ -2276,7 +2277,11 @@ function renderBoard(withSettleAnimation = false) {
     el.id = boardTileActiveDescendantId(tile.id);
     const tappable = tappableIds.has(tile.id);
     el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
-    el.textContent = getTileVisual(tile.type);
+    const typeStr = String(tile.type);
+    if (el.dataset.tileType !== typeStr) {
+      mountTileFace(el, tile.type);
+      el.dataset.tileType = typeStr;
+    }
     el.tabIndex = -1;
     if (tappable) {
       el.setAttribute('role', 'button');
@@ -2315,12 +2320,12 @@ function renderTray(forceRebuild = false) {
         if (existingTileEl) {
           if (existingTileEl.dataset.type !== String(tile.type)) {
             existingTileEl.dataset.type = String(tile.type);
-            existingTileEl.textContent = getTileVisual(tile.type);
+            mountTileFace(existingTileEl, tile.type);
           }
         } else {
           const tileEl = document.createElement('div');
           tileEl.className = 'tray-tile';
-          tileEl.textContent = getTileVisual(tile.type);
+          mountTileFace(tileEl, tile.type);
           tileEl.dataset.type = String(tile.type);
           inner.appendChild(tileEl);
         }
@@ -2340,7 +2345,7 @@ function renderTray(forceRebuild = false) {
   for (let i = 0; i < maxSlots; i += 1) {
     const tile = state.trayTiles[i];
     const tileContent = tile
-      ? `<div class="tray-tile" data-type="${String(tile.type)}">${getTileVisual(tile.type)}</div>`
+      ? `<div class="tray-tile" data-type="${String(tile.type)}">${getTileFaceInnerHtml(tile.type)}</div>`
       : '';
     html += `<div class="tray-slot"><div class="tray-slot-inner">${tileContent}</div></div>`;
   }
