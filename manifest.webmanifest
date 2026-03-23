@@ -1,0 +1,18 @@
+{
+  "name": "Triplet Tiles",
+  "short_name": "Triplet Tiles",
+  "description": "Match-3 style tile puzzle game",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e172a",
+  "theme_color": "#0e172a",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

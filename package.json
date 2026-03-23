@@ -8,6 +8,8 @@
     "tile-layering.js",
     "style.css",
     "levels.generated.js",
+    "manifest.webmanifest",
+    "icon.svg",
     "assets/wood-grain-noise.webp",
     "assets/openmoji/*.svg",
     "assets/openmoji/ATTRIBUTION.txt",

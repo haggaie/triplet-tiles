@@ -120,13 +120,20 @@ function rootRemToPx(rem) {
 /** Matches `.board-scroll-align` horizontal + vertical padding (12px × 2). */
 const BOARD_SCROLL_ALIGN_PAD_PX = 24;
 
+/** Prefer visual viewport height on mobile (browser chrome, pinch-zoom). */
+function getViewportHeightPx() {
+  const vv = window.visualViewport;
+  if (vv && typeof vv.height === 'number' && vv.height > 0) return vv.height;
+  return window.innerHeight;
+}
+
 /**
  * Max width/height (px) for the board mat inside #board-scroll (padding accounted for).
  * Matches prior square cap when grid is square: min(maxW,maxH) was the old fit side.
  */
 function getBoardFitRectPx() {
   const vw = document.documentElement.clientWidth;
-  const vh = window.innerHeight;
+  const vh = getViewportHeightPx();
   let maxW = Math.min(448, vw * 0.92);
   let maxH = Math.min(448, vh - rootRemToPx(14.25));
   const scroll = ui.boardScroll;
@@ -494,6 +501,99 @@ function initDomRefs() {
 
   ui.musicMuteToggle = document.getElementById('music-mute-toggle');
   ui.musicVolume = document.getElementById('music-volume');
+
+  ui.fullscreenToggle = document.getElementById('fullscreen-toggle');
+  ui.installAppButton = document.getElementById('install-app-button');
+}
+
+function getFullscreenElement() {
+  return (
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.msFullscreenElement ||
+    null
+  );
+}
+
+function isFullscreenSupported() {
+  const el = document.documentElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen);
+}
+
+function isStandaloneDisplayMode() {
+  if (window.matchMedia('(display-mode: standalone)').matches) return true;
+  if (window.matchMedia('(display-mode: fullscreen)').matches) return true;
+  if (typeof navigator !== 'undefined' && navigator.standalone === true) return true;
+  return false;
+}
+
+async function enterFullscreen() {
+  const el = document.documentElement;
+  try {
+    if (el.requestFullscreen) await el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+  } catch {
+    /* user gesture or policy */
+  }
+}
+
+async function exitFullscreen() {
+  try {
+    if (document.exitFullscreen) await document.exitFullscreen();
+    else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) await document.msExitFullscreen();
+  } catch {
+    /* ignore */
+  }
+}
+
+function syncFullscreenButton() {
+  const btn = ui.fullscreenToggle;
+  if (!btn || btn.classList.contains('hidden')) return;
+  const on = !!getFullscreenElement();
+  btn.setAttribute('aria-pressed', String(on));
+  btn.textContent = on ? 'Exit full screen' : 'Full screen';
+  btn.title = on ? 'Leave full screen' : 'Fill the screen (hides browser UI where supported)';
+}
+
+function installDisplayModeUi() {
+  const fsBtn = ui.fullscreenToggle;
+  const installBtn = ui.installAppButton;
+
+  if (fsBtn) {
+    if (!isFullscreenSupported()) {
+      fsBtn.classList.add('hidden');
+    } else {
+      fsBtn.addEventListener('click', async () => {
+        if (getFullscreenElement()) await exitFullscreen();
+        else await enterFullscreen();
+      });
+      document.addEventListener('fullscreenchange', syncFullscreenButton);
+      document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+      syncFullscreenButton();
+    }
+  }
+
+  if (installBtn) {
+    if (isStandaloneDisplayMode()) {
+      installBtn.classList.add('hidden');
+    } else {
+      let deferred = null;
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferred = e;
+        installBtn.classList.remove('hidden');
+      });
+      installBtn.addEventListener('click', async () => {
+        if (!deferred) return;
+        deferred.prompt();
+        await deferred.userChoice.catch(() => {});
+        deferred = null;
+        installBtn.classList.add('hidden');
+      });
+    }
+  }
 }
 
 function syncMusicUi() {
@@ -2465,6 +2565,7 @@ function main() {
   initDomRefs();
   syncMusicUi();
   audioSvc.applyStoredStateToElement();
+  installDisplayModeUi();
   bindEvents();
   installBoardScrollResizeObserver();
   installLevelSelectScrollUrlSync();
