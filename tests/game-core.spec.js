@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const { solveLevel } = require('../tools/levelgen/solver');
+const { runStyleChurnProbe } = require('./helpers/flicker-style-churn');
 
 /** Must match `TILE_TYPES.length` in `game.js` — same rules as `normalizeLevelTileType` (integer indices in sim). */
 const GAME_TILE_TYPE_COUNT = 12;
@@ -87,6 +88,60 @@ function simulateSolutionScore(level, solution) {
   return { score, trayLength: tray.length };
 }
 
+/** Number of solution moves through the first tray triple removal (score increases). */
+function movesThroughFirstCombine(level, solution) {
+  const layout = level.layout;
+  let tray = [];
+  let score = 0;
+
+  function insertByShape(type) {
+    let insertIndex = tray.length;
+    for (let i = tray.length - 1; i >= 0; i -= 1) {
+      if (tray[i] === type) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+    tray.splice(insertIndex, 0, type);
+  }
+
+  function removeTriples() {
+    const cMap = new Map();
+    tray.forEach(t => {
+      cMap.set(t, (cMap.get(t) || 0) + 1);
+    });
+    const seen = new Set();
+    const toRemove = [];
+    for (const t of tray) {
+      if (seen.has(t)) continue;
+      seen.add(t);
+      if ((cMap.get(t) || 0) >= 3) toRemove.push(t);
+    }
+    for (const type of toRemove) {
+      let removed = 0;
+      tray = tray.filter(t => {
+        if (t === type && removed < 3) {
+          removed += 1;
+          return false;
+        }
+        return true;
+      });
+      score += 30;
+    }
+  }
+
+  for (let i = 0; i < solution.length; i += 1) {
+    const scoreBefore = score;
+    const type = normalizeLevelTileTypeForTest(layout[solution[i]].type);
+    insertByShape(type);
+    removeTriples();
+    if (score > scoreBefore) {
+      return i + 1;
+    }
+  }
+  return solution.length;
+}
+
 /** First entry in `levels.generated.js` is played at this game level index (after tutorials). */
 const FIRST_GENERATED_GAME_LEVEL_INDEX = 2;
 
@@ -113,6 +168,17 @@ async function resetAndStartFirstGeneratedLevel(page, { skipAnimations }) {
     window.__tripletTestHooks.resetAllProgress();
     window.__tripletTestHooks.setSkipAnimations(skip);
   }, skipAnimations);
+  await page.waitForSelector('#board .tile');
+  await page.evaluate(idx => {
+    window.__tripletTestHooks.startLevel(idx);
+  }, FIRST_GENERATED_GAME_LEVEL_INDEX);
+  await page.waitForSelector('#board .tile');
+}
+
+async function setupGeneratedLevelForFlicker(page) {
+  await page.goto('/');
+  await page.waitForSelector('#board');
+  await page.evaluate(() => window.__tripletTestHooks.resetAllProgress());
   await page.waitForSelector('#board .tile');
   await page.evaluate(idx => {
     window.__tripletTestHooks.startLevel(idx);
@@ -332,7 +398,7 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     await expectWinOverlayMatchesSolution(page, expectedScore, expectedTrayLength);
   });
 
-  test('no flicker during tile interaction animations', async ({ page }) => {
+  test('no flicker during tile interaction animations (first two moves)', async ({ page }) => {
     test.setTimeout(30000);
 
     const levels = loadGeneratedLevels();
@@ -343,89 +409,64 @@ test.describe('Triplet Tiles - Core Mechanics', () => {
     expect(Array.isArray(result.solution)).toBe(true);
     expect(result.solution.length).toBeGreaterThanOrEqual(2);
 
-    await page.goto('/');
-    await page.waitForSelector('#board');
-    await page.evaluate(() => window.__tripletTestHooks.resetAllProgress());
-    await page.waitForSelector('#board .tile');
+    await setupGeneratedLevelForFlicker(page);
 
-    const gameLevelIndex = 2;
-    await page.evaluate(idx => {
-      window.__tripletTestHooks.startLevel(idx);
-    }, gameLevelIndex);
-    await page.waitForSelector('#board .tile');
-
-    const solutionTileIds = result.solution.map(idx => `t_${gameLevelIndex}_${idx}`);
-
-    const flickerResult = await page.evaluate(async (tileIds) => {
-      const board = document.getElementById('board');
-      const tray = document.getElementById('tray');
-      if (!board || !tray) return { flickerDetected: false, error: 'missing board or tray' };
-
-      const mutationLog = [];
-      let currentFrameId = 0;
-      let rafId;
-
-      function getElementKey(el) {
-        const tileId = el.getAttribute && el.getAttribute('data-tile-id');
-        if (tileId) return `board:${tileId}`;
-        const slot = el.closest && el.closest('.tray-slot');
-        if (slot && tray.contains(slot)) {
-          const idx = Array.from(tray.querySelectorAll('.tray-slot')).indexOf(slot);
-          return `tray:${idx}`;
-        }
-        return null;
-      }
-
-      function tick() {
-        currentFrameId += 1;
-        rafId = requestAnimationFrame(tick);
-      }
-      rafId = requestAnimationFrame(tick);
-
-      const observer = new MutationObserver((records) => {
-        for (const r of records) {
-          if (!r.attributeName) continue;
-          const key = getElementKey(r.target);
-          if (key) mutationLog.push({ frameId: currentFrameId, elementKey: key, attribute: r.attributeName });
-        }
-      });
-
-      observer.observe(board, { attributes: true, attributeFilter: ['style', 'class'], subtree: true });
-      observer.observe(tray, { attributes: true, attributeFilter: ['style', 'class'], subtree: true });
-
-      const hooks = window.__tripletTestHooks;
-      hooks.setSkipAnimations(false);
-
-      await hooks.clickTileById(tileIds[0]);
-      await hooks.waitForActionComplete();
-      await hooks.clickTileById(tileIds[1]);
-      await hooks.waitForActionComplete();
-
-      cancelAnimationFrame(rafId);
-      observer.disconnect();
-
-      const byFrame = {};
-      for (const { frameId, elementKey, attribute } of mutationLog) {
-        const k = `${frameId}:${elementKey}:${attribute}`;
-        byFrame[k] = (byFrame[k] || 0) + 1;
-      }
-      // Flicker = same element had multiple style changes in one frame (visibility/opacity oscillation).
-      // Ignore class: renderBoard does many class toggles (tappable, blocked, tile-settle-in) per frame.
-      const styleKey = (k) => k.endsWith(':style');
-      const offending = Object.entries(byFrame).filter(([k, count]) => styleKey(k) && count > 1);
-      const flickerDetected = offending.length > 0;
-      return {
-        flickerDetected,
-        offending: offending.slice(0, 10),
-        totalMutations: mutationLog.length
-      };
-    }, solutionTileIds);
+    const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
+    const flickerResult = await runStyleChurnProbe(page, solutionTileIds, { maxMoves: 2 });
 
     expect(flickerResult.error).toBeUndefined();
     expect(
       flickerResult.flickerDetected,
       flickerResult.flickerDetected
         ? `Flicker detected: same element had multiple style changes in one frame (visibility/opacity). Sample: ${JSON.stringify(flickerResult.offending)}`
+        : undefined
+    ).toBe(false);
+  });
+
+  test('no style-churn flicker through first tray combine', async ({ page }) => {
+    test.setTimeout(60000);
+
+    const levels = loadGeneratedLevels();
+    const level = levels[0];
+    const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
+    expect(result.solvable).toBe(true);
+    const k = movesThroughFirstCombine(level, result.solution);
+    expect(k).toBeGreaterThanOrEqual(3);
+
+    await setupGeneratedLevelForFlicker(page);
+
+    const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
+    const flickerResult = await runStyleChurnProbe(page, solutionTileIds, { maxMoves: k });
+
+    expect(flickerResult.error).toBeUndefined();
+    expect(
+      flickerResult.flickerDetected,
+      flickerResult.flickerDetected
+        ? `Flicker after combine path: ${JSON.stringify(flickerResult.offending)}`
+        : undefined
+    ).toBe(false);
+  });
+
+  test('no style-churn flicker during extended picks (tray shift)', async ({ page }) => {
+    test.setTimeout(90000);
+
+    const levels = loadGeneratedLevels();
+    const level = levels[0];
+    const result = solveLevel(level, { mode: 'exact', maxNodes: 250000 });
+    expect(result.solvable).toBe(true);
+    const throughCombine = movesThroughFirstCombine(level, result.solution);
+    const maxMoves = Math.min(result.solution.length, Math.max(throughCombine + 4, 8));
+
+    await setupGeneratedLevelForFlicker(page);
+
+    const solutionTileIds = solutionTileIdsForGameLevel(FIRST_GENERATED_GAME_LEVEL_INDEX, result.solution);
+    const flickerResult = await runStyleChurnProbe(page, solutionTileIds, { maxMoves });
+
+    expect(flickerResult.error).toBeUndefined();
+    expect(
+      flickerResult.flickerDetected,
+      flickerResult.flickerDetected
+        ? `Flicker during extended tray moves: ${JSON.stringify(flickerResult.offending)}`
         : undefined
     ).toBe(false);
   });
