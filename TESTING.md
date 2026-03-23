@@ -32,6 +32,8 @@ npx playwright test --headed
 
 The Playwright configuration in `playwright.config.js` starts a simple static server that serves `index.html` and related assets from the project root before the tests execute.
 
+**Service worker:** `index.html` registers `sw.js` for offline play. Playwright sets `serviceWorkers: 'block'` so tests always load assets from the static server (no stale cache). For manual QA of offline mode, use a normal browser tab and DevTools → Network → Offline. If you see stale assets while developing, DevTools → Application → Service Workers → **Unregister**, or bump `CACHE_NAME` in `sw.js` when the precache list changes.
+
 ## Keyboard and focus (manual)
 
 - **Tab order**: Header (Levels, Restart) → score (not focusable) → power-up buttons → **`#board`** (one tab stop when not in Remove Type mode) → **`#tray`** only after activating **Remove Type** with tiles in the tray (then `#board` is `tabindex="-1"` until the mode ends). Empty slots are skipped.

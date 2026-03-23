@@ -175,6 +175,11 @@
     <script src="./levels.generated.js"></script>
     <script src="./tile-layering.js"></script>
     <script type="module" src="./game.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function () {});
+      }
+    </script>
   </body>
   </html>
 

@@ -12,7 +12,8 @@ const deployables = [
   'style.css',
   'levels.generated.js',
   'manifest.webmanifest',
-  'icon.svg'
+  'icon.svg',
+  'sw.js'
 ];
 const deployLibDir = path.join(projectRoot, 'lib');
 

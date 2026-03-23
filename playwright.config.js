@@ -7,7 +7,9 @@ module.exports = defineConfig({
   retries: process.env.CI ? 2 : 0,
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    viewport: { width: 800, height: 1200 }
+    viewport: { width: 800, height: 1200 },
+    // Offline SW is for production; block in tests so Cache Storage never serves stale JS/CSS.
+    serviceWorkers: 'block'
   },
   webServer: {
     command: 'node scripts/playwright-static-server.js 4173',
