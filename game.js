@@ -11,7 +11,12 @@ import {
   getTripleRemovalTypeOrder
 } from './lib/game-model.js';
 import { boardTileCenterPx, computeBoardContentOffsetPx, measureBoardLayoutFromFit } from './lib/board-view.js';
-import { getTileVisual, getTileTypeLabel, normalizeLevelTileType } from './lib/tile-types.js';
+import {
+  buildTileTypeRemapForLayout,
+  getTileVisual,
+  getTileTypeLabel,
+  normalizeLevelTileType
+} from './lib/tile-types.js';
 import { createAudioService } from './lib/audio-service.js';
 
 const TL = globalThis.TripletTileLayering;
@@ -734,14 +739,19 @@ function startLevel(index) {
   _combiningTypes = [];
   _waitingForRoom = [];
   const level = LEVELS[clampedIndex];
-  state.boardTiles = level.layout.map((tile, i) => ({
-    id: `t_${clampedIndex}_${i}`,
-    type: normalizeLevelTileType(tile.type),
-    x: tile.x,
-    y: tile.y,
-    z: tile.z,
-    removed: false
-  }));
+  const tileTypeRemap = buildTileTypeRemapForLayout(level.layout, shuffle01);
+  state.boardTiles = level.layout.map((tile, i) => {
+    const nt = normalizeLevelTileType(tile.type);
+    const type = tileTypeRemap.has(nt) ? tileTypeRemap.get(nt) : nt;
+    return {
+      id: `t_${clampedIndex}_${i}`,
+      type,
+      x: tile.x,
+      y: tile.y,
+      z: tile.z,
+      removed: false
+    };
+  });
   _boardKeyboardFocusTileId = null;
   _boardKeyboardPickAnchor = null;
   state.trayTiles = [];
