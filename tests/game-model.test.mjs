@@ -14,7 +14,7 @@ import {
 
 test('getTrayInsertIndexForType: new type goes to end', () => {
   const tray = [{ id: 'a', type: 'leaf' }, { id: 'b', type: 'flower' }];
-  assert.equal(getTrayInsertIndexForType(tray, 'clover'), 2);
+  assert.equal(getTrayInsertIndexForType(tray, 'grapes'), 2);
 });
 
 test('getTrayInsertIndexForType: groups after last same type', () => {

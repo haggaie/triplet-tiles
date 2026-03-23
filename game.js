@@ -17,7 +17,7 @@ import { createAudioService } from './lib/audio-service.js';
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
 
-/** Layout `type` values are indices into `TILE_TYPES` (0 = leaf, 1 = flower, 2 = clover, …). */
+/** Layout `type` values are indices into `TILE_TYPES` (0 = leaf, 1 = flower, 2 = grapes, …). */
 
 /** Two fixed tutorial levels: short and simple, always first so players learn mechanics before harder levels. */
 const TUTORIAL_LEVELS = [
