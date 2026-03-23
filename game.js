@@ -2284,6 +2284,7 @@ function highlightTraySelectableTypes() {
     return;
   }
   applyRemoveTypeTrayUi();
+  renderBoard();
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (state.isRemoveTypeMode && ui.tray) ui.tray.focus();
