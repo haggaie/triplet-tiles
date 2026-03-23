@@ -1,0 +1,19 @@
+---
+description: Consult and update GAME_MODEL.md for tray/board rule module scope
+globs:
+  - lib/game-model.js
+  - tests/game-model.test.mjs
+alwaysApply: false
+---
+
+# GAME_MODEL.md — `lib/game-model.js`
+
+**Authority:** [GAME_MODEL.md](GAME_MODEL.md) — committed vs projected tray, insert order, triple removal order, overflow/queue predicates, `applyCommittedPick`, invariants (pure functions, no `window`).
+
+## Before editing
+
+- Read `GAME_MODEL.md` and the current `lib/game-model.js` API so terminology (`committed`, `projected`, removal order) stays consistent with [ANIMATIONS.md](ANIMATIONS.md) / `game.js` orchestration.
+
+## After editing
+
+- If you add, rename, or change semantics of exports, constants (`TRAY_MAX_TILES`), or invariants, **update `GAME_MODEL.md`** so tests and live game do not drift from documented behavior.

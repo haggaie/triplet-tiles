@@ -1,0 +1,27 @@
+---
+description: Consult and update GAME_SPEC.md for product scope (mechanics, UX, platforms)
+globs:
+  - game.js
+  - index.html
+  - tile-layering.js
+  - lib/board-view.js
+alwaysApply: false
+---
+
+# GAME_SPEC.md — product specification
+
+**Authority:** [GAME_SPEC.md](GAME_SPEC.md) — vision, core loop, board/tray rules, scoring, power-ups, controls & keyboard model, responsive board layout, visual/audio direction (high level), meta, roadmap.
+
+## When this rule applies
+
+You are changing runtime gameplay, shell UI wiring, coverage/layering behavior, or spec-level UX — not the pure tray math module (`lib/game-model.js`, see **triplet-doc-game-model**) or the build-time generator pipeline (see **triplet-doc-levelgen**).
+
+## Before editing
+
+- Read the relevant sections of `GAME_SPEC.md` so behavior stays aligned with agreed product rules.
+- For **algorithmic level generation, solver, difficulty scoring, templates, or `levels.generated.js`**, use [LEVELGEN.md](LEVELGEN.md) as the detailed source; `GAME_SPEC.md` §3.1 stays high-level.
+- For **audio, haptics, mixer, and sonic event IDs**, follow [AUDIO_DESIGN.md](AUDIO_DESIGN.md) (see rule **triplet-doc-design**); keep `GAME_SPEC.md` §7 aligned at a summary level only.
+
+## After editing
+
+- If you change mechanics, win/loss, tray rules as experienced by the player, power-ups, focus/keyboard behavior, board scroll/layout contracts, or phased roadmap items reflected in the spec, **update `GAME_SPEC.md`** in the same change (or follow-up) so it remains the single product-facing spec.

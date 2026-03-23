@@ -1,0 +1,34 @@
+---
+description: Consult design docs — AUDIO_DESIGN, .impeccable, WOOD_DESIGN_PLAN
+globs:
+  - "**/*.css"
+  - assets/**
+  - AUDIO_DESIGN.md
+  - WOOD_DESIGN_PLAN.md
+  - "**/.impeccable.md"
+  - .impeccable.md
+alwaysApply: false
+---
+
+# Design documentation (audio, brand, wood UI)
+
+Use these as the single sources for **sonic identity**, **brand/voice**, and **wood skeuomorph / tokens**:
+
+| Doc | Scope |
+|-----|--------|
+| [AUDIO_DESIGN.md](AUDIO_DESIGN.md) | Music/SFX event IDs, mixer buses, haptics patterns, accessibility (reduced motion, toggles), loudness — aligns with `GAME_SPEC.md` §7 |
+| [.impeccable.md](.impeccable.md) | Audience, brand words (fun / relaxing / tactile), non-exploitative engagement, aesthetic direction pointers |
+| [WOOD_DESIGN_PLAN.md](WOOD_DESIGN_PLAN.md) | Wood tokens, tile/board/tray/chrome recipe, phases, success criteria, optional assets |
+
+## Before editing
+
+- Read the relevant doc(s) before changing **CSS tokens**, **tile/board/tray chrome**, **audio/haptics behavior**, or **copy/tone** that reflects brand.
+- Audio **implementation** tasks and asset prompts may also reference [AUDIO_IMPLEMENTATION_PLAN.md](AUDIO_IMPLEMENTATION_PLAN.md) when present.
+
+## After editing
+
+- **Audio/haptics/mixer/event naming:** update `AUDIO_DESIGN.md` (and implementation plan if you add phases or new events).
+- **Brand, audience, or high-level visual direction:** update `.impeccable.md` (Design Context).
+- **Token names, phase status, wood recipe, or surface treatment:** update `WOOD_DESIGN_PLAN.md`.
+
+Keep [GAME_SPEC.md](GAME_SPEC.md) §7 in sync at a summary level only; deep detail lives in `AUDIO_DESIGN.md` and design files above.

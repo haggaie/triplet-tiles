@@ -1,0 +1,27 @@
+---
+description: Consult and update LEVELGEN.md for level generation and solver pipeline
+globs:
+  - tools/levelgen/**
+  - tools/generate-levels.js
+  - tools/leveldesign-server.js
+  - levels.generated.js
+  - crates/levelgen-solver/**
+alwaysApply: false
+---
+
+# LEVELGEN.md — generator, solver, difficulty
+
+**Authority:** [LEVELGEN.md](LEVELGEN.md) — `config.js`, templates, `generator.js`, `solver.js`, `score.js`, CLI, random pool mode, distributions, batch variation, interactive designer, runtime loading of `levels.generated.js`.
+
+## Before editing
+
+- Read `LEVELGEN.md` for the affected subsystem (config shape, template/z-aware footprints, solver modes, scoring families, report output).
+
+## After editing
+
+- If you change how levels are built, validated, scored, configured, or emitted, **update `LEVELGEN.md`** (file paths, config fields, behavior, CLI, or tuning notes).
+- High-level “what the game is” stays in [GAME_SPEC.md](GAME_SPEC.md); keep procedural detail here only.
+
+## Related
+
+- Rust solver crate under `crates/levelgen-solver` — document interface and build/test commands here when they change.

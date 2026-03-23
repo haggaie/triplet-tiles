@@ -1,0 +1,20 @@
+---
+description: Consult and update TESTING.md for Playwright E2E and manual test scope
+globs:
+  - tests/**
+  - playwright.config.js
+alwaysApply: false
+---
+
+# TESTING.md — E2E and keyboard/focus notes
+
+**Authority:** [TESTING.md](TESTING.md) — Playwright setup, run commands, what suites cover (`game-core`, `board-keyboard`, `powerups`, `progression-stats`, `mobile-viewport`), manual keyboard/focus expectations.
+
+## Before editing
+
+- Read `TESTING.md` when adding or changing tests so new coverage matches documented intent (or extend the doc).
+
+## After editing
+
+- If you add a **new spec file**, change **global test setup** (e.g. server, reporters), or materially change **keyboard/focus behavior** documented for manual QA, **update `TESTING.md`**.
+- Implementation details of mechanics belong in [GAME_SPEC.md](GAME_SPEC.md) or code; this file stays about **how we verify** and **manual checks**.
