@@ -280,6 +280,8 @@ input:disabled {
 .leveldesign-preview-board .tile.blocked {
   pointer-events: none;
   user-select: none;
+  /* Preview only: slight translucency helps see the full stack; gameplay uses opaque blocked tiles */
+  opacity: 0.8;
 }
 
 .viz__subh {
