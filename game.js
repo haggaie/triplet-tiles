@@ -100,8 +100,12 @@ const STORAGE_KEYS = {
   PROGRESSION: 'triplet_tiles_progression',
   STATS: 'triplet_tiles_stats',
   POWERUPS: 'triplet_tiles_powerups',
-  AUDIO: 'triplet_tiles_audio'
+  AUDIO: 'triplet_tiles_audio',
+  SESSION: 'triplet_tiles_session'
 };
+
+/** Increment when the JSON shape of `triplet_tiles_session` changes. */
+const SESSION_SCHEMA_VERSION = 1;
 
 /** music_ambient_loop_01 — Late Afternoon Garden Loop (Suno); attribution in AUDIO_DESIGN.md. */
 const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
@@ -204,6 +208,8 @@ let _focusBeforeLevelSelect = null;
 let _focusBeforeGameOverlay = null;
 /** Set while #overlay is open so primary action matches copy (win = advance, loss = retry same level). */
 let _gameOverlayOutcome = null;
+/** Last loss overlay message (persisted with session for reload). */
+let _lastLossReason = '';
 
 /**
  * Keeps focus inside open dialogs: background is non-interactive (inert) per modality.
@@ -256,6 +262,191 @@ function saveLocal(key, value) {
   } catch {
     // ignore quota or private mode errors
   }
+}
+
+function clearSessionStorage() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEYS.SESSION);
+  } catch {
+    /* ignore */
+  }
+}
+
+let _sessionSaveTimer = 0;
+
+function canSaveSession() {
+  return (
+    !_applyRunning &&
+    !_currentFly &&
+    _combiningTypes.length === 0 &&
+    !_isMoveAnimating &&
+    _waitingForRoom.length === 0
+  );
+}
+
+function serializeSession() {
+  return {
+    v: SESSION_SCHEMA_VERSION,
+    levelIndex: state.currentLevelIndex,
+    boardTiles: state.boardTiles.map(t => ({ ...t })),
+    trayTiles: state.trayTiles.map(t => ({ ...t })),
+    score: state.score,
+    powerups: { ...state.powerups },
+    isLevelOver: state.isLevelOver,
+    lastSnapshot: state.lastSnapshot
+      ? {
+          boardTiles: state.lastSnapshot.boardTiles.map(t => ({ ...t })),
+          trayTiles: state.lastSnapshot.trayTiles.map(t => ({ ...t })),
+          score: state.lastSnapshot.score
+        }
+      : null,
+    overlayOutcome: _gameOverlayOutcome,
+    lossMessage: _gameOverlayOutcome === 'loss' ? _lastLossReason : undefined
+  };
+}
+
+function saveSessionImmediate() {
+  if (typeof window === 'undefined') return;
+  if (!canSaveSession()) return;
+  saveLocal(STORAGE_KEYS.SESSION, serializeSession());
+}
+
+function scheduleSaveSession() {
+  if (typeof window === 'undefined') return;
+  clearTimeout(_sessionSaveTimer);
+  _sessionSaveTimer = setTimeout(() => {
+    _sessionSaveTimer = 0;
+    saveSessionImmediate();
+  }, 150);
+}
+
+function flushSessionSave() {
+  if (typeof window === 'undefined') return;
+  clearTimeout(_sessionSaveTimer);
+  _sessionSaveTimer = 0;
+  saveSessionImmediate();
+}
+
+/** Clears move/animation queues. Shared by `startLevel` and session restore. */
+function resetMoveEngine() {
+  _moveQueue = [];
+  _isMoveAnimating = false;
+  _currentFly = null;
+  _applyQueue = [];
+  _applyRunning = false;
+  _combiningTypes = [];
+  _waitingForRoom = [];
+}
+
+function showWinOverlayUi() {
+  const level = LEVELS[state.currentLevelIndex];
+  ui.overlayTitle.textContent = 'Level Complete';
+  ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
+  ui.overlayPrimary.textContent =
+    state.currentLevelIndex < LEVELS.length - 1 ? 'Next Level' : 'Restart from Level 1';
+  _gameOverlayOutcome = 'win';
+  _focusBeforeGameOverlay = document.activeElement;
+  setModalBackdropInert('game');
+  ui.overlay.classList.remove('hidden');
+  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+}
+
+function showLossOverlayUi(reason) {
+  _lastLossReason = reason || '';
+  ui.overlayTitle.textContent = 'Level Failed';
+  ui.overlayMessage.textContent = reason || 'The tray overflowed.';
+  ui.overlayPrimary.textContent = 'Try Again';
+  _gameOverlayOutcome = 'loss';
+  _focusBeforeGameOverlay = document.activeElement;
+  setModalBackdropInert('game');
+  ui.overlay.classList.remove('hidden');
+  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+}
+
+/**
+ * @returns {boolean} true if a session was restored (caller should skip `startLevel`).
+ */
+function tryRestoreSession() {
+  if (typeof window === 'undefined') return false;
+  const raw = loadLocal(STORAGE_KEYS.SESSION, null);
+  if (!raw || raw.v !== SESSION_SCHEMA_VERSION) return false;
+
+  const idx = Math.max(0, Math.min(Number(raw.levelIndex) || 0, LEVELS.length - 1));
+  /** Must match `loadProgression()` so a stale session cannot override the progression slot. */
+  if (idx !== state.currentLevelIndex) {
+    clearSessionStorage();
+    return false;
+  }
+
+  const level = LEVELS[idx];
+  if (!level || !Array.isArray(raw.boardTiles) || raw.boardTiles.length !== level.layout.length) {
+    clearSessionStorage();
+    return false;
+  }
+
+  resetMoveEngine();
+  state.currentLevelIndex = idx;
+  state.boardTiles = raw.boardTiles.map(t => ({
+    ...t,
+    type: normalizeLevelTileType(t.type),
+    removed: !!t.removed
+  }));
+  state.trayTiles = Array.isArray(raw.trayTiles)
+    ? raw.trayTiles.map((t, i) => ({
+        id: typeof t.id === 'string' ? t.id : `restored_tray_${i}`,
+        type: normalizeLevelTileType(t.type)
+      }))
+    : [];
+  state.score = Number(raw.score) || 0;
+  state.powerups = { ...defaultPowerups, ...(raw.powerups && typeof raw.powerups === 'object' ? raw.powerups : {}) };
+  state.isLevelOver = !!raw.isLevelOver;
+  state.isRemoveTypeMode = false;
+  if (raw.lastSnapshot && raw.lastSnapshot.boardTiles && raw.lastSnapshot.trayTiles) {
+    state.lastSnapshot = {
+      boardTiles: raw.lastSnapshot.boardTiles.map(t => ({
+        ...t,
+        type: normalizeLevelTileType(t.type),
+        removed: !!t.removed
+      })),
+      trayTiles: raw.lastSnapshot.trayTiles.map(t => ({
+        id: String(t.id),
+        type: normalizeLevelTileType(t.type)
+      })),
+      score: Number(raw.lastSnapshot.score) || 0
+    };
+  } else {
+    state.lastSnapshot = null;
+  }
+
+  _boardKeyboardFocusTileId = null;
+  _boardKeyboardPickAnchor = null;
+
+  if (ui.board) {
+    ui.board.classList.remove('board-win');
+    ui.board.classList.remove('board-loss');
+  }
+
+  saveProgression();
+  renderHud();
+  renderBoard();
+  renderTray();
+
+  if (state.isLevelOver) {
+    const outcome = raw.overlayOutcome === 'win' || raw.overlayOutcome === 'loss' ? raw.overlayOutcome : null;
+    if (outcome === 'win') {
+      showWinOverlayUi();
+    } else if (outcome === 'loss') {
+      showLossOverlayUi(raw.lossMessage || '');
+    } else {
+      state.isLevelOver = false;
+      clearSessionStorage();
+      return false;
+    }
+  } else {
+    tryFocusBoardOnLevelStart();
+  }
+
+  return true;
 }
 
 const defaultStats = {
@@ -635,6 +826,7 @@ function bindEvents() {
       state.powerups.undo -= 1;
       savePowerups();
       renderHud();
+      scheduleSaveSession();
     }
   });
 
@@ -651,6 +843,7 @@ function bindEvents() {
       savePowerups();
       renderBoard();
       renderHud();
+      scheduleSaveSession();
     }
   });
 
@@ -720,6 +913,12 @@ function bindEvents() {
   ui.tray.addEventListener('focusout', onTrayFocusOut);
 
   const appEl = document.getElementById('app');
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushSessionSave();
+    }
+  });
+
   if (appEl) {
     function unlockAudioOnce() {
       audioSvc.unlock();
@@ -796,17 +995,26 @@ function restoreSnapshot() {
   renderHud();
 }
 
+function clampLevelIndex(n) {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return Math.max(0, Math.min(Math.floor(x), LEVELS.length - 1));
+}
+
 function loadProgression() {
-  const progression = loadLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex: 0 });
-  const savedIndex =
-    progression && typeof progression.highestLevelIndex === 'number'
-      ? progression.highestLevelIndex
-      : 0;
-  if (savedIndex >= 0 && savedIndex < LEVELS.length) {
-    state.currentLevelIndex = savedIndex;
+  const progression = loadLocal(STORAGE_KEYS.PROGRESSION, {
+    highestLevelIndex: 0,
+    lastPlayedLevelIndex: 0
+  });
+  const highestSaved = clampLevelIndex(progression.highestLevelIndex);
+  let lastPlayed;
+  if (progression && typeof progression.lastPlayedLevelIndex === 'number') {
+    lastPlayed = clampLevelIndex(progression.lastPlayedLevelIndex);
   } else {
-    state.currentLevelIndex = 0;
+    /** Pre–session saves only stored `highestLevelIndex`, used as both unlock and resume slot. */
+    lastPlayed = highestSaved;
   }
+  state.currentLevelIndex = lastPlayed;
 
   const stats = loadLocal(STORAGE_KEYS.STATS, defaultStats);
   state.stats = { ...defaultStats, ...stats };
@@ -816,9 +1024,11 @@ function loadProgression() {
 }
 
 function saveProgression() {
-  const highest = loadLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex: 0 }).highestLevelIndex || 0;
-  const highestLevelIndex = Math.max(highest, state.currentLevelIndex);
-  saveLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex });
+  const prev = loadLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex: 0, lastPlayedLevelIndex: 0 });
+  const prevHigh = Number(prev.highestLevelIndex) || 0;
+  const highestLevelIndex = Math.max(prevHigh, state.currentLevelIndex);
+  const lastPlayedLevelIndex = state.currentLevelIndex;
+  saveLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex, lastPlayedLevelIndex });
 }
 
 function saveStats() {
@@ -830,15 +1040,10 @@ function savePowerups() {
 }
 
 function startLevel(index) {
+  clearSessionStorage();
   const clampedIndex = Math.max(0, Math.min(index, LEVELS.length - 1));
   state.currentLevelIndex = clampedIndex;
-  _moveQueue = [];
-  _isMoveAnimating = false;
-  _currentFly = null;
-  _applyQueue = [];
-  _applyRunning = false;
-  _combiningTypes = [];
-  _waitingForRoom = [];
+  resetMoveEngine();
   const level = LEVELS[clampedIndex];
   const tileTypeRemap = buildTileTypeRemapForLayout(level.layout, shuffle01);
   state.boardTiles = level.layout.map((tile, i) => {
@@ -876,6 +1081,7 @@ function startLevel(index) {
   renderBoard();
   renderTray();
   tryFocusBoardOnLevelStart();
+  saveProgression();
 }
 
 function isTileCovered(tile, ignoreTileId = null) {
@@ -1496,6 +1702,8 @@ function checkAllIdle() {
   if (_waitingForRoom.length > 0) {
     const nextId = _waitingForRoom.shift();
     setTimeout(() => handleBoardTileClick(nextId), 0);
+  } else {
+    scheduleSaveSession();
   }
 }
 
@@ -1542,6 +1750,7 @@ function handleBoardTileClick(tileId) {
     renderTray();
     renderHud();
     checkWinCondition();
+    if (!state.isLevelOver) scheduleSaveSession();
     return;
   }
 
@@ -1952,32 +2161,16 @@ function triggerWin() {
   state.stats.bestWinStreak = Math.max(state.stats.bestWinStreak, state.stats.currentWinStreak);
   saveStats();
   saveProgression();
-
-  const level = LEVELS[state.currentLevelIndex];
-  ui.overlayTitle.textContent = 'Level Complete';
-  ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
-  ui.overlayPrimary.textContent =
-    state.currentLevelIndex < LEVELS.length - 1 ? 'Next Level' : 'Restart from Level 1';
-  _gameOverlayOutcome = 'win';
-  _focusBeforeGameOverlay = document.activeElement;
-  setModalBackdropInert('game');
-  ui.overlay.classList.remove('hidden');
-  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+  showWinOverlayUi();
+  saveSessionImmediate();
 }
 
 function triggerLoss(reason) {
   state.isLevelOver = true;
   state.stats.currentWinStreak = 0;
   saveStats();
-
-  ui.overlayTitle.textContent = 'Level Failed';
-  ui.overlayMessage.textContent = reason || 'The tray overflowed.';
-  ui.overlayPrimary.textContent = 'Try Again';
-  _gameOverlayOutcome = 'loss';
-  _focusBeforeGameOverlay = document.activeElement;
-  setModalBackdropInert('game');
-  ui.overlay.classList.remove('hidden');
-  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+  showLossOverlayUi(reason);
+  saveSessionImmediate();
 }
 
 function hideOverlay() {
@@ -2309,6 +2502,7 @@ function performRemoveType(type) {
   renderTray();
   renderHud();
   checkWinCondition();
+  if (!state.isLevelOver) scheduleSaveSession();
 }
 
 function renderHud() {
@@ -2571,7 +2765,9 @@ function main() {
   installBoardScrollResizeObserver();
   installLevelSelectScrollUrlSync();
   loadProgression();
-  startLevel(state.currentLevelIndex);
+  if (!tryRestoreSession()) {
+    startLevel(state.currentLevelIndex);
+  }
   if (new URLSearchParams(window.location.search).get('ls') === '1') {
     const scroll = parseLevelSelectInitialScrollFromUrl();
     showLevelSelect({ restoreFromUrl: true, initialScroll: scroll });

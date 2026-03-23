@@ -111,5 +111,84 @@ test.describe('Triplet Tiles - Progression & Stats', () => {
 
     await expect(page.locator('#level-label')).toHaveText(/Level 3:/);
   });
+
+  test('reload preserves mid-level board, tray, and score', async ({ page }) => {
+    await resetToLevel1(page);
+    await page.evaluate(() => window.__tripletTestHooks.setSkipAnimations(true));
+
+    await page.evaluate(() => {
+      const hooks = window.__tripletTestHooks;
+      const tappables = hooks.getTappableTiles();
+      if (tappables.length < 2) {
+        throw new Error(`expected at least 2 tappable tiles, got ${tappables.length}`);
+      }
+      hooks.clickTileById(tappables[0].id);
+      hooks.clickTileById(tappables[1].id);
+    });
+
+    const before = await page.evaluate(() => {
+      const s = window.__tripletTestHooks.getState();
+      return {
+        removedCount: s.boardTiles.filter(t => t.removed).length,
+        trayLen: s.trayTiles.length,
+        score: s.score
+      };
+    });
+
+    await page.reload();
+    await page.waitForSelector('#board .tile');
+
+    const after = await page.evaluate(() => {
+      const s = window.__tripletTestHooks.getState();
+      return {
+        removedCount: s.boardTiles.filter(t => t.removed).length,
+        trayLen: s.trayTiles.length,
+        score: s.score
+      };
+    });
+
+    expect(after.removedCount).toBe(before.removedCount);
+    expect(after.trayLen).toBe(before.trayLen);
+    expect(after.score).toBe(before.score);
+  });
+
+  test('reload stays on a lower chosen level when higher levels are unlocked', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#board');
+
+    /** Index 2 = third level (works with 3-level fallback or full generated list). */
+    await page.evaluate(() => {
+      window.localStorage.setItem(
+        'triplet_tiles_progression',
+        JSON.stringify({ highestLevelIndex: 2, lastPlayedLevelIndex: 2 })
+      );
+      window.localStorage.removeItem('triplet_tiles_stats');
+      window.localStorage.removeItem('triplet_tiles_powerups');
+      window.localStorage.removeItem('triplet_tiles_session');
+    });
+
+    await page.reload();
+    await page.waitForSelector('#board .tile');
+
+    await expect(page.locator('#level-label')).toHaveText(/Level 3:/);
+
+    await page.locator('#level-select-button').click();
+    await page.waitForSelector('.level-select-card[data-level-index="0"]');
+    await page.locator('.level-select-card[data-level-index="0"]').click();
+
+    await expect(page.locator('#level-label')).toHaveText(/Level 1:/);
+
+    await page.evaluate(() => window.__tripletTestHooks.setSkipAnimations(true));
+    await page.evaluate(() => {
+      const hooks = window.__tripletTestHooks;
+      const t = hooks.getTappableTiles();
+      if (t.length) hooks.clickTileById(t[0].id);
+    });
+
+    await page.reload();
+    await page.waitForSelector('#board .tile');
+
+    await expect(page.locator('#level-label')).toHaveText(/Level 1:/);
+  });
 });
 
