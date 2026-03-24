@@ -337,6 +337,48 @@ body {
   font-size: 0.75rem;
 }
 
+/* Phosphor (Regular): icon-only and icon + label */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem;
+  line-height: 1;
+}
+
+.btn-icon.btn-small {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0.25rem;
+}
+
+.btn-icon .ph {
+  font-size: 1.25rem;
+  color: inherit;
+}
+
+.btn-icon.btn-small .ph {
+  font-size: 1.1rem;
+}
+
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-with-icon .ph {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.powerup-count {
+  font-variant-numeric: tabular-nums;
+}
+
 .main-layout {
   flex: 1 1 0;
   display: flex;
@@ -713,6 +755,10 @@ body {
 
 .overlay-actions .btn {
   min-width: 110px;
+}
+
+.overlay-actions .btn.btn-icon {
+  min-width: 2.75rem;
 }
 
 .hidden {

@@ -13,6 +13,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icon.svg" />
+    <link rel="stylesheet" href="./assets/phosphor/regular/style.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -22,8 +23,18 @@
           <h1 class="game-title">Triplet Tiles</h1>
           <div class="level-info">
             <span id="level-label">Level 1</span>
-            <button id="level-select-button" class="btn btn-ghost" title="Choose level">Levels</button>
-            <button id="restart-button" class="btn btn-ghost">Restart</button>
+            <button
+              type="button"
+              id="level-select-button"
+              class="btn btn-ghost btn-icon"
+              title="Choose level"
+              aria-label="Choose level"
+            >
+              <i class="ph ph-list-numbers" aria-hidden="true"></i>
+            </button>
+            <button type="button" id="restart-button" class="btn btn-ghost btn-icon" title="Restart level" aria-label="Restart level">
+              <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
         <div class="top-bar-right">
@@ -31,19 +42,21 @@
             <button
               type="button"
               id="fullscreen-toggle"
-              class="btn btn-ghost btn-small display-mode-btn"
+              class="btn btn-ghost btn-small btn-icon display-mode-btn"
               aria-pressed="false"
+              aria-label="Full screen"
               title="Fill the screen (hides browser UI where supported)"
             >
-              Full screen
+              <i class="ph ph-arrows-out" aria-hidden="true"></i>
             </button>
             <button
               type="button"
               id="install-app-button"
-              class="btn btn-ghost btn-small display-mode-btn hidden"
+              class="btn btn-ghost btn-small btn-icon display-mode-btn hidden"
+              aria-label="Install app"
               title="Install as an app for a fuller screen without the address bar"
             >
-              Install app
+              <i class="ph ph-download-simple" aria-hidden="true"></i>
             </button>
           </div>
           <div
@@ -54,11 +67,12 @@
             <button
               type="button"
               id="music-mute-toggle"
-              class="btn btn-ghost btn-small audio-music-toggle"
+              class="btn btn-ghost btn-small btn-icon audio-music-toggle"
               aria-pressed="true"
+              aria-label="Music on"
               title="Turn background music on or off"
             >
-              Music on
+              <i class="ph ph-speaker-high" aria-hidden="true"></i>
             </button>
             <label class="audio-volume-label" for="music-volume">Volume</label>
             <input
@@ -81,14 +95,35 @@
 
       <main class="main-layout">
         <div class="powerups" aria-label="Power-ups">
-          <button id="undo-button" class="btn btn-small" title="Undo last move">
-            Undo (<span id="undo-count">0</span>)
+          <button
+            type="button"
+            id="undo-button"
+            class="btn btn-small btn-with-icon"
+            title="Undo last move"
+            aria-label="Undo last move"
+          >
+            <i class="ph ph-arrow-u-up-left" aria-hidden="true"></i>
+            <span class="powerup-count">(<span id="undo-count">0</span>)</span>
           </button>
-          <button id="shuffle-button" class="btn btn-small" title="Shuffle tile types on the board (positions stay the same)">
-            Shuffle (<span id="shuffle-count">0</span>)
+          <button
+            type="button"
+            id="shuffle-button"
+            class="btn btn-small btn-with-icon"
+            title="Shuffle tile types on the board (positions stay the same)"
+            aria-label="Shuffle tile types"
+          >
+            <i class="ph ph-shuffle" aria-hidden="true"></i>
+            <span class="powerup-count">(<span id="shuffle-count">0</span>)</span>
           </button>
-          <button id="remove-type-button" class="btn btn-small" title="Remove all of one tile type">
-            Remove Type (<span id="remove-type-count">0</span>)
+          <button
+            type="button"
+            id="remove-type-button"
+            class="btn btn-small btn-with-icon"
+            title="Remove all of one tile type"
+            aria-label="Remove one tile type"
+          >
+            <i class="ph ph-eraser" aria-hidden="true"></i>
+            <span class="powerup-count">(<span id="remove-type-count">0</span>)</span>
           </button>
         </div>
         <section id="board-scroll" class="board-scroll" aria-label="Board playfield (scroll to see the whole grid on large levels)">
@@ -123,8 +158,18 @@
           <h2 id="overlay-title">Level Complete</h2>
           <p id="overlay-message"></p>
           <div class="overlay-actions">
-            <button id="overlay-primary" class="btn">Next Level</button>
-            <button id="overlay-secondary" class="btn btn-ghost">Retry</button>
+            <button type="button" id="overlay-primary" class="btn btn-icon" aria-label="Next level" title="Next level">
+              <i class="ph ph-caret-right" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              id="overlay-secondary"
+              class="btn btn-ghost btn-icon"
+              aria-label="Retry this level"
+              title="Retry this level"
+            >
+              <i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -139,7 +184,9 @@
         <div class="level-select-panel">
           <div class="level-select-header">
             <h2 id="level-select-heading">Choose Level</h2>
-            <button id="level-select-close" class="btn btn-ghost" aria-label="Close">✕</button>
+            <button type="button" id="level-select-close" class="btn btn-ghost btn-icon" aria-label="Close" title="Close">
+              <i class="ph ph-x" aria-hidden="true"></i>
+            </button>
           </div>
           <div id="level-select-debug" class="level-select-debug hidden">
             <label for="level-select-group-by" class="level-select-debug-label">Group by</label>
@@ -169,7 +216,9 @@
     <p class="openmoji-credit">
       Tile icons:
       <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer">OpenMoji</a>
-      (CC&nbsp;BY-SA&nbsp;4.0)
+      (CC&nbsp;BY-SA&nbsp;4.0) · UI icons:
+      <a href="https://phosphoricons.com/" target="_blank" rel="noopener noreferrer">Phosphor</a>
+      (MIT)
     </p>
 
     <script src="./levels.generated.js"></script>

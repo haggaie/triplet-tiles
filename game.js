@@ -342,8 +342,11 @@ function showWinOverlayUi() {
   const level = LEVELS[state.currentLevelIndex];
   ui.overlayTitle.textContent = 'Level Complete';
   ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
-  ui.overlayPrimary.textContent =
-    state.currentLevelIndex < LEVELS.length - 1 ? 'Next Level' : 'Restart from Level 1';
+  const isLast = state.currentLevelIndex >= LEVELS.length - 1;
+  const primaryLabel = isLast ? 'Restart from level 1' : 'Next level';
+  ui.overlayPrimary.setAttribute('aria-label', primaryLabel);
+  ui.overlayPrimary.title = primaryLabel;
+  setPhosphorIcon(ui.overlayPrimary, isLast ? 'arrow-clockwise' : 'caret-right');
   _gameOverlayOutcome = 'win';
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
@@ -355,7 +358,9 @@ function showLossOverlayUi(reason) {
   _lastLossReason = reason || '';
   ui.overlayTitle.textContent = 'Level Failed';
   ui.overlayMessage.textContent = reason || 'The tray overflowed.';
-  ui.overlayPrimary.textContent = 'Try Again';
+  ui.overlayPrimary.setAttribute('aria-label', 'Try again');
+  ui.overlayPrimary.title = 'Try again';
+  setPhosphorIcon(ui.overlayPrimary, 'arrow-counter-clockwise');
   _gameOverlayOutcome = 'loss';
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
@@ -697,6 +702,12 @@ function initDomRefs() {
   ui.installAppButton = document.getElementById('install-app-button');
 }
 
+/** @param {string} iconName Phosphor icon name without `ph-` prefix (e.g. `caret-right`). */
+function setPhosphorIcon(buttonEl, iconName) {
+  const icon = buttonEl?.querySelector?.(':scope > i.ph');
+  if (icon) icon.className = `ph ph-${iconName}`;
+}
+
 function getFullscreenElement() {
   return (
     document.fullscreenElement ||
@@ -744,8 +755,10 @@ function syncFullscreenButton() {
   if (!btn || btn.classList.contains('hidden')) return;
   const on = !!getFullscreenElement();
   btn.setAttribute('aria-pressed', String(on));
-  btn.textContent = on ? 'Exit full screen' : 'Full screen';
+  const label = on ? 'Exit full screen' : 'Full screen';
+  btn.setAttribute('aria-label', label);
   btn.title = on ? 'Leave full screen' : 'Fill the screen (hides browser UI where supported)';
+  setPhosphorIcon(btn, on ? 'arrows-in' : 'arrows-out');
 }
 
 function installDisplayModeUi() {
@@ -792,7 +805,9 @@ function syncMusicUi() {
   const s = audioSvc.getState();
   const audible = !s.musicMuted && s.musicVolume > 0;
   ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
-  ui.musicMuteToggle.textContent = audible ? 'Music on' : 'Music off';
+  const label = audible ? 'Music on' : 'Music off';
+  ui.musicMuteToggle.setAttribute('aria-label', label);
+  setPhosphorIcon(ui.musicMuteToggle, audible ? 'speaker-high' : 'speaker-slash');
   ui.musicVolume.value = String(s.musicVolume);
   ui.musicVolume.disabled = s.musicMuted;
 }

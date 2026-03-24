@@ -2,11 +2,13 @@
  * Offline precache for Triplet Tiles. Bump CACHE_NAME when this list or shell assets change.
  * @see lib/tile-types.js TILE_TYPES openmojiHex for SVG filenames.
  */
-const CACHE_NAME = 'triplet-tiles-v1';
+const CACHE_NAME = 'triplet-tiles-v4';
 
 const PRECACHE_PATHS = [
   'index.html',
   'style.css',
+  'assets/phosphor/regular/style.css',
+  'assets/phosphor/regular/Phosphor.woff2',
   'manifest.webmanifest',
   'icon.svg',
   'sw.js',
@@ -70,6 +72,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/**
+ * App shell JS and HTML must not be cache-first forever, or soft reloads serve stale
+ * `game.js` while the DOM from `index.html` may be updated — e.g. icon markup replaced by old JS.
+ * Network-first when online; precache still warms the cache for offline.
+ */
+function shouldNetworkFirst(req) {
+  if (req.mode === 'navigate') return true;
+  const url = new URL(req.url);
+  if (url.origin !== new URL(self.registration.scope).origin) return false;
+  const p = url.pathname;
+  return p.endsWith('.js') || p.endsWith('.html');
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -79,6 +94,26 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     (async () => {
+      if (shouldNetworkFirst(req)) {
+        try {
+          const res = await fetch(req);
+          if (res.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(req, res.clone());
+          }
+          return res;
+        } catch (e) {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          if (req.mode === 'navigate') {
+            const indexUrl = new URL('index.html', self.registration.scope).href;
+            const fallback = await caches.match(indexUrl);
+            if (fallback) return fallback;
+          }
+          throw e;
+        }
+      }
+
       const cached = await caches.match(req);
       if (cached) return cached;
 
