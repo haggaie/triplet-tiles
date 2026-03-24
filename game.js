@@ -347,6 +347,7 @@ function showWinOverlayUi() {
   ui.overlayPrimary.setAttribute('aria-label', primaryLabel);
   ui.overlayPrimary.title = primaryLabel;
   setPhosphorIcon(ui.overlayPrimary, isLast ? 'arrow-clockwise' : 'caret-right');
+  ui.overlaySecondary?.classList.remove('hidden');
   _gameOverlayOutcome = 'win';
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
@@ -361,6 +362,7 @@ function showLossOverlayUi(reason) {
   ui.overlayPrimary.setAttribute('aria-label', 'Try again');
   ui.overlayPrimary.title = 'Try again';
   setPhosphorIcon(ui.overlayPrimary, 'arrow-counter-clockwise');
+  ui.overlaySecondary?.classList.add('hidden');
   _gameOverlayOutcome = 'loss';
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
