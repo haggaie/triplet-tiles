@@ -51,6 +51,8 @@ Gameplay code should trigger **named events**; a small audio layer resolves asse
 | `SFX/Meta/Level_Win` | Level complete | Short **uplift** (&lt; ~2 s)—warm, not brassy. |
 | `SFX/Meta/Level_Loss` | Tray overflow | Soft **descending** tone or muted thud; **no** buzzer, no “shame” cue. |
 
+**Implementation note:** The shipped game **does not** play `SFX/UI/Tray_Place`; **Tile_Pick** is enough when pick and tray land are perceived as one gesture.
+
 **Variation:** Randomize pitch (~±3%) and volume (~±1 dB) on one-shots so repeats do not sound identical.
 
 **Future (not required for initial backlog):** blocked tap, power-ups (undo / shuffle / remove type), combo intensity on match if [GAME_SPEC.md](GAME_SPEC.md) combo multiplier ships.

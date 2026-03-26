@@ -111,7 +111,6 @@ const SESSION_SCHEMA_VERSION = 1;
 const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
 const SFX_URL_MAP = {
   [SFX_IDS.TILE_PICK]: new URL('./assets/audio/sfx_tile_pick.wav', import.meta.url).href,
-  [SFX_IDS.TRAY_PLACE]: new URL('./assets/audio/sfx_tray_place.wav', import.meta.url).href,
   [SFX_IDS.MATCH_CLEAR]: [
     new URL('./assets/audio/sfx_match_clear_a.wav', import.meta.url).href,
     new URL('./assets/audio/sfx_match_clear_b.wav', import.meta.url).href,
@@ -1784,7 +1783,6 @@ function handleBoardTileClick(tileId) {
   }
 
   if (skipAnimationsForTests) {
-    const traySlotForSfx = getTrayInsertIndexForType(state.trayTiles, tile.type);
     const pick = applyCommittedPick(
       { boardTiles: state.boardTiles, trayTiles: state.trayTiles, score: state.score },
       tileId
@@ -1805,7 +1803,6 @@ function handleBoardTileClick(tileId) {
     saveStats();
     renderBoard(true);
     renderTray();
-    audioSvc.playSfx(SFX_IDS.TRAY_PLACE, { traySlot: traySlotForSfx });
     if (pick.removedTypes.length > 0) {
       audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
     }
@@ -1843,7 +1840,6 @@ function handleBoardTileClick(tileId) {
   const insertIndex = getTrayInsertIndexForType(state.trayTiles, tile.type);
 
   function applyMove(onMatchingDone) {
-    audioSvc.playSfx(SFX_IDS.TRAY_PLACE, { traySlot: insertIndex });
     tile.removed = true;
     state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
     renderBoard(true);

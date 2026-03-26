@@ -11,9 +11,9 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
 | **Music UI** | **Done.** Header control: mute toggle + volume range ([`index.html`](index.html), [`style.css`](style.css)). Icons may use Phosphor in current `game.js`. |
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
-| **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **seven `sfx_*.wav` files**, and `lib/audio-service.js`. |
-| **SFX files** | **Shipped.** `assets/audio/sfx_tile_pick.wav`, `sfx_tray_place.wav`, `sfx_match_clear_{a,b,c}.wav`, `sfx_level_win.wav`, `sfx_level_loss.wav` (copied from `~/Downloads`). |
-| **SFX playback** | **Done.** `audioSvc.playSfx(SFX_IDS.…)` from [`lib/audio-service.js`](lib/audio-service.js); hooks in [`game.js`](game.js) (pick, tray land, match, win, loss; test skip path included). |
+| **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **six `sfx_*.wav` files**, and `lib/audio-service.js`. |
+| **SFX files** | **Shipped.** `sfx_tile_pick.wav`, `sfx_match_clear_{a,b,c}.wav`, `sfx_level_win.wav`, `sfx_level_loss.wav`. |
+| **SFX playback** | **Done.** Pick, match, win, loss ([`game.js`](game.js)); no separate tray-land cue ([AUDIO_DESIGN.md](AUDIO_DESIGN.md) note). |
 | **Web Audio + `Bus_SFX`** | **Done.** `AudioContext` + master gain for SFX; music stays on `HTMLAudioElement`. |
 | **SFX settings** | **Done.** Second row in header: mute + volume; persisted in `triplet_tiles_audio` with music. |
 | **Haptics** | **Not started.** |
@@ -60,12 +60,12 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | Priority | Task | Event ID | Status |
 |----------|------|----------|--------|
 | **P0** | Valid tile pick / fly starts | `SFX/UI/Tile_Pick` | **Done** |
-| **P0** | Tile lands in tray | `SFX/UI/Tray_Place` | **Done** (`traySlot` → pitch nudge) |
+| **P0** | Tile lands in tray | `SFX/UI/Tray_Place` | **Omitted** (pick covers pickup + land) |
 | **P0** | Triplet clears | `SFX/Gameplay/Match_Clear` | **Done** |
 | **P0** | Level complete | `SFX/Meta/Level_Win` | **Done** |
 | **P0** | Tray overflow / loss | `SFX/Meta/Level_Loss` | **Done** |
 
-**Exit criteria:** Full level with all five cues; failures must not throw (no-op / try/catch).
+**Exit criteria:** Full level with pick / match / win / loss cues; failures must not throw (no-op / try/catch).
 
 ---
 
@@ -117,7 +117,6 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 |-------------------------|-------------|-------|--------|
 | `music_ambient_loop_01.mp3` | (music) | 1 loop | **Shipped** |
 | `sfx_tile_pick.wav` | `SFX/UI/Tile_Pick` | 1 | **Shipped** (from Downloads) |
-| `sfx_tray_place.wav` | `SFX/UI/Tray_Place` | 1 | **Shipped** |
 | `sfx_match_clear_a/b/c.wav` | `SFX/Gameplay/Match_Clear` | 3 variants | **Shipped** |
 | `sfx_level_win.wav` | `SFX/Meta/Level_Win` | 1 | **Shipped** |
 | `sfx_level_loss.wav` | `SFX/Meta/Level_Loss` | 1 | **Shipped** |
@@ -155,8 +154,8 @@ Each block is **one generation** (one dominant sound). For **match** variants, r
 2. **Tile pick — `SFX/UI/Tile_Pick`**  
    > High-quality, professionally recorded foley, close-mic, dry: one soft wooden block tapped once on thick felt or fabric, single short tick, warm mids, under 150 ms, no room reverb. Not glass, not metal, not sci-fi UI.
 
-3. **Tray place — `SFX/UI/Tray_Place`**  
-   > High-quality foley, close-mic, dry: one small wooden block dropped on a shallow carved wood groove, single soft clack, warm tone, under 250 ms. 
+3. **Tray place — `SFX/UI/Tray_Place` (reference only — not used in shipped game)**  
+   > High-quality foley, close-mic, dry: one small wooden block dropped on a shallow carved wood groove, single soft clack, warm tone, under 250 ms.
 
 4. **Match clear — variant A — `SFX/Gameplay/Match_Clear`**  
    > High-quality sound effect: **one** soft pleasant major chord swell, short decay, subtle airy top, dry studio feel, under 400 ms. Calm mobile puzzle
