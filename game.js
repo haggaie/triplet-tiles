@@ -14,11 +14,22 @@ import { boardTileCenterPx, computeBoardContentOffsetPx, measureBoardLayoutFromF
 import {
   buildTileTypeRemapForLayout,
   getTileFaceInnerHtml,
-  getTileTypeLabel,
   mountTileFace,
   normalizeLevelTileType
 } from './lib/tile-types.js';
 import { createAudioService, SFX_IDS, HAPTIC_KIND } from './lib/audio-service.js';
+import {
+  initI18n,
+  onLocaleChange,
+  t,
+  applyDomI18n,
+  formatGameInteger,
+  resolveLossMessage,
+  tileTypeLabel as localizedTileTypeLabel,
+  difficultyLabel,
+  displayShapeName,
+  setLocale
+} from './lib/i18n.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
@@ -125,8 +136,6 @@ const audioSvc = createAudioService({
   sfxUrlMap: SFX_URL_MAP
 });
 
-const TRAY_ARIA_LABEL_DEFAULT = 'Tray';
-
 function rootRemToPx(rem) {
   const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   return rem * fs;
@@ -194,10 +203,8 @@ function normalizeGridDims(level) {
   return { gridWidth: 6, gridHeight: 6 };
 }
 
-const scoreFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
-
 function formatScore(n) {
-  return scoreFormatter.format(Number(n) || 0);
+  return formatGameInteger(n);
 }
 
 function focusElementIfStillMounted(el) {
@@ -351,10 +358,13 @@ function resetMoveEngine() {
 
 function showWinOverlayUi() {
   const level = LEVELS[state.currentLevelIndex];
-  ui.overlayTitle.textContent = 'Level Complete';
-  ui.overlayMessage.textContent = `You cleared ${level.name} with a score of ${formatScore(state.score)}.`;
+  ui.overlayTitle.textContent = t('overlay.winTitle');
+  ui.overlayMessage.textContent = t('overlay.winBody', {
+    name: level.name,
+    score: formatScore(state.score)
+  });
   const isLast = state.currentLevelIndex >= LEVELS.length - 1;
-  const primaryLabel = isLast ? 'Restart from level 1' : 'Next level';
+  const primaryLabel = isLast ? t('overlay.restartFrom1') : t('overlay.nextLevel');
   ui.overlayPrimary.setAttribute('aria-label', primaryLabel);
   ui.overlayPrimary.title = primaryLabel;
   setPhosphorIcon(ui.overlayPrimary, isLast ? 'arrow-clockwise' : 'caret-right');
@@ -368,10 +378,10 @@ function showWinOverlayUi() {
 
 function showLossOverlayUi(reason) {
   _lastLossReason = reason || '';
-  ui.overlayTitle.textContent = 'Level Failed';
-  ui.overlayMessage.textContent = reason || 'The tray overflowed.';
-  ui.overlayPrimary.setAttribute('aria-label', 'Try again');
-  ui.overlayPrimary.title = 'Try again';
+  ui.overlayTitle.textContent = t('overlay.lossTitle');
+  ui.overlayMessage.textContent = resolveLossMessage(reason);
+  ui.overlayPrimary.setAttribute('aria-label', t('overlay.tryAgain'));
+  ui.overlayPrimary.title = t('overlay.tryAgain');
   setPhosphorIcon(ui.overlayPrimary, 'arrow-counter-clockwise');
   ui.overlaySecondary?.classList.add('hidden');
   _gameOverlayOutcome = 'loss';
@@ -771,9 +781,9 @@ function syncFullscreenButton() {
   if (!btn || btn.classList.contains('hidden')) return;
   const on = !!getFullscreenElement();
   btn.setAttribute('aria-pressed', String(on));
-  const label = on ? 'Exit full screen' : 'Full screen';
+  const label = on ? t('toolbar.exitFullScreen') : t('toolbar.fullScreen');
   btn.setAttribute('aria-label', label);
-  btn.title = on ? 'Leave full screen' : 'Fill the screen (hides browser UI where supported)';
+  btn.title = on ? t('toolbar.leaveFullScreen') : t('toolbar.fullScreenDetail');
   setPhosphorIcon(btn, on ? 'arrows-in' : 'arrows-out');
 }
 
@@ -821,7 +831,7 @@ function syncAudioUi() {
   if (ui.musicMuteToggle && ui.musicVolume) {
     const audible = !s.musicMuted && s.musicVolume > 0;
     ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
-    const label = audible ? 'Music on' : 'Music off';
+    const label = audible ? t('audio.musicOn') : t('audio.musicOff');
     ui.musicMuteToggle.setAttribute('aria-label', label);
     setPhosphorIcon(ui.musicMuteToggle, audible ? 'speaker-high' : 'speaker-slash');
     ui.musicVolume.value = String(s.musicVolume);
@@ -830,7 +840,7 @@ function syncAudioUi() {
   if (ui.sfxMuteToggle && ui.sfxVolume) {
     const sfxAudible = !s.sfxMuted && s.sfxVolume > 0;
     ui.sfxMuteToggle.setAttribute('aria-pressed', String(sfxAudible));
-    const sfxLabel = sfxAudible ? 'Sound effects on' : 'Sound effects off';
+    const sfxLabel = sfxAudible ? t('audio.sfxOn') : t('audio.sfxOff');
     ui.sfxMuteToggle.setAttribute('aria-label', sfxLabel);
     setPhosphorIcon(ui.sfxMuteToggle, sfxAudible ? 'waveform' : 'waveform-slash');
     ui.sfxVolume.value = String(s.sfxVolume);
@@ -843,23 +853,17 @@ function syncAudioUi() {
       ui.hapticsToggle.disabled = true;
       ui.hapticsToggle.setAttribute('aria-disabled', 'true');
       ui.hapticsToggle.removeAttribute('aria-pressed');
-      ui.hapticsToggle.setAttribute(
-        'aria-label',
-        'Vibration not supported in this browser'
-      );
-      ui.hapticsToggle.setAttribute(
-        'title',
-        'Vibration is not available in this browser. On Android, Chrome and Samsung Internet support it; Firefox for Android does not.'
-      );
+      ui.hapticsToggle.setAttribute('aria-label', t('audio.hapticsUnsupportedAria'));
+      ui.hapticsToggle.setAttribute('title', t('audio.hapticsUnsupportedTitle'));
       setPhosphorIcon(ui.hapticsToggle, 'prohibit');
     } else {
       ui.hapticsToggle.disabled = false;
       ui.hapticsToggle.removeAttribute('aria-disabled');
       const hap = !!s.hapticsEnabled;
       ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
-      const hapLabel = hap ? 'Vibration on' : 'Vibration off';
+      const hapLabel = hap ? t('audio.hapticsOn') : t('audio.hapticsOff');
       ui.hapticsToggle.setAttribute('aria-label', hapLabel);
-      ui.hapticsToggle.setAttribute('title', hap ? 'Turn vibration off' : 'Turn vibration on');
+      ui.hapticsToggle.setAttribute('title', hap ? t('audio.hapticsTurnOff') : t('audio.hapticsTurnOn'));
       setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
     }
   }
@@ -1578,7 +1582,7 @@ function clearRemoveTypeTrayUi() {
   if (!ui.tray) return;
   ui.tray.tabIndex = -1;
   ui.tray.removeAttribute('aria-activedescendant');
-  ui.tray.setAttribute('aria-label', TRAY_ARIA_LABEL_DEFAULT);
+  ui.tray.setAttribute('aria-label', t('tray.groupAria'));
   for (const slot of ui.tray.children) {
     const t = slot.querySelector?.('.tray-tile');
     if (!t) continue;
@@ -1633,10 +1637,7 @@ function applyRemoveTypeTrayUi() {
     clearRemoveTypeTrayUi();
     return;
   }
-  ui.tray.setAttribute(
-    'aria-label',
-    'Choose a tile type to remove from the board and tray. Arrow keys to move, Enter or Space to confirm, Escape to cancel.'
-  );
+  ui.tray.setAttribute('aria-label', t('tray.removeTypeTrayAria'));
   ui.tray.tabIndex = 0;
   for (let i = 0; i < ui.tray.children.length; i += 1) {
     const tileEl = ui.tray.children[i].querySelector?.('.tray-tile');
@@ -1657,7 +1658,7 @@ function applyRemoveTypeTrayUi() {
     tileEl.setAttribute('role', 'button');
     tileEl.setAttribute(
       'aria-label',
-      `${getTileTypeLabel(tile.type)} in tray — remove this type from board and tray`
+      t('tray.removeTypeTileAria', { type: localizedTileTypeLabel(tile.type) })
     );
   }
   ensureTrayRemoveTypeFocusSlot();
@@ -1737,7 +1738,10 @@ function updateBoardTappableState(ignoreTileId = null) {
     if (tappable && tile) {
       child.tabIndex = -1;
       child.setAttribute('role', 'button');
-      child.setAttribute('aria-label', `${getTileTypeLabel(tile.type)}, exposed tile`);
+      child.setAttribute(
+        'aria-label',
+        t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
+      );
     } else {
       child.tabIndex = -1;
       child.removeAttribute('role');
@@ -1830,7 +1834,7 @@ function handleBoardTileClick(tileId) {
     );
     if (!pick.ok) {
       if (pick.error === 'tray_full') {
-        triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
+        triggerLoss('loss.trayFull');
       }
       return;
     }
@@ -1871,7 +1875,7 @@ function handleBoardTileClick(tileId) {
     return;
   }
   if (shouldTriggerTrayOverflowLoss(projected.length, _combiningTypes.length)) {
-    triggerLoss('The tray is full. Try managing your tiles more carefully next time.');
+    triggerLoss('loss.trayFull');
     return;
   }
 
@@ -2361,7 +2365,7 @@ function populateLevelSelectShapeOptions() {
   ui.levelSelectShape.innerHTML = '';
   const allOpt = document.createElement('option');
   allOpt.value = '';
-  allOpt.textContent = 'All shapes';
+  allOpt.textContent = t('levelSelect.allShapes');
   ui.levelSelectShape.appendChild(allOpt);
   for (const k of keys) {
     const opt = document.createElement('option');
@@ -2494,10 +2498,12 @@ function buildLevelSelectGrid() {
     const meta = document.createElement('span');
     meta.className = 'level-select-card-difficulty';
     const shape = getLevelShapeKey(level);
+    const shapeDisp = displayShapeName(shape);
+    const diffBand = getDifficultyForIndex(i);
     meta.textContent =
       isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
-        ? shape
-        : getDifficultyForIndex(i);
+        ? shapeDisp
+        : difficultyLabel(diffBand);
     card.appendChild(meta);
 
     const pickLevel = () => {
@@ -2509,8 +2515,12 @@ function buildLevelSelectGrid() {
     card.setAttribute(
       'aria-label',
       isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
-        ? `Level ${level.id}: ${level.name}, shape ${shape}`
-        : `Level ${level.id}: ${level.name}, ${getDifficultyForIndex(i)} difficulty`
+        ? t('levelSelect.cardAriaShape', { id: level.id, name: level.name, shape: shapeDisp })
+        : t('levelSelect.cardAriaDiff', {
+            id: level.id,
+            name: level.name,
+            difficulty: difficultyLabel(diffBand)
+          })
     );
     card.addEventListener('click', pickLevel);
     card.addEventListener('keydown', (ev) => {
@@ -2523,7 +2533,7 @@ function buildLevelSelectGrid() {
 
   if (ui.levelSelectHint) {
     ui.levelSelectHint.textContent =
-      indices.length === 0 ? 'No levels match this filter.' : 'Click a level to play';
+      indices.length === 0 ? t('levelSelect.hintEmpty') : t('levelSelect.hint');
   }
 }
 
@@ -2616,7 +2626,7 @@ function performRemoveType(type) {
 
 function renderHud() {
   const level = LEVELS[state.currentLevelIndex];
-  ui.levelLabel.textContent = `Level ${level.id}: ${level.name}`;
+  ui.levelLabel.textContent = t('level.line', { id: level.id, name: level.name });
   ui.scoreValue.textContent = formatScore(state.score);
   ui.undoCount.textContent = String(state.powerups.undo);
   ui.shuffleCount.textContent = String(state.powerups.shuffle);
@@ -2689,7 +2699,10 @@ function renderBoard(withSettleAnimation = false) {
     el.tabIndex = -1;
     if (tappable) {
       el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', `${getTileTypeLabel(tile.type)}, exposed tile`);
+      el.setAttribute(
+        'aria-label',
+        t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
+      );
     } else {
       el.removeAttribute('role');
       el.removeAttribute('aria-label');
@@ -2866,6 +2879,10 @@ if (typeof window !== 'undefined') {
       const pattern = [40, 60, 40];
       const vibrateOk = navigator.vibrate(pattern);
       return { ok: vibrateOk, pattern, vibrateOk };
+    },
+    /** Playwright: switch UI language without depending on #locale-select. */
+    setLocaleForTest(code) {
+      setLocale(code, { persist: false });
     }
   };
 }
@@ -2883,8 +2900,30 @@ function installBoardScrollResizeObserver() {
   ro.observe(ui.boardScroll);
 }
 
+function refreshShellForLocale() {
+  if (typeof document === 'undefined') return;
+  document.title = t('app.docTitle');
+  applyDomI18n(document.body);
+  syncFullscreenButton();
+  syncAudioUi();
+  renderHud();
+  renderBoard(false);
+  renderTray();
+  if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) {
+    populateLevelSelectShapeOptions();
+    syncLevelSelectToolbar();
+    buildLevelSelectGrid();
+  }
+  if (ui.overlay && !ui.overlay.classList.contains('hidden')) {
+    if (_gameOverlayOutcome === 'win') showWinOverlayUi();
+    else if (_gameOverlayOutcome === 'loss') showLossOverlayUi(_lastLossReason);
+  }
+}
+
 function main() {
   initDomRefs();
+  onLocaleChange(refreshShellForLocale);
+  initI18n({ localeSelect: document.getElementById('locale-select') });
   syncAudioUi();
   audioSvc.applyStoredStateToElement();
   installDisplayModeUi();

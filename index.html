@@ -20,30 +20,51 @@
     <div id="app">
       <header class="top-bar">
         <div class="top-bar-left">
-          <h1 class="game-title">Triplet Tiles</h1>
+          <h1 class="game-title" data-i18n="app.gameTitle">Triplet Tiles</h1>
           <div class="level-info">
             <span id="level-label">Level 1</span>
             <button
               type="button"
               id="level-select-button"
               class="btn btn-ghost btn-icon"
+              data-i18n-title="chrome.chooseLevel"
+              data-i18n-aria-label="chrome.chooseLevel"
               title="Choose level"
               aria-label="Choose level"
             >
               <i class="ph ph-list-numbers" aria-hidden="true"></i>
             </button>
-            <button type="button" id="restart-button" class="btn btn-ghost btn-icon" title="Restart level" aria-label="Restart level">
+            <button
+              type="button"
+              id="restart-button"
+              class="btn btn-ghost btn-icon"
+              data-i18n-title="chrome.restartLevel"
+              data-i18n-aria-label="chrome.restartLevel"
+              title="Restart level"
+              aria-label="Restart level"
+            >
               <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
             </button>
           </div>
         </div>
         <div class="top-bar-right">
-          <div class="display-mode-toolbar" role="group" aria-label="Display">
+          <select
+            id="locale-select"
+            class="locale-select btn btn-ghost btn-small"
+            aria-label="Language"
+            data-i18n-aria-label="locale.selectLabel"
+          >
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+          <div class="display-mode-toolbar" role="group" data-i18n-aria-label="toolbar.display" aria-label="Display">
             <button
               type="button"
               id="fullscreen-toggle"
               class="btn btn-ghost btn-small btn-icon display-mode-btn"
               aria-pressed="false"
+              data-i18n-aria-label="toolbar.fullScreen"
+              data-i18n-title="toolbar.fullScreenDetail"
               aria-label="Full screen"
               title="Fill the screen (hides browser UI where supported)"
             >
@@ -53,6 +74,8 @@
               type="button"
               id="install-app-button"
               class="btn btn-ghost btn-small btn-icon display-mode-btn hidden"
+              data-i18n-aria-label="toolbar.installApp"
+              data-i18n-title="toolbar.installDetail"
               aria-label="Install app"
               title="Install as an app for a fuller screen without the address bar"
             >
@@ -60,18 +83,19 @@
             </button>
           </div>
           <div class="audio-stack">
-            <div class="audio-row" role="group" aria-label="Background music">
+            <div class="audio-row" role="group" data-i18n-aria-label="audio.musicGroup" aria-label="Background music">
               <button
                 type="button"
                 id="music-mute-toggle"
                 class="btn btn-ghost btn-small btn-icon audio-music-toggle"
                 aria-pressed="true"
                 aria-label="Music on"
+                data-i18n-title="audio.musicDetail"
                 title="Turn background music on or off"
               >
                 <i class="ph ph-speaker-high" aria-hidden="true"></i>
               </button>
-              <label class="audio-volume-label" for="music-volume">Music volume</label>
+              <label class="audio-volume-label" for="music-volume" data-i18n="audio.musicVolumeLabel">Music volume</label>
               <input
                 type="range"
                 id="music-volume"
@@ -80,21 +104,23 @@
                 max="1"
                 step="0.05"
                 value="0.55"
+                data-i18n-aria-label="audio.musicVolumeAria"
                 aria-label="Music volume"
               />
             </div>
-            <div class="audio-row" role="group" aria-label="Sound effects">
+            <div class="audio-row" role="group" data-i18n-aria-label="audio.sfxGroup" aria-label="Sound effects">
               <button
                 type="button"
                 id="sfx-mute-toggle"
                 class="btn btn-ghost btn-small btn-icon audio-sfx-toggle"
                 aria-pressed="true"
                 aria-label="Sound effects on"
+                data-i18n-title="audio.sfxDetail"
                 title="Turn sound effects on or off"
               >
                 <i class="ph ph-waveform" aria-hidden="true"></i>
               </button>
-              <label class="audio-volume-label" for="sfx-volume">Sound effects volume</label>
+              <label class="audio-volume-label" for="sfx-volume" data-i18n="audio.sfxVolumeLabel">Sound effects volume</label>
               <input
                 type="range"
                 id="sfx-volume"
@@ -103,36 +129,40 @@
                 max="1"
                 step="0.05"
                 value="0.85"
+                data-i18n-aria-label="audio.sfxVolumeAria"
                 aria-label="Sound effects volume"
               />
             </div>
-            <div class="audio-row audio-row-haptics" role="group" aria-label="Vibration">
+            <div class="audio-row audio-row-haptics" role="group" data-i18n-aria-label="audio.hapticsGroup" aria-label="Vibration">
               <button
                 type="button"
                 id="haptics-toggle"
                 class="btn btn-ghost btn-small btn-icon audio-haptics-toggle"
                 aria-pressed="true"
                 aria-label="Vibration on"
+                data-i18n-title="audio.hapticsTurnOff"
                 title="Turn vibration off"
               >
                 <i class="ph ph-vibrate" aria-hidden="true"></i>
               </button>
-              <span class="audio-volume-label">Vibration</span>
+              <span class="audio-volume-label" data-i18n="audio.vibrationWord">Vibration</span>
             </div>
           </div>
           <div class="score-info">
-            <span>Score</span>
+            <span data-i18n="score.label">Score</span>
             <span id="score-value" aria-live="polite" aria-atomic="true">0</span>
           </div>
         </div>
       </header>
 
       <main class="main-layout">
-        <div class="powerups" aria-label="Power-ups">
+        <div class="powerups" role="group" data-i18n-aria-label="powerups.group" aria-label="Power-ups">
           <button
             type="button"
             id="undo-button"
             class="btn btn-small btn-with-icon"
+            data-i18n-title="powerups.undoTitle"
+            data-i18n-aria-label="powerups.undoAria"
             title="Undo last move"
             aria-label="Undo last move"
           >
@@ -143,6 +173,8 @@
             type="button"
             id="shuffle-button"
             class="btn btn-small btn-with-icon"
+            data-i18n-title="powerups.shuffleTitle"
+            data-i18n-aria-label="powerups.shuffleAria"
             title="Shuffle tile types on the board (positions stay the same)"
             aria-label="Shuffle tile types"
           >
@@ -153,6 +185,8 @@
             type="button"
             id="remove-type-button"
             class="btn btn-small btn-with-icon"
+            data-i18n-title="powerups.removeTypeTitle"
+            data-i18n-aria-label="powerups.removeTypeAria"
             title="Remove all of one tile type"
             aria-label="Remove one tile type"
           >
@@ -160,24 +194,25 @@
             <span class="powerup-count">(<span id="remove-type-count">0</span>)</span>
           </button>
         </div>
-        <section id="board-scroll" class="board-scroll" aria-label="Board playfield (scroll to see the whole grid on large levels)">
+        <section
+          id="board-scroll"
+          class="board-scroll"
+          data-i18n-aria-label="board.playfieldAria"
+          aria-label="Board playfield (scroll to see the whole grid on large levels)"
+        >
           <div class="board-scroll-align">
             <div
               id="board"
               class="board"
               role="group"
+              data-i18n-aria-label="board.gridAria"
               aria-label="Game board, match exposed tiles. Focus moves here when a level starts; arrow keys move in four directions and wrap to the far edge (e.g. left from the first column jumps to the rightmost column); Enter or Space to collect."
             ></div>
           </div>
         </section>
         <section class="tray-wrapper">
-          <div class="tray-label">Tray</div>
-          <div
-            id="tray"
-            class="tray"
-            role="group"
-            aria-label="Tray"
-          ></div>
+          <div class="tray-label" data-i18n="tray.sectionLabel">Tray</div>
+          <div id="tray" class="tray" role="group" data-i18n-aria-label="tray.groupAria" aria-label="Tray"></div>
         </section>
       </main>
 
@@ -189,16 +224,26 @@
         aria-labelledby="overlay-title"
       >
         <div class="overlay-content">
-          <h2 id="overlay-title">Level Complete</h2>
+          <h2 id="overlay-title" data-i18n="overlay.winTitle">Level Complete</h2>
           <p id="overlay-message"></p>
           <div class="overlay-actions">
-            <button type="button" id="overlay-primary" class="btn btn-icon" aria-label="Next level" title="Next level">
+            <button
+              type="button"
+              id="overlay-primary"
+              class="btn btn-icon"
+              data-i18n-aria-label="overlay.nextAria"
+              data-i18n-title="overlay.nextLevel"
+              aria-label="Next level"
+              title="Next level"
+            >
               <i class="ph ph-caret-right" aria-hidden="true"></i>
             </button>
             <button
               type="button"
               id="overlay-secondary"
               class="btn btn-ghost btn-icon"
+              data-i18n-aria-label="overlay.retryLevelAria"
+              data-i18n-title="overlay.retryLevelAria"
               aria-label="Retry this level"
               title="Retry this level"
             >
@@ -217,37 +262,70 @@
       >
         <div class="level-select-panel">
           <div class="level-select-header">
-            <h2 id="level-select-heading">Choose Level</h2>
-            <button type="button" id="level-select-close" class="btn btn-ghost btn-icon" aria-label="Close" title="Close">
+            <h2 id="level-select-heading" data-i18n="levelSelect.heading">Choose Level</h2>
+            <button
+              type="button"
+              id="level-select-close"
+              class="btn btn-ghost btn-icon"
+              data-i18n-aria-label="levelSelect.close"
+              data-i18n-title="levelSelect.close"
+              aria-label="Close"
+              title="Close"
+            >
               <i class="ph ph-x" aria-hidden="true"></i>
             </button>
           </div>
           <div id="level-select-debug" class="level-select-debug hidden">
-            <label for="level-select-group-by" class="level-select-debug-label">Group by</label>
-            <select id="level-select-group-by" class="level-select-group-by" aria-label="Group levels by">
-              <option value="difficulty">Difficulty (thirds)</option>
-              <option value="shape">Board shape</option>
+            <label for="level-select-group-by" class="level-select-debug-label" data-i18n="levelSelect.groupByLabel"
+              >Group by</label
+            >
+            <select
+              id="level-select-group-by"
+              class="level-select-group-by"
+              data-i18n-aria-label="levelSelect.groupAria"
+              aria-label="Group levels by"
+            >
+              <option value="difficulty" data-i18n="levelSelect.groupDifficulty">Difficulty (thirds)</option>
+              <option value="shape" data-i18n="levelSelect.groupShape">Board shape</option>
             </select>
           </div>
           <div id="level-select-difficulty-row" class="level-select-difficulty">
-            <button type="button" id="level-select-all" class="btn btn-ghost level-select-band">All</button>
-            <button type="button" id="level-select-easy" class="btn btn-ghost level-select-band">Easy</button>
-            <button type="button" id="level-select-medium" class="btn btn-ghost level-select-band">Medium</button>
-            <button type="button" id="level-select-hard" class="btn btn-ghost level-select-band">Hard</button>
+            <button type="button" id="level-select-all" class="btn btn-ghost level-select-band" data-i18n="levelSelect.all">
+              All
+            </button>
+            <button type="button" id="level-select-easy" class="btn btn-ghost level-select-band" data-i18n="levelSelect.easy">
+              Easy
+            </button>
+            <button
+              type="button"
+              id="level-select-medium"
+              class="btn btn-ghost level-select-band"
+              data-i18n="levelSelect.medium"
+            >
+              Medium
+            </button>
+            <button type="button" id="level-select-hard" class="btn btn-ghost level-select-band" data-i18n="levelSelect.hard">
+              Hard
+            </button>
           </div>
           <div id="level-select-shape-row" class="level-select-shape-row hidden">
-            <label for="level-select-shape" class="level-select-shape-label">Shape</label>
-            <select id="level-select-shape" class="level-select-shape-select" aria-label="Filter by board template shape"></select>
+            <label for="level-select-shape" class="level-select-shape-label" data-i18n="levelSelect.shapeLabel">Shape</label>
+            <select
+              id="level-select-shape"
+              class="level-select-shape-select"
+              data-i18n-aria-label="levelSelect.filterShapeAria"
+              aria-label="Filter by board template shape"
+            ></select>
           </div>
           <div class="level-select-scroll">
             <div id="level-select-carousel" class="level-select-grid"></div>
           </div>
-          <p id="level-select-hint" class="level-select-hint">Click a level to play</p>
+          <p id="level-select-hint" class="level-select-hint" data-i18n="levelSelect.hint">Click a level to play</p>
         </div>
       </div>
     </div>
 
-    <p class="openmoji-credit">
+    <p class="openmoji-credit" data-i18n-html="credits.full">
       Tile icons:
       <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer">OpenMoji</a>
       (CC&nbsp;BY-SA&nbsp;4.0) · UI icons:
