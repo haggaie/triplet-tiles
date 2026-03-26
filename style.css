@@ -264,18 +264,11 @@ body {
   outline-offset: 2px;
 }
 
-[dir='rtl'] .top-bar {
-  flex-direction: row-reverse;
-}
-
-[dir='rtl'] .top-bar-left,
-[dir='rtl'] .top-bar-right {
-  flex-direction: row-reverse;
-}
-
-[dir='rtl'] .level-info {
-  flex-direction: row-reverse;
-}
+/*
+ * RTL: rely on dir="rtl" on <html> (set from lib/i18n.js). Flex rows already
+ * flow main-start → main-end on the right, so do NOT use flex-direction:
+ * row-reverse here — it would cancel mirroring and keep the bar LTR.
+ */
 
 .game-title {
   font-size: 1.2rem;
