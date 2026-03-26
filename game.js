@@ -2805,6 +2805,9 @@ if (typeof window !== 'undefined') {
         combiningTypes: [..._combiningTypes],
         isMoveAnimating: _isMoveAnimating
       };
+    },
+    getAudioDiagnostics() {
+      return typeof audioSvc.getDiagnostics === 'function' ? audioSvc.getDiagnostics() : null;
     }
   };
 }

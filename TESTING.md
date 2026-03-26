@@ -48,6 +48,7 @@ The Playwright configuration in `playwright.config.js` starts a simple static se
 - Power-ups: undo, shuffle, and remove tile type, including button enable/disable logic (`tests/powerups.spec.js`) — plus **Remove Type** tray focus, **arrow + Enter** confirmation, **Escape** cancel, and board `tabIndex` while the mode is active.
 - Level progression, win/loss overlays, and `localStorage`-backed stats and progression (`tests/progression-stats.spec.js`).
 - Mobile layouts: several portrait/landscape viewports, level select overlay, and iPhone-style viewport/UA/DPR (`tests/mobile-viewport.spec.js`) — asserts **no horizontal page overflow**, **tiles fully inside** `#board` (not clipped by `overflow: hidden`), **`#board` pixel size matches** `measureBoardLayout` for the level’s `gridWidth`/`gridHeight`, **full board visible** in the viewport after scroll, and that `#board` / `#tray` stay within the viewport width.
+- **Audio:** `tests/audio-sfx.spec.js` — after a click on `#app`, asserts SFX buffers finished decoding (`sfxBuffersLoaded`) and the Web Audio context is usable (`getAudioDiagnostics()` via `window.__tripletTestHooks`). Does not assert that speakers produce sound.
 
 Run only mobile layout checks:
 
