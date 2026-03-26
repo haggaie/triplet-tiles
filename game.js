@@ -28,6 +28,7 @@ import {
   tileTypeLabel as localizedTileTypeLabel,
   difficultyLabel,
   displayShapeName,
+  translateLevelDisplayName,
   setLocale
 } from './lib/i18n.js';
 
@@ -360,7 +361,7 @@ function showWinOverlayUi() {
   const level = LEVELS[state.currentLevelIndex];
   ui.overlayTitle.textContent = t('overlay.winTitle');
   ui.overlayMessage.textContent = t('overlay.winBody', {
-    name: level.name,
+    name: translateLevelDisplayName(level),
     score: formatScore(state.score)
   });
   const isLast = state.currentLevelIndex >= LEVELS.length - 1;
@@ -2522,7 +2523,8 @@ function buildLevelSelectGrid() {
 
     const label = document.createElement('span');
     label.className = 'level-select-card-label';
-    label.textContent = `${level.id}: ${level.name}`;
+    const levelTitle = translateLevelDisplayName(level);
+    label.textContent = `${level.id}: ${levelTitle}`;
     card.appendChild(label);
 
     const meta = document.createElement('span');
@@ -2545,10 +2547,14 @@ function buildLevelSelectGrid() {
     card.setAttribute(
       'aria-label',
       isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
-        ? t('levelSelect.cardAriaShape', { id: level.id, name: level.name, shape: shapeDisp })
+        ? t('levelSelect.cardAriaShape', {
+            id: level.id,
+            name: translateLevelDisplayName(level),
+            shape: shapeDisp
+          })
         : t('levelSelect.cardAriaDiff', {
             id: level.id,
-            name: level.name,
+            name: translateLevelDisplayName(level),
             difficulty: difficultyLabel(diffBand)
           })
     );
@@ -2656,7 +2662,10 @@ function performRemoveType(type) {
 
 function renderHud() {
   const level = LEVELS[state.currentLevelIndex];
-  ui.levelLabel.textContent = t('level.line', { id: level.id, name: level.name });
+  ui.levelLabel.textContent = t('level.line', {
+    id: level.id,
+    name: translateLevelDisplayName(level)
+  });
   ui.scoreValue.textContent = formatScore(state.score);
   ui.undoCount.textContent = String(state.powerups.undo);
   ui.shuffleCount.textContent = String(state.powerups.shuffle);

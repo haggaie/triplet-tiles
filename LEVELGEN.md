@@ -18,7 +18,7 @@ This document describes how the Triplet Tiles level generator and solver work, h
   - Scoring → turns solver-derived metrics into a single difficulty score (`score.js`).
   - CLI → runs the whole pipeline and writes `levels.generated.js` (`generate-levels.js`).
 
-All of this runs at **build time**. At runtime, the game simply loads `levels.generated.js` and plays those levels.
+All of this runs at **build time**. At runtime, the game simply loads `levels.generated.js` and plays those levels. **Localized titles:** the UI uses `translateLevelDisplayName` in `lib/i18n.js` for tutorial/fallback names and for generator titles of the form `"SHAPE n"` (e.g. `DIAMOND 12`). If you introduce a **new** leading word in `name` before the trailing number, add a `level.shape.WORD` string for every supported locale (see `GENERATED_SHAPE_KEYS` in `i18n.js`).
 
 ### Level configuration
 
