@@ -367,7 +367,11 @@ function showWinOverlayUi() {
   const primaryLabel = isLast ? t('overlay.restartFrom1') : t('overlay.nextLevel');
   ui.overlayPrimary.setAttribute('aria-label', primaryLabel);
   ui.overlayPrimary.title = primaryLabel;
-  setPhosphorIcon(ui.overlayPrimary, isLast ? 'arrow-clockwise' : 'caret-right');
+  setPhosphorIcon(
+    ui.overlayPrimary,
+    isLast ? (isDocumentRtl() ? 'arrow-counter-clockwise' : 'arrow-clockwise') : iconCaretForward()
+  );
+  if (ui.overlaySecondary) setPhosphorIcon(ui.overlaySecondary, iconRetryCurvedArrow());
   ui.overlaySecondary?.classList.remove('hidden');
   _gameOverlayOutcome = 'win';
   _focusBeforeGameOverlay = document.activeElement;
@@ -382,7 +386,7 @@ function showLossOverlayUi(reason) {
   ui.overlayMessage.textContent = resolveLossMessage(reason);
   ui.overlayPrimary.setAttribute('aria-label', t('overlay.tryAgain'));
   ui.overlayPrimary.title = t('overlay.tryAgain');
-  setPhosphorIcon(ui.overlayPrimary, 'arrow-counter-clockwise');
+  setPhosphorIcon(ui.overlayPrimary, iconRetryCurvedArrow());
   ui.overlaySecondary?.classList.add('hidden');
   _gameOverlayOutcome = 'loss';
   _focusBeforeGameOverlay = document.activeElement;
@@ -732,6 +736,32 @@ function initDomRefs() {
 function setPhosphorIcon(buttonEl, iconName) {
   const icon = buttonEl?.querySelector?.(':scope > i.ph');
   if (icon) icon.className = `ph ph-${iconName}`;
+}
+
+function isDocumentRtl() {
+  return typeof document !== 'undefined' && document.documentElement.getAttribute('dir') === 'rtl';
+}
+
+/** Forward / “next” caret follows reading direction (RTL → points left). */
+function iconCaretForward() {
+  return isDocumentRtl() ? 'caret-left' : 'caret-right';
+}
+
+/** Curved retry arrow mirrored for RTL (LTR: counter-clockwise reads as retry/back). */
+function iconRetryCurvedArrow() {
+  return isDocumentRtl() ? 'arrow-clockwise' : 'arrow-counter-clockwise';
+}
+
+/** Undo arrow: up-left in LTR, up-right in RTL. */
+function iconUndoArrow() {
+  return isDocumentRtl() ? 'arrow-u-up-right' : 'arrow-u-up-left';
+}
+
+function syncRtlDirectionalChromeIcons() {
+  if (ui.undoButton) setPhosphorIcon(ui.undoButton, iconUndoArrow());
+  if (ui.restartButton) {
+    setPhosphorIcon(ui.restartButton, isDocumentRtl() ? 'arrow-counter-clockwise' : 'arrow-clockwise');
+  }
 }
 
 function getFullscreenElement() {
@@ -2904,6 +2934,7 @@ function refreshShellForLocale() {
   if (typeof document === 'undefined') return;
   document.title = t('app.docTitle');
   applyDomI18n(document.body);
+  syncRtlDirectionalChromeIcons();
   syncFullscreenButton();
   syncAudioUi();
   renderHud();
@@ -2924,6 +2955,7 @@ function main() {
   initDomRefs();
   onLocaleChange(refreshShellForLocale);
   initI18n({ localeSelect: document.getElementById('locale-select') });
+  syncRtlDirectionalChromeIcons();
   syncAudioUi();
   audioSvc.applyStoredStateToElement();
   installDisplayModeUi();
