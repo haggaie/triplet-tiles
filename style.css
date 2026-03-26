@@ -211,10 +211,16 @@ body {
 }
 
 .audio-music-toggle,
-.audio-sfx-toggle {
+.audio-sfx-toggle,
+.audio-haptics-toggle {
   flex-shrink: 0;
   font-size: 0.75rem;
   padding: 0.25rem 0.55rem;
+}
+
+.audio-row-haptics {
+  /* Icon-only row: keep label sr-only like volume rows. */
+  min-height: 1.75rem;
 }
 
 .audio-volume-label {

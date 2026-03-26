@@ -18,7 +18,7 @@ import {
   mountTileFace,
   normalizeLevelTileType
 } from './lib/tile-types.js';
-import { createAudioService, SFX_IDS } from './lib/audio-service.js';
+import { createAudioService, SFX_IDS, HAPTIC_KIND } from './lib/audio-service.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
@@ -712,6 +712,7 @@ function initDomRefs() {
   ui.musicVolume = document.getElementById('music-volume');
   ui.sfxMuteToggle = document.getElementById('sfx-mute-toggle');
   ui.sfxVolume = document.getElementById('sfx-volume');
+  ui.hapticsToggle = document.getElementById('haptics-toggle');
 
   ui.fullscreenToggle = document.getElementById('fullscreen-toggle');
   ui.installAppButton = document.getElementById('install-app-button');
@@ -834,6 +835,14 @@ function syncAudioUi() {
     setPhosphorIcon(ui.sfxMuteToggle, sfxAudible ? 'waveform' : 'waveform-slash');
     ui.sfxVolume.value = String(s.sfxVolume);
     ui.sfxVolume.disabled = s.sfxMuted;
+  }
+  if (ui.hapticsToggle) {
+    const hap = !!s.hapticsEnabled;
+    ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
+    const hapLabel = hap ? 'Vibration on' : 'Vibration off';
+    ui.hapticsToggle.setAttribute('aria-label', hapLabel);
+    ui.hapticsToggle.setAttribute('title', hap ? 'Turn vibration off' : 'Turn vibration on');
+    setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
   }
 }
 
@@ -1002,6 +1011,14 @@ function bindEvents() {
       const v = parseFloat(ui.sfxVolume.value);
       audioSvc.setSfxVolume(v);
       syncAudioUi();
+    });
+  }
+  if (ui.hapticsToggle) {
+    ui.hapticsToggle.addEventListener('click', () => {
+      const next = !audioSvc.getState().hapticsEnabled;
+      audioSvc.setHapticsEnabled(next);
+      syncAudioUi();
+      if (next) audioSvc.triggerHaptic(HAPTIC_KIND.PICK);
     });
   }
 
@@ -1794,6 +1811,7 @@ function handleBoardTileClick(tileId) {
       return;
     }
     audioSvc.playSfx(SFX_IDS.TILE_PICK);
+    audioSvc.triggerHaptic(HAPTIC_KIND.PICK);
     _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
     takeSnapshot();
     state.boardTiles = pick.boardTiles;
@@ -1805,6 +1823,7 @@ function handleBoardTileClick(tileId) {
     renderTray();
     if (pick.removedTypes.length > 0) {
       audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
+      audioSvc.triggerHaptic(HAPTIC_KIND.MATCH);
     }
     renderHud();
     checkWinCondition();
@@ -1835,6 +1854,7 @@ function handleBoardTileClick(tileId) {
   _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
   takeSnapshot();
   audioSvc.playSfx(SFX_IDS.TILE_PICK);
+  audioSvc.triggerHaptic(HAPTIC_KIND.PICK);
 
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
   const insertIndex = getTrayInsertIndexForType(state.trayTiles, tile.type);
@@ -1884,6 +1904,7 @@ function handleMatchingInTray() {
   const { trayTiles, scoreDelta, removedTypes } = removeMatchingTriplesOneRound(state.trayTiles);
   if (removedTypes.length === 0) return;
   audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
+  audioSvc.triggerHaptic(HAPTIC_KIND.MATCH);
   state.trayTiles = trayTiles;
   state.score += scoreDelta;
   state.stats.tilesClearedTotal += removedTypes.length * 3;
@@ -2222,6 +2243,7 @@ function triggerWin() {
   saveStats();
   saveProgression();
   audioSvc.playSfx(SFX_IDS.LEVEL_WIN);
+  audioSvc.triggerHaptic(HAPTIC_KIND.WIN);
   showWinOverlayUi();
   saveSessionImmediate();
 }
@@ -2231,6 +2253,7 @@ function triggerLoss(reason) {
   state.stats.currentWinStreak = 0;
   saveStats();
   audioSvc.playSfx(SFX_IDS.LEVEL_LOSS);
+  audioSvc.triggerHaptic(HAPTIC_KIND.LOSS);
   showLossOverlayUi(reason);
   saveSessionImmediate();
 }
@@ -2808,6 +2831,9 @@ if (typeof window !== 'undefined') {
     /** Playwright: trigger SFX by `SFX_IDS` string (e.g. match / win duck tests). */
     playTestSfx(eventId) {
       audioSvc.playSfx(eventId);
+    },
+    playTestHaptic(kind) {
+      audioSvc.triggerHaptic(kind);
     }
   };
 }

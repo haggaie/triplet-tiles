@@ -16,7 +16,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **SFX playback** | **Done.** Pick, match, win, loss ([`game.js`](game.js)); no separate tray-land cue ([AUDIO_DESIGN.md](AUDIO_DESIGN.md) note). |
 | **Web Audio + `Bus_SFX`** | **Done.** `AudioContext` + master gain for SFX; music stays on `HTMLAudioElement`. |
 | **SFX settings** | **Done.** Second row in header: mute + volume; persisted in `triplet_tiles_audio` with music. |
-| **Haptics** | **Not started.** |
+| **Haptics** | **Done.** `navigator.vibrate` patterns ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); `prefers-reduced-motion` default off; 65 ms min gap (match pick skipped if busy; win/loss deferred); toggle persisted in `triplet_tiles_audio`; header control ([`index.html`](index.html), [`game.js`](game.js), [`lib/audio-service.js`](lib/audio-service.js)). |
 
 **Attribution (repo only):** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno) — [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 
@@ -24,7 +24,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 ## What’s next (recommended order)
 
-1. **Haptics** — Phase 5 (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
+1. ~~**Haptics** — Phase 5~~ **Done** (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
 2. **Polish** — Optional Playwright “unlocked after gesture” smoke (`tests/audio-sfx.spec.js`).
 3. **Optional** — Compact “Sound” popover if the header feels crowded.
 
@@ -91,12 +91,12 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 ## Phase 5 — Haptics
 
-| Priority | Task | Notes |
-|----------|------|--------|
-| **P1** | `navigator.vibrate` + `hapticsEnabled` | Patterns in [AUDIO_DESIGN.md](AUDIO_DESIGN.md). |
-| **P1** | `prefers-reduced-motion` → haptics off by default (or explicit override) | |
-| **P1** | Rate-limit vibrate (e.g. 50–80 ms min gap) | |
-| **P1** | Persist haptics toggle | Three-way: Music / SFX / Haptics. |
+| Priority | Task | Status | Notes |
+|----------|------|--------|--------|
+| **P1** | `navigator.vibrate` + `hapticsEnabled` | **Done** | Patterns in [AUDIO_DESIGN.md](AUDIO_DESIGN.md); `HAPTIC_KIND` + `triggerHaptic` in [`lib/audio-service.js`](lib/audio-service.js). |
+| **P1** | `prefers-reduced-motion` → haptics off by default (explicit toggle on = override) | **Done** | `defaultHapticsFromReducedMotion()` on load when `hapticsEnabled` absent from storage. |
+| **P1** | Rate-limit vibrate (50–80 ms min gap) | **Done** | 65 ms; pick/match dropped if under gap; win/loss scheduled after gap. |
+| **P1** | Persist haptics toggle | **Done** | Same JSON as music/SFX; header row + [`game.js`](game.js) `syncAudioUi` / `setHapticsEnabled`. |
 
 ---
 
