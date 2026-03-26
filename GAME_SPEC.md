@@ -186,7 +186,7 @@
   - Low battery usage; minimal background processing.
 - **Offline behavior**
   - Fully playable offline.
-  - Local save of progression, settings (audio/haptics), and **language** (`triplet_tiles_locale`, English / Spanish in the first implementation); optional cloud sync can be added later. Optional query override: `?lang=en` or `?lang=es`.
+  - Local save of progression, settings (audio/haptics), and **language** (`triplet_tiles_locale`; supported UI locales include English, Spanish, German, Russian, Hebrew, Arabic); optional cloud sync can be added later. Optional query override: `?lang=` with a supported code (e.g. `en`, `es`, `de`, `ru`, `he`, `ar`).
 - **Input & layout**
   - Responsive layout for portrait orientation on mobile.
   - Adaptive UI for various aspect ratios on web (desktop and tablet).
