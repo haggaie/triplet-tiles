@@ -18,7 +18,7 @@ import {
   mountTileFace,
   normalizeLevelTileType
 } from './lib/tile-types.js';
-import { createAudioService } from './lib/audio-service.js';
+import { createAudioService, SFX_IDS } from './lib/audio-service.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
@@ -109,9 +109,21 @@ const SESSION_SCHEMA_VERSION = 1;
 
 /** music_ambient_loop_01 — Late Afternoon Garden Loop (Suno); attribution in AUDIO_DESIGN.md. */
 const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
+const SFX_URL_MAP = {
+  [SFX_IDS.TILE_PICK]: new URL('./assets/audio/sfx_tile_pick.wav', import.meta.url).href,
+  [SFX_IDS.TRAY_PLACE]: new URL('./assets/audio/sfx_tray_place.wav', import.meta.url).href,
+  [SFX_IDS.MATCH_CLEAR]: [
+    new URL('./assets/audio/sfx_match_clear_a.wav', import.meta.url).href,
+    new URL('./assets/audio/sfx_match_clear_b.wav', import.meta.url).href,
+    new URL('./assets/audio/sfx_match_clear_c.wav', import.meta.url).href
+  ],
+  [SFX_IDS.LEVEL_WIN]: new URL('./assets/audio/sfx_level_win.wav', import.meta.url).href,
+  [SFX_IDS.LEVEL_LOSS]: new URL('./assets/audio/sfx_level_loss.wav', import.meta.url).href
+};
 const audioSvc = createAudioService({
   storageKey: STORAGE_KEYS.AUDIO,
-  musicUrl: MUSIC_AMBIENT_LOOP_URL
+  musicUrl: MUSIC_AMBIENT_LOOP_URL,
+  sfxUrlMap: SFX_URL_MAP
 });
 
 const TRAY_ARIA_LABEL_DEFAULT = 'Tray';
@@ -699,6 +711,8 @@ function initDomRefs() {
 
   ui.musicMuteToggle = document.getElementById('music-mute-toggle');
   ui.musicVolume = document.getElementById('music-volume');
+  ui.sfxMuteToggle = document.getElementById('sfx-mute-toggle');
+  ui.sfxVolume = document.getElementById('sfx-volume');
 
   ui.fullscreenToggle = document.getElementById('fullscreen-toggle');
   ui.installAppButton = document.getElementById('install-app-button');
@@ -802,16 +816,26 @@ function installDisplayModeUi() {
   }
 }
 
-function syncMusicUi() {
-  if (!ui.musicMuteToggle || !ui.musicVolume) return;
+function syncAudioUi() {
   const s = audioSvc.getState();
-  const audible = !s.musicMuted && s.musicVolume > 0;
-  ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
-  const label = audible ? 'Music on' : 'Music off';
-  ui.musicMuteToggle.setAttribute('aria-label', label);
-  setPhosphorIcon(ui.musicMuteToggle, audible ? 'speaker-high' : 'speaker-slash');
-  ui.musicVolume.value = String(s.musicVolume);
-  ui.musicVolume.disabled = s.musicMuted;
+  if (ui.musicMuteToggle && ui.musicVolume) {
+    const audible = !s.musicMuted && s.musicVolume > 0;
+    ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
+    const label = audible ? 'Music on' : 'Music off';
+    ui.musicMuteToggle.setAttribute('aria-label', label);
+    setPhosphorIcon(ui.musicMuteToggle, audible ? 'speaker-high' : 'speaker-slash');
+    ui.musicVolume.value = String(s.musicVolume);
+    ui.musicVolume.disabled = s.musicMuted;
+  }
+  if (ui.sfxMuteToggle && ui.sfxVolume) {
+    const sfxAudible = !s.sfxMuted && s.sfxVolume > 0;
+    ui.sfxMuteToggle.setAttribute('aria-pressed', String(sfxAudible));
+    const sfxLabel = sfxAudible ? 'Sound effects on' : 'Sound effects off';
+    ui.sfxMuteToggle.setAttribute('aria-label', sfxLabel);
+    setPhosphorIcon(ui.sfxMuteToggle, sfxAudible ? 'waveform' : 'waveform-slash');
+    ui.sfxVolume.value = String(s.sfxVolume);
+    ui.sfxVolume.disabled = s.sfxMuted;
+  }
 }
 
 function bindEvents() {
@@ -957,14 +981,28 @@ function bindEvents() {
     ui.musicMuteToggle.addEventListener('click', () => {
       const s = audioSvc.getState();
       audioSvc.setMusicMuted(!s.musicMuted);
-      syncMusicUi();
+      syncAudioUi();
     });
   }
   if (ui.musicVolume) {
     ui.musicVolume.addEventListener('input', () => {
       const v = parseFloat(ui.musicVolume.value);
       audioSvc.setMusicVolume(v);
-      syncMusicUi();
+      syncAudioUi();
+    });
+  }
+  if (ui.sfxMuteToggle) {
+    ui.sfxMuteToggle.addEventListener('click', () => {
+      const s = audioSvc.getState();
+      audioSvc.setSfxMuted(!s.sfxMuted);
+      syncAudioUi();
+    });
+  }
+  if (ui.sfxVolume) {
+    ui.sfxVolume.addEventListener('input', () => {
+      const v = parseFloat(ui.sfxVolume.value);
+      audioSvc.setSfxVolume(v);
+      syncAudioUi();
     });
   }
 
@@ -1746,6 +1784,7 @@ function handleBoardTileClick(tileId) {
   }
 
   if (skipAnimationsForTests) {
+    const traySlotForSfx = getTrayInsertIndexForType(state.trayTiles, tile.type);
     const pick = applyCommittedPick(
       { boardTiles: state.boardTiles, trayTiles: state.trayTiles, score: state.score },
       tileId
@@ -1756,6 +1795,7 @@ function handleBoardTileClick(tileId) {
       }
       return;
     }
+    audioSvc.playSfx(SFX_IDS.TILE_PICK);
     _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
     takeSnapshot();
     state.boardTiles = pick.boardTiles;
@@ -1765,6 +1805,10 @@ function handleBoardTileClick(tileId) {
     saveStats();
     renderBoard(true);
     renderTray();
+    audioSvc.playSfx(SFX_IDS.TRAY_PLACE, { traySlot: traySlotForSfx });
+    if (pick.removedTypes.length > 0) {
+      audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
+    }
     renderHud();
     checkWinCondition();
     if (!state.isLevelOver) scheduleSaveSession();
@@ -1793,11 +1837,13 @@ function handleBoardTileClick(tileId) {
 
   _boardKeyboardPickAnchor = { x: tile.x, y: tile.y, z: tile.z };
   takeSnapshot();
+  audioSvc.playSfx(SFX_IDS.TILE_PICK);
 
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
   const insertIndex = getTrayInsertIndexForType(state.trayTiles, tile.type);
 
   function applyMove(onMatchingDone) {
+    audioSvc.playSfx(SFX_IDS.TRAY_PLACE, { traySlot: insertIndex });
     tile.removed = true;
     state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
     renderBoard(true);
@@ -1841,6 +1887,7 @@ function handleBoardTileClick(tileId) {
 function handleMatchingInTray() {
   const { trayTiles, scoreDelta, removedTypes } = removeMatchingTriplesOneRound(state.trayTiles);
   if (removedTypes.length === 0) return;
+  audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
   state.trayTiles = trayTiles;
   state.score += scoreDelta;
   state.stats.tilesClearedTotal += removedTypes.length * 3;
@@ -2178,6 +2225,7 @@ function triggerWin() {
   state.stats.bestWinStreak = Math.max(state.stats.bestWinStreak, state.stats.currentWinStreak);
   saveStats();
   saveProgression();
+  audioSvc.playSfx(SFX_IDS.LEVEL_WIN);
   showWinOverlayUi();
   saveSessionImmediate();
 }
@@ -2186,6 +2234,7 @@ function triggerLoss(reason) {
   state.isLevelOver = true;
   state.stats.currentWinStreak = 0;
   saveStats();
+  audioSvc.playSfx(SFX_IDS.LEVEL_LOSS);
   showLossOverlayUi(reason);
   saveSessionImmediate();
 }
@@ -2717,7 +2766,7 @@ if (typeof window !== 'undefined') {
         // ignore storage errors in tests
       }
       audioSvc.reloadFromStorage();
-      syncMusicUi();
+      syncAudioUi();
       state.stats = { ...defaultStats };
       state.powerups = { ...defaultPowerups };
       state.currentLevelIndex = 0;
@@ -2775,7 +2824,7 @@ function installBoardScrollResizeObserver() {
 
 function main() {
   initDomRefs();
-  syncMusicUi();
+  syncAudioUi();
   audioSvc.applyStoredStateToElement();
   installDisplayModeUi();
   bindEvents();

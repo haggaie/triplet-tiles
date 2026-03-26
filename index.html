@@ -59,32 +59,53 @@
               <i class="ph ph-download-simple" aria-hidden="true"></i>
             </button>
           </div>
-          <div
-            class="audio-toolbar"
-            role="group"
-            aria-label="Background music"
-          >
-            <button
-              type="button"
-              id="music-mute-toggle"
-              class="btn btn-ghost btn-small btn-icon audio-music-toggle"
-              aria-pressed="true"
-              aria-label="Music on"
-              title="Turn background music on or off"
-            >
-              <i class="ph ph-speaker-high" aria-hidden="true"></i>
-            </button>
-            <label class="audio-volume-label" for="music-volume">Volume</label>
-            <input
-              type="range"
-              id="music-volume"
-              class="audio-volume"
-              min="0"
-              max="1"
-              step="0.05"
-              value="0.55"
-              aria-label="Music volume"
-            />
+          <div class="audio-stack">
+            <div class="audio-row" role="group" aria-label="Background music">
+              <button
+                type="button"
+                id="music-mute-toggle"
+                class="btn btn-ghost btn-small btn-icon audio-music-toggle"
+                aria-pressed="true"
+                aria-label="Music on"
+                title="Turn background music on or off"
+              >
+                <i class="ph ph-speaker-high" aria-hidden="true"></i>
+              </button>
+              <label class="audio-volume-label" for="music-volume">Music volume</label>
+              <input
+                type="range"
+                id="music-volume"
+                class="audio-volume"
+                min="0"
+                max="1"
+                step="0.05"
+                value="0.55"
+                aria-label="Music volume"
+              />
+            </div>
+            <div class="audio-row" role="group" aria-label="Sound effects">
+              <button
+                type="button"
+                id="sfx-mute-toggle"
+                class="btn btn-ghost btn-small btn-icon audio-sfx-toggle"
+                aria-pressed="true"
+                aria-label="Sound effects on"
+                title="Turn sound effects on or off"
+              >
+                <i class="ph ph-waveform" aria-hidden="true"></i>
+              </button>
+              <label class="audio-volume-label" for="sfx-volume">Sound effects volume</label>
+              <input
+                type="range"
+                id="sfx-volume"
+                class="audio-volume"
+                min="0"
+                max="1"
+                step="0.05"
+                value="0.85"
+                aria-label="Sound effects volume"
+              />
+            </div>
           </div>
           <div class="score-info">
             <span>Score</span>

@@ -13,9 +13,9 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
 | **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **seven `sfx_*.wav` files**, and `lib/audio-service.js`. |
 | **SFX files** | **Shipped.** `assets/audio/sfx_tile_pick.wav`, `sfx_tray_place.wav`, `sfx_match_clear_{a,b,c}.wav`, `sfx_level_win.wav`, `sfx_level_loss.wav` (copied from `~/Downloads`). |
-| **SFX playback (`play(eventId)`)** | **Not started.** Assets exist; not wired in `game.js` yet. |
-| **Web Audio + `Bus_SFX`** | **Not started.** Music does **not** use `AudioContext`; SFX should use Web Audio (or a small pool) when added. |
-| **SFX settings** | **Not started.** No separate SFX slider/mute ([GAME_SPEC.md](GAME_SPEC.md) §7). |
+| **SFX playback** | **Done.** `audioSvc.playSfx(SFX_IDS.…)` from [`lib/audio-service.js`](lib/audio-service.js); hooks in [`game.js`](game.js) (pick, tray land, match, win, loss; test skip path included). |
+| **Web Audio + `Bus_SFX`** | **Done.** `AudioContext` + master gain for SFX; music stays on `HTMLAudioElement`. |
+| **SFX settings** | **Done.** Second row in header: mute + volume; persisted in `triplet_tiles_audio` with music. |
 | **Haptics** | **Not started.** |
 
 **Attribution (repo only):** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno) — [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
@@ -24,12 +24,9 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 ## What’s next (recommended order)
 
-1. **SFX assets** — **Done (WAV).** Optional later: re-encode to WebM/Opus for size.
-2. **Extend the audio layer** — Add Web Audio (or delegated library) for one-shots: `play('SFX/UI/Tile_Pick')` etc. (~4–6 voice cap). Optionally merge prefs with existing `triplet_tiles_audio` JSON (`sfxVolume`, `sfxMuted`) or separate keys.
-3. **Hook `game.js`** — Fire the five events at pick start, tray land, triple clear, win modal, loss modal (same places score/UI update).
-4. **SFX chrome** — Second slider + mute; persist; keep mobile-friendly layout (may need a compact “Audio” row or overflow).
-5. **Haptics** — Phase 5 below (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
-6. **Polish** — Optional music duck on match/win; loudness pass once SFX exist; optional Playwright “unlocked after gesture” smoke.
+1. **Haptics** — Phase 5 (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
+2. **Polish** — Optional music duck on match/win ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); loudness pass; optional Playwright “unlocked after gesture” smoke.
+3. **Optional** — Re-encode SFX to WebM/Opus for size; compact “Sound” popover if the header feels crowded.
 
 ---
 
@@ -47,16 +44,14 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 | Priority | Task | Status | Notes |
 |----------|------|--------|--------|
-| **P0** | Gesture **unlock** before audible playback | **Done** | `audioSvc.unlock()`; music uses `HTMLAudioElement.play()` (not `AudioContext.resume`, though that’s fine for future SFX). |
-| **P0** | **`lib/audio-service.js`** — music transport | **Done** | Mute, volume, persist, visibility, `reloadFromStorage()` for tests. |
-| **P0** | **`play(eventId)` + map → buffers** | **Todo** | Extend service or add `lib/sfx-service.js`; no raw paths from gameplay. |
-| **P0** | **`Bus_Music` + `Bus_SFX`** (gain staging) | **Partial** | Music: element volume only; SFX bus when Web Audio lands. |
-| **P0** | **Preload** SFX | **Todo** | `decodeAudioData` + small pool / voice limits. |
-| **P0** | **Persist** `sfxVolume` / `sfxMuted` | **Todo** | Extend `triplet_tiles_audio` or namespaced keys. |
+| **P0** | Gesture **unlock** before audible playback | **Done** | `audioSvc.unlock()`; music + SFX (`AudioContext.resume` on first gesture). |
+| **P0** | **`lib/audio-service.js`** — music + SFX | **Done** | Music element; SFX `fetch` + `decodeAudioData`; `playSfx(id)`; voice cap 6. |
+| **P0** | **`play(eventId)` + map → buffers** | **Done** | `SFX_IDS` + `sfxUrlMap` from `game.js`; match uses random A/B/C buffer. |
+| **P0** | **`Bus_Music` + `Bus_SFX`** (gain staging) | **Done** | Music: element volume; SFX: `GainNode` bus. |
+| **P0** | **Preload** SFX | **Done** | After unlock, async decode; tab hide **suspends** `AudioContext`. |
+| **P0** | **Persist** `sfxVolume` / `sfxMuted` | **Done** | Same `triplet_tiles_audio` JSON as music. |
 
-**Music exit criteria (met):** After first gesture, loop plays when not muted; music prefs survive reload.
-
-**Full Phase 1 exit (open):** Same for SFX after implementation.
+**Exit criteria (met):** After first gesture, music plays when enabled; SFX play on game events; prefs survive reload.
 
 ---
 
@@ -64,11 +59,11 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 | Priority | Task | Event ID | Status |
 |----------|------|----------|--------|
-| **P0** | Valid tile pick / fly starts | `SFX/UI/Tile_Pick` | Todo |
-| **P0** | Tile lands in tray | `SFX/UI/Tray_Place` | Todo |
-| **P0** | Triplet clears | `SFX/Gameplay/Match_Clear` | Todo |
-| **P0** | Level complete | `SFX/Meta/Level_Win` | Todo |
-| **P0** | Tray overflow / loss | `SFX/Meta/Level_Loss` | Todo |
+| **P0** | Valid tile pick / fly starts | `SFX/UI/Tile_Pick` | **Done** |
+| **P0** | Tile lands in tray | `SFX/UI/Tray_Place` | **Done** (`traySlot` → pitch nudge) |
+| **P0** | Triplet clears | `SFX/Gameplay/Match_Clear` | **Done** |
+| **P0** | Level complete | `SFX/Meta/Level_Win` | **Done** |
+| **P0** | Tray overflow / loss | `SFX/Meta/Level_Loss` | **Done** |
 
 **Exit criteria:** Full level with all five cues; failures must not throw (no-op / try/catch).
 
@@ -79,7 +74,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | Priority | Task | Status | Notes |
 |----------|------|--------|--------|
 | **P1** | **Music** slider + mute | **Done** | Header; [GAME_SPEC.md](GAME_SPEC.md) §7. |
-| **P1** | **SFX** slider + mute | **Todo** | Independent of music. |
+| **P1** | **SFX** slider + mute | **Done** | Second row in `.audio-stack`; Phosphor `waveform` / `waveform-slash`. |
 | **P1** | Compact placement / overflow | **Open** | If the bar gets crowded, consider a single “Sound” popover. |
 
 ---
