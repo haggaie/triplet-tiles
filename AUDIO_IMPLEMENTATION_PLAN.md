@@ -134,8 +134,18 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 Use these with an **AI SFX / music tool** or as a **brief for a human designer**. Always re-read the tool’s **license** before shipping.
 
-**Global negative prompt (append to every SFX prompt):**  
-*No casino sounds, no slot machine, no harsh metallic screech, no loud brass fanfare, no voice, no cinematic trailer impact, no horror sting.*
+### Prompting guidance (SFX tools)
+
+ElevenLabs [How do I prompt for sound effects?](https://help.elevenlabs.io/hc/en-us/articles/25735604945041-How-do-I-prompt-for-sound-effects) recommends:
+
+- **One sound per prompt** for predictable results—natural language plus audio terms both work.
+- Add a **little** extra detail when it helps (e.g. *high-quality, professionally recorded*, **foley**, **close-mic**); experiment if the model over-bakes or under-specifies.
+- **Avoid multi-step stories** in a single prompt (e.g. “walk then fall”); generate **separate** clips and **combine or trim in an editor** instead.
+
+Broader examples and terminology: [ElevenLabs Sound Effects capability overview](https://elevenlabs.io/docs/capabilities/sound-effects).
+
+**Global negative tail (append where the product allows negatives, or fold into the main line):**  
+*No casino or slot-machine sounds, no harsh metallic screech, no loud brass fanfare, no voice, no cinematic trailer impact, no horror sting.*
 
 ### Music (reference — main loop already authored)
 
@@ -144,26 +154,30 @@ Use these with an **AI SFX / music tool** or as a **brief for a human designer**
 
 ### Sound effects
 
+Each block is **one generation** (one dominant sound). For **match** variants, run **three separate prompts**, not one paragraph asking for A/B/C.
+
 2. **Tile pick — `SFX/UI/Tile_Pick`**  
-   > Very short UI sound, soft wooden block tapped lightly on felt table, small tactile tick, warm mid frequencies, barely any reverb, under 150 ms, single transient then soft decay. Casual puzzle game, not sci-fi, not glass click.
+   > High-quality, professionally recorded foley, close-mic, dry: one soft wooden block tapped once on thick felt or fabric, single short tick, warm mids, under 150 ms, no room reverb. Not glass, not metal, not sci-fi UI.
 
 3. **Tray place — `SFX/UI/Tray_Place`**  
-   > Short wooden tile settling into a shallow wooden groove or tray slot, soft clack, warm and satisfying, slightly fuller than a tick but still under 250 ms, no echo, no metal.
+   > High-quality foley, close-mic, dry: one small wooden tile dropped once into a shallow carved wood groove, single soft clack, warm tone, under 250 ms. No metallic ring, no long echo.
 
 4. **Match clear — variant A — `SFX/Gameplay/Match_Clear`**  
-   > Pleasant confirmation sound when three matching items merge: soft warm harmonic bloom, subtle major chord flavor, gentle sparkle in high mids only, under 400 ms, relaxing puzzle game, not arcade power-up, not coin ding.
+   > High-quality sound effect: **one** soft pleasant major chord swell, short decay, subtle airy top—not a separate sparkle layer—dry studio feel, under 400 ms. Calm mobile puzzle, not coin pickup, not power-up sting.
 
 5. **Match clear — variant B**  
-   > Same brief as variant A but slightly softer attack and 5% lower perceived pitch; still under 400 ms; warm wooden casual game.
+   > Same as variant A: **one** chord swell, softer attack, slightly lower register, dry, under 400 ms, calm puzzle confirm.
 
 6. **Match clear — variant C**  
-   > Same family as A/B: alternate timbre—slightly more “airy” pad-like tail, still short, no delay throws, under 450 ms.
+   > **One** short soft tonal confirmation with a slightly longer airy tail (still a single event), no delay throw or ping-pong echo, under 450 ms.
 
 7. **Level win — `SFX/Meta/Level_Win`**  
-   > Short positive completion sting for a calm puzzle game, under 2 seconds, warm uplifting harmony, acoustic-soft character, gentle rise then resolve, no brass section, no epic orchestra, no leaderboard fanfare, friendly and relieved.
+   > High-quality sound effect: **one** short warm uplifting phrase or sting, acoustic-soft, gentle lift and resolve, under 2 seconds. No brass fanfare, no orchestra hit, no celebration crowd.
 
-8. **Level loss — `SFX/Meta/Level_Loss`**  
-   > Soft non-punishing feedback for failing a gentle puzzle: two short descending notes or one muted wooden thud with soft low pitch, under 600 ms, no buzzer, **no** sad trombone, **no** error beep, emotionally neutral and clear.
+8. **Level loss — `SFX/Meta/Level_Loss`** (choose **one** clip style per shipped file; if you want a two-note fall, use **two prompts** + edit—see ElevenLabs guidance above)
+
+   - **Option A — single thud:** One muted low wooden thud, close-mic foley, dry, soft low pitch, under 400 ms, emotionally neutral, no buzzer.
+   - **Option B — two-step fall:** Prompt 1: *single soft low marimba or wood block note, short, dry.* Prompt 2: *single softer note a fourth or fifth below.* Trim/join in an editor; total under 600 ms. No trombone wah, no error beep.
 
 ---
 
@@ -172,3 +186,4 @@ Use these with an **AI SFX / music tool** or as a **brief for a human designer**
 - Design spec: [AUDIO_DESIGN.md](AUDIO_DESIGN.md)  
 - Backlog item: [EXTENSIONS_TODO.md](EXTENSIONS_TODO.md) (Audio & haptics)  
 - Game spec: [GAME_SPEC.md](GAME_SPEC.md) §7  
+- SFX prompting (external): [ElevenLabs — How do I prompt for sound effects?](https://help.elevenlabs.io/hc/en-us/articles/25735604945041-How-do-I-prompt-for-sound-effects)  
