@@ -88,6 +88,7 @@ Gate on **user setting** and **`prefers-reduced-motion`** policy (recommended: o
 ## Loudness & platform notes
 
 - **Balance:** Consistent perceived level across SFX; music **quieter** than SFX peak by design.
+- **Shipped SFX format:** **`assets/audio/sfx_*.opus`** (Ogg Opus), built from WAV in **`assets/audio/source/`** with `npm run optimize:audio`. **Tile pick** uses a **softer R128 profile** (lower integrated target, more true-peak headroom); other SFX use standard **−16 LUFS**-style targeting, with **−5 dB** post-trim on pick, match-clear variants, and level win so celebrations don’t sit too hot next to loss. For a full static build: `npm run prepare:serve` (requires **ffmpeg** on `PATH` or **`FFMPEG_PATH`**).
 - **iOS / Safari:** Respect autoplay rules; unlock `AudioContext` on **first user gesture**; one-time “enable audio” UX if required.
 
 ---

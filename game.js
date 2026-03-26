@@ -110,14 +110,14 @@ const SESSION_SCHEMA_VERSION = 1;
 /** music_ambient_loop_01 — Late Afternoon Garden Loop (Suno); attribution in AUDIO_DESIGN.md. */
 const MUSIC_AMBIENT_LOOP_URL = new URL('./assets/audio/music_ambient_loop_01.mp3', import.meta.url).href;
 const SFX_URL_MAP = {
-  [SFX_IDS.TILE_PICK]: new URL('./assets/audio/sfx_tile_pick.wav', import.meta.url).href,
+  [SFX_IDS.TILE_PICK]: new URL('./assets/audio/sfx_tile_pick.opus', import.meta.url).href,
   [SFX_IDS.MATCH_CLEAR]: [
-    new URL('./assets/audio/sfx_match_clear_a.wav', import.meta.url).href,
-    new URL('./assets/audio/sfx_match_clear_b.wav', import.meta.url).href,
-    new URL('./assets/audio/sfx_match_clear_c.wav', import.meta.url).href
+    new URL('./assets/audio/sfx_match_clear_a.opus', import.meta.url).href,
+    new URL('./assets/audio/sfx_match_clear_b.opus', import.meta.url).href,
+    new URL('./assets/audio/sfx_match_clear_c.opus', import.meta.url).href
   ],
-  [SFX_IDS.LEVEL_WIN]: new URL('./assets/audio/sfx_level_win.wav', import.meta.url).href,
-  [SFX_IDS.LEVEL_LOSS]: new URL('./assets/audio/sfx_level_loss.wav', import.meta.url).href
+  [SFX_IDS.LEVEL_WIN]: new URL('./assets/audio/sfx_level_win.opus', import.meta.url).href,
+  [SFX_IDS.LEVEL_LOSS]: new URL('./assets/audio/sfx_level_loss.opus', import.meta.url).href
 };
 const audioSvc = createAudioService({
   storageKey: STORAGE_KEYS.AUDIO,

@@ -11,8 +11,8 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
 | **Music UI** | **Done.** Header control: mute toggle + volume range ([`index.html`](index.html), [`style.css`](style.css)). Icons may use Phosphor in current `game.js`. |
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
-| **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **six `sfx_*.wav` files**, and `lib/audio-service.js`. |
-| **SFX files** | **Shipped.** `sfx_tile_pick.wav`, `sfx_match_clear_{a,b,c}.wav`, `sfx_level_win.wav`, `sfx_level_loss.wav`. |
+| **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **six `sfx_*.opus` files**, and `lib/audio-service.js`. |
+| **SFX files** | **Shipped (web).** `assets/audio/sfx_*.opus` (encoded from WAV masters in `assets/audio/source/` via `npm run optimize:audio`). |
 | **SFX playback** | **Done.** Pick, match, win, loss ([`game.js`](game.js)); no separate tray-land cue ([AUDIO_DESIGN.md](AUDIO_DESIGN.md) note). |
 | **Web Audio + `Bus_SFX`** | **Done.** `AudioContext` + master gain for SFX; music stays on `HTMLAudioElement`. |
 | **SFX settings** | **Done.** Second row in header: mute + volume; persisted in `triplet_tiles_audio` with music. |
@@ -25,8 +25,8 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 ## What’s next (recommended order)
 
 1. **Haptics** — Phase 5 (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
-2. **Polish** — Optional music duck on match/win ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); loudness pass; optional Playwright “unlocked after gesture” smoke.
-3. **Optional** — Re-encode SFX to WebM/Opus for size; compact “Sound” popover if the header feels crowded.
+2. **Polish** — Optional music duck on match/win ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); optional Playwright “unlocked after gesture” smoke (`tests/audio-sfx.spec.js`).
+3. **Optional** — Compact “Sound” popover if the header feels crowded.
 
 ---
 
@@ -34,9 +34,9 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 | Task | Status | Why |
 |------|--------|-----|
-| Create `assets/audio/` and **naming** | **Done** | `music_ambient_loop_01.mp3` shipped; reserve `sfx_*.webm` (or similar) for SFX. |
-| Pick **delivery formats** for SFX | **Open** | Plan: Opus/WebM or Ogg for one-shots; music is **MP3** today. |
-| **Placeholder** SFX for dev | **Open** | Unblocks wiring before final assets. |
+| Create `assets/audio/` and **naming** | **Done** | `music_ambient_loop_01.mp3` shipped; SFX ship as **`sfx_*.opus`** (see `scripts/optimize-audio.js`). |
+| Pick **delivery formats** for SFX | **Done** | **Opus** one-shots in `assets/audio/`; WAV masters in `assets/audio/source/`; music remains **MP3**. |
+| **Placeholder** SFX for dev | **Done** | Masters in `assets/audio/source/`; run `npm run optimize:audio` after edits. |
 
 ---
 
@@ -116,10 +116,10 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | File (suggested name) | Event ID(s) | Count | Status |
 |-------------------------|-------------|-------|--------|
 | `music_ambient_loop_01.mp3` | (music) | 1 loop | **Shipped** |
-| `sfx_tile_pick.wav` | `SFX/UI/Tile_Pick` | 1 | **Shipped** (from Downloads) |
-| `sfx_match_clear_a/b/c.wav` | `SFX/Gameplay/Match_Clear` | 3 variants | **Shipped** |
-| `sfx_level_win.wav` | `SFX/Meta/Level_Win` | 1 | **Shipped** |
-| `sfx_level_loss.wav` | `SFX/Meta/Level_Loss` | 1 | **Shipped** |
+| `sfx_tile_pick.opus` | `SFX/UI/Tile_Pick` | 1 | **Shipped** (from `source/*.wav` + `optimize:audio`) |
+| `sfx_match_clear_a/b/c.opus` | `SFX/Gameplay/Match_Clear` | 3 variants | **Shipped** |
+| `sfx_level_win.opus` | `SFX/Meta/Level_Win` | 1 | **Shipped** |
+| `sfx_level_loss.opus` | `SFX/Meta/Level_Loss` | 1 | **Shipped** |
 
 **Music attribution:** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno) — [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 

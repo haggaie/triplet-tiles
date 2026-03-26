@@ -39,7 +39,14 @@ const assetsDir = path.join(projectRoot, 'assets');
 const distAssets = path.join(distDir, 'assets');
 if (fs.existsSync(assetsDir)) {
   fs.mkdirSync(distAssets, { recursive: true });
-  fs.cpSync(assetsDir, distAssets, { recursive: true });
+  fs.cpSync(assetsDir, distAssets, {
+    recursive: true,
+    /** WAV masters for `npm run optimize:audio` — not needed at runtime. */
+    filter(src) {
+      const rel = path.relative(assetsDir, src);
+      return !(rel === 'audio/source' || rel.startsWith(`audio${path.sep}source${path.sep}`));
+    }
+  });
 }
 
 console.log(`Copied ${deployables.length} root files, lib/, and assets/ to dist/`);
