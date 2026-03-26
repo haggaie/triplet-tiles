@@ -8,7 +8,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 | Area | Notes |
 |------|--------|
-| **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
+| **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). **Duck** on match / win (~−3 dB, attack / hold / release). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
 | **Music UI** | **Done.** Header control: mute toggle + volume range ([`index.html`](index.html), [`style.css`](style.css)). Icons may use Phosphor in current `game.js`. |
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
 | **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **six `sfx_*.opus` files**, and `lib/audio-service.js`. |
@@ -25,7 +25,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 ## What’s next (recommended order)
 
 1. **Haptics** — Phase 5 (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
-2. **Polish** — Optional music duck on match/win ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); optional Playwright “unlocked after gesture” smoke (`tests/audio-sfx.spec.js`).
+2. **Polish** — Optional Playwright “unlocked after gesture” smoke (`tests/audio-sfx.spec.js`).
 3. **Optional** — Compact “Sound” popover if the header feels crowded.
 
 ---
@@ -84,7 +84,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | Priority | Task | Status | Notes |
 |----------|------|--------|--------|
 | **P1** | One **ambient loop**, `loop`, visibility handling | **Done** | [`lib/audio-service.js`](lib/audio-service.js). |
-| **P2** | **Duck** on `Match_Clear` / `Level_Win` | **Todo** | −2 to −4 dB, ~200–400 ms. |
+| **P2** | **Duck** on `Match_Clear` / `Level_Win` | **Done** | ~−3 dB; 200 ms attack, 280 ms release; hold 380 ms / 1200 ms ([`lib/audio-service.js`](lib/audio-service.js)). |
 | **P2** | Second theme / `Focus` parameter | **Later** | [AUDIO_DESIGN.md](AUDIO_DESIGN.md) dynamics v2. |
 
 ---

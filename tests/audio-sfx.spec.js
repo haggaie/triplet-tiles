@@ -28,5 +28,16 @@ test.describe('Sound effects', () => {
     expect(after.sfxVolume).toBeGreaterThan(0);
     expect(after.sfxBusGain).toBeGreaterThan(0);
     expect(after.sfxContextState).toBe('running');
+
+    await page.evaluate(() =>
+      window.__tripletTestHooks.playTestSfx('SFX/Gameplay/Match_Clear')
+    );
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => window.__tripletTestHooks.getAudioDiagnostics().musicDuckMult),
+        { timeout: 2000 }
+      )
+      .toBeLessThan(0.99);
   });
 });

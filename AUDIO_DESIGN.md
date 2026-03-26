@@ -28,7 +28,7 @@ Sound should reinforce **wood, felt, and a quiet garden**: soft transients, shor
 | **Role** | Low-arousal **ambient bed** for 60–180s sessions ([GAME_SPEC.md](GAME_SPEC.md) §3 session length). |
 | **Form** | **Seamless loop** per visual theme. MVP: single loop; later optional light horizontal re-sequencing. |
 | **Dynamics (optional v2)** | Parameter **`Focus`** (0–1): slightly thinner mix when tray is busy (e.g. 5–7 tiles)—subtle, not alarmist. |
-| **Mix** | Bed behind SFX; optional short **duck** (−2 to −4 dB, ~200–400 ms) on **match** and **win**. |
+| **Mix** | Bed behind SFX; short **duck** (~−3 dB, ~200 ms in / ~280 ms out + hold) on **match** and **win** ([`lib/audio-service.js`](lib/audio-service.js)). |
 | **Mute** | User can mute music; setting should persist (local storage). |
 
 **Delivery:** Stream long assets; **Ogg/Opus or AAC**; crossfade or clean loop seam as needed.

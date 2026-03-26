@@ -2804,6 +2804,10 @@ if (typeof window !== 'undefined') {
     },
     getAudioDiagnostics() {
       return typeof audioSvc.getDiagnostics === 'function' ? audioSvc.getDiagnostics() : null;
+    },
+    /** Playwright: trigger SFX by `SFX_IDS` string (e.g. match / win duck tests). */
+    playTestSfx(eventId) {
+      audioSvc.playSfx(eventId);
     }
   };
 }

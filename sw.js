@@ -2,7 +2,7 @@
  * Offline precache for Triplet Tiles. Bump CACHE_NAME when this list or shell assets change.
  * @see lib/tile-types.js TILE_TYPES openmojiHex for SVG filenames.
  */
-const CACHE_NAME = 'triplet-tiles-v10';
+const CACHE_NAME = 'triplet-tiles-v11';
 
 const PRECACHE_PATHS = [
   'index.html',
