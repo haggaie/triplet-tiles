@@ -2858,6 +2858,14 @@ if (typeof window !== 'undefined') {
     },
     playTestHaptic(kind) {
       audioSvc.triggerHaptic(kind);
+    },
+    runHapticSelfTestPattern() {
+      if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') {
+        return { ok: false, reason: 'no_api' };
+      }
+      const pattern = [40, 60, 40];
+      const vibrateOk = navigator.vibrate(pattern);
+      return { ok: vibrateOk, pattern, vibrateOk };
     }
   };
 }
