@@ -837,12 +837,31 @@ function syncAudioUi() {
     ui.sfxVolume.disabled = s.sfxMuted;
   }
   if (ui.hapticsToggle) {
-    const hap = !!s.hapticsEnabled;
-    ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
-    const hapLabel = hap ? 'Vibration on' : 'Vibration off';
-    ui.hapticsToggle.setAttribute('aria-label', hapLabel);
-    ui.hapticsToggle.setAttribute('title', hap ? 'Turn vibration off' : 'Turn vibration on');
-    setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
+    const vibSupported =
+      typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+    if (!vibSupported) {
+      ui.hapticsToggle.disabled = true;
+      ui.hapticsToggle.setAttribute('aria-disabled', 'true');
+      ui.hapticsToggle.removeAttribute('aria-pressed');
+      ui.hapticsToggle.setAttribute(
+        'aria-label',
+        'Vibration not supported in this browser'
+      );
+      ui.hapticsToggle.setAttribute(
+        'title',
+        'Vibration is not available in this browser. On Android, Chrome and Samsung Internet support it; Firefox for Android does not.'
+      );
+      setPhosphorIcon(ui.hapticsToggle, 'prohibit');
+    } else {
+      ui.hapticsToggle.disabled = false;
+      ui.hapticsToggle.removeAttribute('aria-disabled');
+      const hap = !!s.hapticsEnabled;
+      ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
+      const hapLabel = hap ? 'Vibration on' : 'Vibration off';
+      ui.hapticsToggle.setAttribute('aria-label', hapLabel);
+      ui.hapticsToggle.setAttribute('title', hap ? 'Turn vibration off' : 'Turn vibration on');
+      setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
+    }
   }
 }
 
@@ -978,10 +997,14 @@ function bindEvents() {
         appEl.removeEventListener('keydown', unlockOnGameKey);
       }
     }
-    appEl.addEventListener('pointerdown', () => {
-      unlockAudioOnce();
-      appEl.removeEventListener('keydown', unlockOnGameKey);
-    }, { once: true });
+    appEl.addEventListener(
+      'pointerdown',
+      () => {
+        unlockAudioOnce();
+        appEl.removeEventListener('keydown', unlockOnGameKey);
+      },
+      { capture: true, once: true }
+    );
     appEl.addEventListener('keydown', unlockOnGameKey);
   }
 
@@ -1015,6 +1038,7 @@ function bindEvents() {
   }
   if (ui.hapticsToggle) {
     ui.hapticsToggle.addEventListener('click', () => {
+      if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
       const next = !audioSvc.getState().hapticsEnabled;
       audioSvc.setHapticsEnabled(next);
       syncAudioUi();
