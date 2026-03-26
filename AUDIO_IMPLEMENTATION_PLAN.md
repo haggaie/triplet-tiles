@@ -160,13 +160,13 @@ Each block is **one generation** (one dominant sound). For **match** variants, r
    > High-quality, professionally recorded foley, close-mic, dry: one soft wooden block tapped once on thick felt or fabric, single short tick, warm mids, under 150 ms, no room reverb. Not glass, not metal, not sci-fi UI.
 
 3. **Tray place — `SFX/UI/Tray_Place`**  
-   > High-quality foley, close-mic, dry: one small wooden tile dropped once into a shallow carved wood groove, single soft clack, warm tone, under 250 ms. No metallic ring, no long echo.
+   > High-quality foley, close-mic, dry: one small wooden block dropped on a shallow carved wood groove, single soft clack, warm tone, under 250 ms. 
 
 4. **Match clear — variant A — `SFX/Gameplay/Match_Clear`**  
-   > High-quality sound effect: **one** soft pleasant major chord swell, short decay, subtle airy top—not a separate sparkle layer—dry studio feel, under 400 ms. Calm mobile puzzle, not coin pickup, not power-up sting.
+   > High-quality sound effect: **one** soft pleasant major chord swell, short decay, subtle airy top, dry studio feel, under 400 ms. Calm mobile puzzle
 
 5. **Match clear — variant B**  
-   > Same as variant A: **one** chord swell, softer attack, slightly lower register, dry, under 400 ms, calm puzzle confirm.
+   > High-quality sound effect: **one** soft pleasant major chord swell, slightly lower register, short decay, subtle airy top, dry studio feel, under 400 ms. Calm mobile puzzle
 
 6. **Match clear — variant C**  
    > **One** short soft tonal confirmation with a slightly longer airy tail (still a single event), no delay throw or ping-pong echo, under 450 ms.
