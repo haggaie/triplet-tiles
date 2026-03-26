@@ -1,0 +1,57 @@
+Third-party notices
+===================
+
+This repository includes material under several licenses. Original source code
+and documentation contributed as part of Triplet Tiles are licensed under the
+GNU Affero General Public License, version 3 or later. See the LICENSE file.
+
+The following components are bundled for end users (browser deployables) and
+remain under their respective licenses:
+
+1. Phosphor Icons (web font and stylesheet)
+   - Package: @phosphor-icons/web (https://www.npmjs.com/package/@phosphor-icons/web)
+   - Upstream: https://github.com/phosphor-icons/web
+   - License: MIT
+
+2. OpenMoji (emoji SVG tile artwork)
+   - Project: https://openmoji.org/
+   - Source: https://github.com/hfg-gmuend/openmoji
+   - License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+   - Attribution and license summary: assets/openmoji/ATTRIBUTION.txt
+
+3. Generated audio under assets/audio/
+   Sound effects were produced with ElevenLabs using a free (“Free User”) plan.
+   Music was produced with Suno using its free plan.
+
+   These files are not licensed to you under the GNU Affero General Public
+   License. Rights come from each provider’s terms, which you must follow when
+   you copy, perform, or redistribute the audio (including as part of this
+   game’s build).
+
+   Authoritative terms (current as of project notice; read the live pages):
+   - ElevenLabs: https://elevenlabs.io/terms — Free Users may use the Services
+     and Output for non-commercial purposes only (see the account / Free User
+     restrictions in section 1).
+   - Suno: https://suno.com/terms and
+     https://help.suno.com/en/articles/9601601 — tracks from the free plan are
+     for personal, non-commercial use and are subject to Suno’s Terms of
+     Service and Community Guidelines.
+
+   AGPLv3 allows recipients to use and convey covered code for commercial
+   purposes. That freedom may not extend to these audio assets while they remain
+   subject to vendor free-tier rules. Before publishing or commercializing a
+   fork or deployment, replace this audio with material you have the right to
+   sublicense (for example: assets you created, paid-tier outputs where the
+   vendor grants commercial rights, or royalty-free libraries), or distribute
+   code without the vendor-generated files.
+
+Build and test tooling (not shipped in dist/)
+---------------------------------------------
+
+These packages are used only during development, CI, or local asset preparation.
+They are not copied into the static site output from tools/copy-dist.js:
+
+- @playwright/test — Apache License 2.0
+- sharp — Apache License 2.0; optional prebuilt libvips binaries report
+  LGPL-3.0-or-later in npm metadata. Consult upstream notices if you redistribute
+  those binaries outside a typical `npm install` workflow.

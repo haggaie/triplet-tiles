@@ -6,6 +6,8 @@ const path = require('path');
 const projectRoot = path.resolve(__dirname, '..');
 const distDir = path.join(projectRoot, 'dist');
 const deployables = [
+  'LICENSE',
+  'NOTICE',
   'index.html',
   'game.js',
   'tile-layering.js',
