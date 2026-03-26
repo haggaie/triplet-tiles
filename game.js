@@ -113,8 +113,12 @@ const STORAGE_KEYS = {
   STATS: 'triplet_tiles_stats',
   POWERUPS: 'triplet_tiles_powerups',
   AUDIO: 'triplet_tiles_audio',
-  SESSION: 'triplet_tiles_session'
+  SESSION: 'triplet_tiles_session',
+  UI: 'triplet_tiles_ui'
 };
+
+/** @type {{ compactChrome: boolean }} */
+const DEFAULT_UI_PREFS = { compactChrome: true };
 
 /** Increment when the JSON shape of `triplet_tiles_session` changes. */
 const SESSION_SCHEMA_VERSION = 1;
@@ -224,6 +228,7 @@ function focusElementIfStillMounted(el) {
 }
 
 let _focusBeforeLevelSelect = null;
+let _focusBeforeSettings = null;
 let _focusBeforeGameOverlay = null;
 /** Set while #overlay is open so primary action matches copy (win = advance, loss = retry same level). */
 let _gameOverlayOutcome = null;
@@ -232,7 +237,7 @@ let _lastLossReason = '';
 
 /**
  * Keeps focus inside open dialogs: background is non-interactive (inert) per modality.
- * @param {'none' | 'game' | 'level-select'} mode
+ * @param {'none' | 'game' | 'level-select' | 'settings'} mode
  */
 function setModalBackdropInert(mode) {
   const header = ui.appHeader;
@@ -259,6 +264,12 @@ function setModalBackdropInert(mode) {
     return;
   }
   if (mode === 'level-select') {
+    apply(header, true);
+    apply(main, true);
+    apply(gameOverlay, true);
+    return;
+  }
+  if (mode === 'settings') {
     apply(header, true);
     apply(main, true);
     apply(gameOverlay, true);
@@ -723,14 +734,25 @@ function initDomRefs() {
   ui.appHeader = app?.querySelector(':scope > header') ?? null;
   ui.appMain = app?.querySelector(':scope > main') ?? null;
 
+  ui.settingsOverlay = document.getElementById('settings-overlay');
+  ui.settingsOpenButton = document.getElementById('settings-open-button');
+  ui.settingsClose = document.getElementById('settings-close');
+  ui.settingsResetDefaults = document.getElementById('settings-reset-defaults');
+
+  ui.audioMasterMuteToggle = document.getElementById('audio-master-mute-toggle');
   ui.musicMuteToggle = document.getElementById('music-mute-toggle');
+  ui.musicMuteText = document.getElementById('music-mute-text');
   ui.musicVolume = document.getElementById('music-volume');
   ui.sfxMuteToggle = document.getElementById('sfx-mute-toggle');
+  ui.sfxMuteText = document.getElementById('sfx-mute-text');
   ui.sfxVolume = document.getElementById('sfx-volume');
   ui.hapticsToggle = document.getElementById('haptics-toggle');
+  ui.hapticsToggleLabel = document.getElementById('haptics-toggle-label');
 
   ui.fullscreenToggle = document.getElementById('fullscreen-toggle');
   ui.installAppButton = document.getElementById('install-app-button');
+  ui.settingsDisplaySection = document.getElementById('settings-display-section');
+  ui.settingsHapticsSection = document.getElementById('settings-haptics-section');
 }
 
 /** @param {string} iconName Phosphor icon name without `ph-` prefix (e.g. `caret-right`). */
@@ -845,6 +867,7 @@ function installDisplayModeUi() {
         e.preventDefault();
         deferred = e;
         installBtn.classList.remove('hidden');
+        syncSettingsChromeSections();
       });
       installBtn.addEventListener('click', async () => {
         if (!deferred) return;
@@ -852,13 +875,41 @@ function installDisplayModeUi() {
         await deferred.userChoice.catch(() => {});
         deferred = null;
         installBtn.classList.add('hidden');
+        syncSettingsChromeSections();
       });
     }
+  }
+  syncSettingsChromeSections();
+}
+
+/** Hide settings sections that have no relevant controls (install PWA, vibrate API). */
+function syncSettingsChromeSections() {
+  if (ui.settingsDisplaySection) {
+    const hide =
+      !ui.installAppButton || ui.installAppButton.classList.contains('hidden');
+    ui.settingsDisplaySection.classList.toggle('hidden', hide);
   }
 }
 
 function syncAudioUi() {
   const s = audioSvc.getState();
+  if (ui.audioMasterMuteToggle) {
+    const musicOn = !s.musicMuted && s.musicVolume > 0;
+    const sfxOn = !s.sfxMuted && s.sfxVolume > 0;
+    const allAudible = musicOn && sfxOn;
+    ui.audioMasterMuteToggle.setAttribute('aria-pressed', String(allAudible));
+    ui.audioMasterMuteToggle.setAttribute(
+      'aria-label',
+      allAudible ? t('audio.allSoundOn') : t('audio.allSoundOff')
+    );
+    ui.audioMasterMuteToggle.title = allAudible
+      ? t('audio.allSoundMuteTitle')
+      : t('audio.allSoundUnmuteTitle');
+    setPhosphorIcon(
+      ui.audioMasterMuteToggle,
+      allAudible ? 'speaker-simple-high' : 'speaker-simple-slash'
+    );
+  }
   if (ui.musicMuteToggle && ui.musicVolume) {
     const audible = !s.musicMuted && s.musicVolume > 0;
     ui.musicMuteToggle.setAttribute('aria-pressed', String(audible));
@@ -867,6 +918,7 @@ function syncAudioUi() {
     setPhosphorIcon(ui.musicMuteToggle, audible ? 'speaker-high' : 'speaker-slash');
     ui.musicVolume.value = String(s.musicVolume);
     ui.musicVolume.disabled = s.musicMuted;
+    if (ui.musicMuteText) ui.musicMuteText.textContent = label;
   }
   if (ui.sfxMuteToggle && ui.sfxVolume) {
     const sfxAudible = !s.sfxMuted && s.sfxVolume > 0;
@@ -876,28 +928,27 @@ function syncAudioUi() {
     setPhosphorIcon(ui.sfxMuteToggle, sfxAudible ? 'waveform' : 'waveform-slash');
     ui.sfxVolume.value = String(s.sfxVolume);
     ui.sfxVolume.disabled = s.sfxMuted;
+    if (ui.sfxMuteText) ui.sfxMuteText.textContent = sfxLabel;
   }
-  if (ui.hapticsToggle) {
-    const vibSupported =
-      typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
-    if (!vibSupported) {
-      ui.hapticsToggle.disabled = true;
-      ui.hapticsToggle.setAttribute('aria-disabled', 'true');
-      ui.hapticsToggle.removeAttribute('aria-pressed');
-      ui.hapticsToggle.setAttribute('aria-label', t('audio.hapticsUnsupportedAria'));
-      ui.hapticsToggle.setAttribute('title', t('audio.hapticsUnsupportedTitle'));
-      setPhosphorIcon(ui.hapticsToggle, 'prohibit');
-    } else {
-      ui.hapticsToggle.disabled = false;
-      ui.hapticsToggle.removeAttribute('aria-disabled');
-      const hap = !!s.hapticsEnabled;
-      ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
-      const hapLabel = hap ? t('audio.hapticsOn') : t('audio.hapticsOff');
-      ui.hapticsToggle.setAttribute('aria-label', hapLabel);
-      ui.hapticsToggle.setAttribute('title', hap ? t('audio.hapticsTurnOff') : t('audio.hapticsTurnOn'));
-      setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
-    }
+
+  const vibSupported =
+    typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+  if (ui.settingsHapticsSection) {
+    ui.settingsHapticsSection.classList.toggle('hidden', !vibSupported);
   }
+  if (ui.hapticsToggle && vibSupported) {
+    ui.hapticsToggle.disabled = false;
+    ui.hapticsToggle.removeAttribute('aria-disabled');
+    const hap = !!s.hapticsEnabled;
+    ui.hapticsToggle.setAttribute('aria-pressed', String(hap));
+    const hapLabel = hap ? t('audio.hapticsOn') : t('audio.hapticsOff');
+    ui.hapticsToggle.setAttribute('aria-label', hapLabel);
+    ui.hapticsToggle.setAttribute('title', hap ? t('audio.hapticsTurnOff') : t('audio.hapticsTurnOn'));
+    setPhosphorIcon(ui.hapticsToggle, hap ? 'vibrate' : 'prohibit');
+    if (ui.hapticsToggleLabel) ui.hapticsToggleLabel.textContent = hapLabel;
+  }
+
+  syncSettingsChromeSections();
 }
 
 function bindEvents() {
@@ -970,6 +1021,26 @@ function bindEvents() {
       if (e.target === ui.levelSelectOverlay) hideLevelSelect();
     });
   }
+
+  if (ui.settingsOpenButton) {
+    ui.settingsOpenButton.addEventListener('click', () => showSettings());
+  }
+  if (ui.settingsClose) {
+    ui.settingsClose.addEventListener('click', () => hideSettings());
+  }
+  if (ui.settingsOverlay) {
+    ui.settingsOverlay.addEventListener('click', (e) => {
+      if (e.target === ui.settingsOverlay) hideSettings();
+    });
+  }
+  if (ui.settingsResetDefaults) {
+    ui.settingsResetDefaults.addEventListener('click', () => {
+      audioSvc.resetToDefaults();
+      saveLocal(STORAGE_KEYS.UI, { ...DEFAULT_UI_PREFS });
+      syncAudioUi();
+    });
+  }
+
   if (ui.levelSelectAll) {
     ui.levelSelectAll.addEventListener('click', () => setLevelSelectDifficultyFilter(null));
   }
@@ -1043,6 +1114,16 @@ function bindEvents() {
     appEl.addEventListener('keydown', unlockOnGameKey);
   }
 
+  if (ui.audioMasterMuteToggle) {
+    ui.audioMasterMuteToggle.addEventListener('click', () => {
+      const s = audioSvc.getState();
+      const musicOn = !s.musicMuted && s.musicVolume > 0;
+      const sfxOn = !s.sfxMuted && s.sfxVolume > 0;
+      const allAudible = musicOn && sfxOn;
+      audioSvc.setMasterMuted(allAudible);
+      syncAudioUi();
+    });
+  }
   if (ui.musicMuteToggle) {
     ui.musicMuteToggle.addEventListener('click', () => {
       const s = audioSvc.getState();
@@ -1086,6 +1167,11 @@ function bindEvents() {
     if (ui.levelSelectOverlay && !ui.levelSelectOverlay.classList.contains('hidden')) {
       e.preventDefault();
       hideLevelSelect();
+      return;
+    }
+    if (ui.settingsOverlay && !ui.settingsOverlay.classList.contains('hidden')) {
+      e.preventDefault();
+      hideSettings();
       return;
     }
     if (ui.overlay && !ui.overlay.classList.contains('hidden')) {
@@ -2621,6 +2707,22 @@ function hideLevelSelect() {
   setModalBackdropInert('none');
   focusElementIfStillMounted(_focusBeforeLevelSelect);
   _focusBeforeLevelSelect = null;
+}
+
+function showSettings() {
+  if (!ui.settingsOverlay) return;
+  syncSettingsChromeSections();
+  _focusBeforeSettings = document.activeElement;
+  setModalBackdropInert('settings');
+  ui.settingsOverlay.classList.remove('hidden');
+  requestAnimationFrame(() => focusElementIfStillMounted(ui.settingsClose));
+}
+
+function hideSettings() {
+  if (ui.settingsOverlay) ui.settingsOverlay.classList.add('hidden');
+  setModalBackdropInert('none');
+  focusElementIfStillMounted(_focusBeforeSettings);
+  _focusBeforeSettings = null;
 }
 
 function highlightTraySelectableTypes() {

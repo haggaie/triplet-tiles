@@ -61,7 +61,7 @@
             <option value="he">עברית</option>
             <option value="ar">العربية</option>
           </select>
-          <div class="display-mode-toolbar" role="group" data-i18n-aria-label="toolbar.display" aria-label="Display">
+          <div class="header-fullscreen-wrap">
             <button
               type="button"
               id="fullscreen-toggle"
@@ -74,84 +74,38 @@
             >
               <i class="ph ph-arrows-out" aria-hidden="true"></i>
             </button>
+          </div>
+          <div
+            class="audio-master-strip"
+            role="group"
+            data-i18n-aria-label="audio.allSoundGroup"
+            aria-label="All sound"
+          >
             <button
               type="button"
-              id="install-app-button"
-              class="btn btn-ghost btn-small btn-icon display-mode-btn hidden"
-              data-i18n-aria-label="toolbar.installApp"
-              data-i18n-title="toolbar.installDetail"
-              aria-label="Install app"
-              title="Install as an app for a fuller screen without the address bar"
+              id="audio-master-mute-toggle"
+              class="btn btn-ghost btn-small btn-icon audio-master-toggle"
+              aria-pressed="true"
+              data-i18n-aria-label="audio.allSoundOn"
+              data-i18n-title="audio.allSoundMuteTitle"
+              aria-label="All sound on"
+              title="Mute music and sound effects"
             >
-              <i class="ph ph-download-simple" aria-hidden="true"></i>
+              <i class="ph ph-speaker-simple-high" aria-hidden="true"></i>
             </button>
+            <span class="audio-volume-label" data-i18n="audio.masterMuteSrLabel">Mute all sound</span>
           </div>
-          <div class="audio-stack">
-            <div class="audio-row" role="group" data-i18n-aria-label="audio.musicGroup" aria-label="Background music">
-              <button
-                type="button"
-                id="music-mute-toggle"
-                class="btn btn-ghost btn-small btn-icon audio-music-toggle"
-                aria-pressed="true"
-                aria-label="Music on"
-                data-i18n-title="audio.musicDetail"
-                title="Turn background music on or off"
-              >
-                <i class="ph ph-speaker-high" aria-hidden="true"></i>
-              </button>
-              <label class="audio-volume-label" for="music-volume" data-i18n="audio.musicVolumeLabel">Music volume</label>
-              <input
-                type="range"
-                id="music-volume"
-                class="audio-volume"
-                min="0"
-                max="1"
-                step="0.05"
-                value="0.55"
-                data-i18n-aria-label="audio.musicVolumeAria"
-                aria-label="Music volume"
-              />
-            </div>
-            <div class="audio-row" role="group" data-i18n-aria-label="audio.sfxGroup" aria-label="Sound effects">
-              <button
-                type="button"
-                id="sfx-mute-toggle"
-                class="btn btn-ghost btn-small btn-icon audio-sfx-toggle"
-                aria-pressed="true"
-                aria-label="Sound effects on"
-                data-i18n-title="audio.sfxDetail"
-                title="Turn sound effects on or off"
-              >
-                <i class="ph ph-waveform" aria-hidden="true"></i>
-              </button>
-              <label class="audio-volume-label" for="sfx-volume" data-i18n="audio.sfxVolumeLabel">Sound effects volume</label>
-              <input
-                type="range"
-                id="sfx-volume"
-                class="audio-volume"
-                min="0"
-                max="1"
-                step="0.05"
-                value="0.85"
-                data-i18n-aria-label="audio.sfxVolumeAria"
-                aria-label="Sound effects volume"
-              />
-            </div>
-            <div class="audio-row audio-row-haptics" role="group" data-i18n-aria-label="audio.hapticsGroup" aria-label="Vibration">
-              <button
-                type="button"
-                id="haptics-toggle"
-                class="btn btn-ghost btn-small btn-icon audio-haptics-toggle"
-                aria-pressed="true"
-                aria-label="Vibration on"
-                data-i18n-title="audio.hapticsTurnOff"
-                title="Turn vibration off"
-              >
-                <i class="ph ph-vibrate" aria-hidden="true"></i>
-              </button>
-              <span class="audio-volume-label" data-i18n="audio.vibrationWord">Vibration</span>
-            </div>
-          </div>
+          <button
+            type="button"
+            id="settings-open-button"
+            class="btn btn-ghost btn-icon"
+            data-i18n-aria-label="settings.openAria"
+            data-i18n-title="settings.openTitle"
+            aria-label="Settings"
+            title="Open settings"
+          >
+            <i class="ph ph-gear" aria-hidden="true"></i>
+          </button>
           <div class="score-info">
             <span data-i18n="score.label">Score</span>
             <span id="score-value" aria-live="polite" aria-atomic="true">0</span>
@@ -325,6 +279,155 @@
             <div id="level-select-carousel" class="level-select-grid"></div>
           </div>
           <p id="level-select-hint" class="level-select-hint" data-i18n="levelSelect.hint">Click a level to play</p>
+        </div>
+      </div>
+
+      <div
+        id="settings-overlay"
+        class="settings-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-heading"
+      >
+        <div class="settings-panel">
+          <div class="settings-header">
+            <h2 id="settings-heading" class="settings-title" data-i18n="settings.heading">Settings</h2>
+            <button
+              type="button"
+              id="settings-close"
+              class="btn btn-ghost btn-icon settings-close"
+              data-i18n-aria-label="settings.close"
+              data-i18n-title="settings.closeDetail"
+              aria-label="Close"
+              title="Close settings"
+            >
+              <i class="ph ph-x" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="settings-body">
+            <section
+              class="settings-section"
+              id="settings-display-section"
+              aria-labelledby="settings-section-display"
+            >
+              <h3 id="settings-section-display" class="settings-section-title" data-i18n="settings.sectionDisplay">
+                Display
+              </h3>
+              <p class="settings-hint" data-i18n="settings.installHint">Install the game as an app for more screen space.</p>
+              <button
+                type="button"
+                id="install-app-button"
+                class="btn btn-ghost btn-small btn-with-icon settings-install-btn display-mode-btn hidden"
+                data-i18n-aria-label="toolbar.installApp"
+                data-i18n-title="toolbar.installDetail"
+                aria-label="Install app"
+                title="Install as an app for a fuller screen without the address bar"
+              >
+                <i class="ph ph-download-simple" aria-hidden="true"></i>
+                <span data-i18n="toolbar.installApp">Install app</span>
+              </button>
+            </section>
+            <section class="settings-section" aria-labelledby="settings-section-sound">
+              <h3 id="settings-section-sound" class="settings-section-title" data-i18n="settings.sectionSound">Sound</h3>
+              <div class="settings-audio-stack">
+                <div class="settings-sound-block" role="group" aria-labelledby="settings-label-music">
+                  <div class="settings-sound-label" id="settings-label-music" data-i18n="audio.musicGroup">
+                    Background music
+                  </div>
+                  <div class="settings-sound-controls">
+                    <button
+                      type="button"
+                      id="music-mute-toggle"
+                      class="btn btn-ghost btn-small btn-with-icon audio-music-toggle"
+                      aria-pressed="true"
+                      aria-labelledby="settings-label-music"
+                      data-i18n-title="audio.musicDetail"
+                      title="Turn background music on or off"
+                    >
+                      <i class="ph ph-speaker-high" aria-hidden="true"></i>
+                      <span id="music-mute-text" data-i18n="audio.musicOn">Music on</span>
+                    </button>
+                    <input
+                      type="range"
+                      id="music-volume"
+                      class="audio-volume settings-audio-volume"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value="0.55"
+                      aria-labelledby="settings-label-music"
+                    />
+                  </div>
+                </div>
+                <div class="settings-sound-block" role="group" aria-labelledby="settings-label-sfx">
+                  <div class="settings-sound-label" id="settings-label-sfx" data-i18n="audio.sfxGroup">Sound effects</div>
+                  <div class="settings-sound-controls">
+                    <button
+                      type="button"
+                      id="sfx-mute-toggle"
+                      class="btn btn-ghost btn-small btn-with-icon audio-sfx-toggle"
+                      aria-pressed="true"
+                      aria-labelledby="settings-label-sfx"
+                      data-i18n-title="audio.sfxDetail"
+                      title="Turn sound effects on or off"
+                    >
+                      <i class="ph ph-waveform" aria-hidden="true"></i>
+                      <span id="sfx-mute-text" data-i18n="audio.sfxOn">Sound effects on</span>
+                    </button>
+                    <input
+                      type="range"
+                      id="sfx-volume"
+                      class="audio-volume settings-audio-volume"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value="0.85"
+                      aria-labelledby="settings-label-sfx"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section
+              class="settings-section"
+              id="settings-haptics-section"
+              aria-labelledby="settings-section-vibrate"
+            >
+              <h3 id="settings-section-vibrate" class="settings-section-title" data-i18n="settings.sectionVibrate">
+                Vibrate
+              </h3>
+              <div class="settings-sound-block" role="group" aria-labelledby="settings-label-haptics">
+                <div class="settings-sound-label" id="settings-label-haptics" data-i18n="settings.vibrateRowLabel">
+                  Short buzzes when you match and when levels end (on supported phones).
+                </div>
+                <div class="settings-sound-controls">
+                  <button
+                    type="button"
+                    id="haptics-toggle"
+                    class="btn btn-ghost btn-small btn-with-icon audio-haptics-toggle"
+                    aria-pressed="true"
+                    aria-labelledby="settings-label-haptics"
+                    data-i18n-title="audio.hapticsTurnOff"
+                    title="Turn vibration off"
+                  >
+                    <i class="ph ph-vibrate" aria-hidden="true"></i>
+                    <span id="haptics-toggle-label" data-i18n="audio.hapticsOn">Vibration on</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="settings-footer">
+            <button
+              type="button"
+              id="settings-reset-defaults"
+              class="btn btn-ghost btn-small settings-reset-btn"
+              data-i18n="settings.resetDefaults"
+              data-i18n-title="settings.resetDefaultsDetail"
+            >
+              Reset to defaults
+            </button>
+          </div>
         </div>
       </div>
     </div>

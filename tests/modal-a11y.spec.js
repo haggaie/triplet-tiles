@@ -101,4 +101,29 @@ test.describe('Modal focus lock and Escape', () => {
     expect(cleared.main).toBe(false);
     expect(cleared.gameOverlay).toBe(false);
   });
+
+  test('settings sets inert on header, main, and game overlay', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#board');
+    await page.click('#settings-open-button');
+    await expect(page.locator('#settings-overlay')).toBeVisible();
+    const inert = await page.evaluate(() => ({
+      header: document.querySelector('#app header')?.inert,
+      main: document.querySelector('#app main')?.inert,
+      gameOverlay: document.getElementById('overlay')?.inert
+    }));
+    expect(inert.header).toBe(true);
+    expect(inert.main).toBe(true);
+    expect(inert.gameOverlay).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#settings-overlay')).toBeHidden();
+    const cleared = await page.evaluate(() => ({
+      header: document.querySelector('#app header')?.inert,
+      main: document.querySelector('#app main')?.inert,
+      gameOverlay: document.getElementById('overlay')?.inert
+    }));
+    expect(cleared.header).toBe(false);
+    expect(cleared.main).toBe(false);
+    expect(cleared.gameOverlay).toBe(false);
+  });
 });

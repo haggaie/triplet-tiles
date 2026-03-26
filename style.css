@@ -182,6 +182,12 @@ body {
   gap: 1rem;
 }
 
+.header-fullscreen-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .display-mode-toolbar {
   display: flex;
   align-items: center;
@@ -192,6 +198,14 @@ body {
 
 .display-mode-btn {
   flex-shrink: 0;
+}
+
+.audio-master-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  min-height: 1.75rem;
 }
 
 .audio-stack {
@@ -212,10 +226,15 @@ body {
 
 .audio-music-toggle,
 .audio-sfx-toggle,
-.audio-haptics-toggle {
+.audio-haptics-toggle,
+.audio-master-toggle {
   flex-shrink: 0;
   font-size: 0.75rem;
   padding: 0.25rem 0.55rem;
+}
+
+.audio-master-row {
+  min-height: 1.75rem;
 }
 
 .audio-row-haptics {
@@ -819,6 +838,170 @@ body {
 
 .level-select-overlay.hidden {
   display: none !important;
+}
+
+/* Settings dialog (shell: display, granular audio, haptics) */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  background: var(--chrome-scrim);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 28;
+  animation: settings-overlay-in 0.18s ease-out;
+}
+
+@keyframes settings-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-overlay {
+    animation: none;
+  }
+}
+
+.settings-overlay.hidden {
+  display: none !important;
+}
+
+.settings-panel {
+  background: var(--chrome-panel-bg);
+  border-radius: 24px;
+  padding: 1.25rem 1.5rem;
+  max-width: min(420px, 96vw);
+  width: 96vw;
+  max-height: min(92dvh, 640px);
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    var(--chrome-panel-shadow),
+    0 0 0 1px var(--chrome-panel-edge),
+    var(--chrome-panel-inset);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.settings-close {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.2rem;
+  margin-right: -0.2rem;
+}
+
+.settings-section {
+  margin-bottom: 1.25rem;
+}
+
+.settings-section:last-of-type {
+  margin-bottom: 0.35rem;
+}
+
+.settings-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.settings-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.settings-install-btn {
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.settings-audio-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.settings-sound-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.settings-sound-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.settings-sound-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.settings-audio-volume {
+  width: min(14rem, 100%);
+  flex: 1 1 8rem;
+  min-width: 5rem;
+}
+
+.settings-display-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.settings-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--chrome-line);
+}
+
+.settings-reset-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 2.75rem;
 }
 
 .level-select-panel {
