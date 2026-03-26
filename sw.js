@@ -2,7 +2,7 @@
  * Offline precache for Triplet Tiles. Bump CACHE_NAME when this list or shell assets change.
  * @see lib/tile-types.js TILE_TYPES openmojiHex for SVG filenames.
  */
-const CACHE_NAME = 'triplet-tiles-v4';
+const CACHE_NAME = 'triplet-tiles-v5';
 
 const PRECACHE_PATHS = [
   'index.html',
@@ -21,6 +21,13 @@ const PRECACHE_PATHS = [
   'lib/audio-service.js',
   'assets/wood-grain-noise.webp',
   'assets/audio/music_ambient_loop_01.mp3',
+  'assets/audio/sfx_tile_pick.wav',
+  'assets/audio/sfx_tray_place.wav',
+  'assets/audio/sfx_match_clear_a.wav',
+  'assets/audio/sfx_match_clear_b.wav',
+  'assets/audio/sfx_match_clear_c.wav',
+  'assets/audio/sfx_level_win.wav',
+  'assets/audio/sfx_level_loss.wav',
   'assets/openmoji/ATTRIBUTION.txt',
   'assets/openmoji/1F332.svg',
   'assets/openmoji/1F338.svg',

@@ -11,8 +11,9 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
 | **Music UI** | **Done.** Header control: mute toggle + volume range ([`index.html`](index.html), [`style.css`](style.css)). Icons may use Phosphor in current `game.js`. |
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
-| **Offline / PWA** | **Done.** [`sw.js`](sw.js) includes `assets/audio/music_ambient_loop_01.mp3` and `lib/audio-service.js` in precache. |
-| **SFX (`play(eventId)`)** | **Not started.** No sounds for pick / tray / match / win / loss yet. |
+| **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **seven `sfx_*.wav` files**, and `lib/audio-service.js`. |
+| **SFX files** | **Shipped.** `assets/audio/sfx_tile_pick.wav`, `sfx_tray_place.wav`, `sfx_match_clear_{a,b,c}.wav`, `sfx_level_win.wav`, `sfx_level_loss.wav` (copied from `~/Downloads`). |
+| **SFX playback (`play(eventId)`)** | **Not started.** Assets exist; not wired in `game.js` yet. |
 | **Web Audio + `Bus_SFX`** | **Not started.** Music does **not** use `AudioContext`; SFX should use Web Audio (or a small pool) when added. |
 | **SFX settings** | **Not started.** No separate SFX slider/mute ([GAME_SPEC.md](GAME_SPEC.md) §7). |
 | **Haptics** | **Not started.** |
@@ -23,7 +24,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 ## What’s next (recommended order)
 
-1. **SFX assets + codec** — Add files under `assets/audio/` (e.g. WebM/Opus or short MP3); update [`sw.js`](sw.js) precache list if you ship offline.
+1. **SFX assets** — **Done (WAV).** Optional later: re-encode to WebM/Opus for size.
 2. **Extend the audio layer** — Add Web Audio (or delegated library) for one-shots: `play('SFX/UI/Tile_Pick')` etc. (~4–6 voice cap). Optionally merge prefs with existing `triplet_tiles_audio` JSON (`sfxVolume`, `sfxMuted`) or separate keys.
 3. **Hook `game.js`** — Fire the five events at pick start, tray land, triple clear, win modal, loss modal (same places score/UI update).
 4. **SFX chrome** — Second slider + mute; persist; keep mobile-friendly layout (may need a compact “Audio” row or overflow).
@@ -120,11 +121,11 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | File (suggested name) | Event ID(s) | Count | Status |
 |-------------------------|-------------|-------|--------|
 | `music_ambient_loop_01.mp3` | (music) | 1 loop | **Shipped** |
-| `sfx_tile_pick` | `SFX/UI/Tile_Pick` | 1 | Todo |
-| `sfx_tray_place` | `SFX/UI/Tray_Place` | 1 | Todo |
-| `sfx_match_clear_a`, `_b`, `_c` | `SFX/Gameplay/Match_Clear` | 3 variants | Todo |
-| `sfx_level_win` | `SFX/Meta/Level_Win` | 1 | Todo |
-| `sfx_level_loss` | `SFX/Meta/Level_Loss` | 1 | Todo |
+| `sfx_tile_pick.wav` | `SFX/UI/Tile_Pick` | 1 | **Shipped** (from Downloads) |
+| `sfx_tray_place.wav` | `SFX/UI/Tray_Place` | 1 | **Shipped** |
+| `sfx_match_clear_a/b/c.wav` | `SFX/Gameplay/Match_Clear` | 3 variants | **Shipped** |
+| `sfx_level_win.wav` | `SFX/Meta/Level_Win` | 1 | **Shipped** |
+| `sfx_level_loss.wav` | `SFX/Meta/Level_Loss` | 1 | **Shipped** |
 
 **Music attribution:** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno) — [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 
@@ -169,7 +170,7 @@ Each block is **one generation** (one dominant sound). For **match** variants, r
    > High-quality sound effect: **one** soft pleasant major chord swell, slightly lower register, short decay, subtle airy top, dry studio feel, under 400 ms. Calm mobile puzzle
 
 6. **Match clear — variant C**  
-   > **One** short soft tonal confirmation with a slightly longer airy tail (still a single event), no delay throw or ping-pong echo, under 450 ms.
+   > short soft tonal confirmation with a slightly longer airy tail, under 450 ms.
 
 7. **Level win — `SFX/Meta/Level_Win`**  
    > High-quality sound effect: **one** short warm uplifting phrase or sting, acoustic-soft, gentle lift and resolve, under 2 seconds. No brass fanfare, no orchestra hit, no celebration crowd.

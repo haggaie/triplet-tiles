@@ -17,6 +17,7 @@
     "assets/openmoji/*.svg",
     "assets/openmoji/ATTRIBUTION.txt",
     "assets/audio/music_ambient_loop_01.mp3",
+    "assets/audio/sfx_*.wav",
     "lib/board-view.js",
     "lib/game-model.js",
     "lib/tile-types.js",
