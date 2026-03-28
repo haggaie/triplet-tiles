@@ -228,7 +228,7 @@ function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerI
       return baseCells;
 
     case 'pyramid': {
-      const minN = options.pyramidMinNeighbors != null ? options.pyramidMinNeighbors : 2;
+      const minN = options.pyramidMinNeighbors != null ? options.pyramidMinNeighbors : 3;
       const pyramids = pyramidSilhouettes(baseCells, gridWidth, gridHeight, layerIndex + 1, minN);
       const idx = Math.min(layerIndex, pyramids.length - 1);
       return pyramids[idx].length > 0 ? pyramids[idx] : baseCells;

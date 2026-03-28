@@ -29,8 +29,8 @@ test('inferGridDimensions: diamond + paramSweep yields tight portrait board', ()
     },
     inferCtx
   );
-  assert.equal(gridWidth, 11);
-  assert.equal(gridHeight, 13);
+  assert.equal(gridWidth, 7);
+  assert.equal(gridHeight, 9);
 });
 
 test('inferGridDimensions: symmetric circle', () => {

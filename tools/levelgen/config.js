@@ -17,7 +17,7 @@
  *     - templateId: string
  *     - templateParams: object (template-specific)
  *     - gridWidth, gridHeight (optional): cell counts (min >= 5). Omit both to infer size from template + layering
- *       (see LEVELGEN.md); set `gridInfer: false` to forbid inference. Optional `gridInferMargin` pads the bbox (default 2).
+ *       (see LEVELGEN.md); set `gridInfer: false` to forbid inference. Optional `gridInferMargin` pads the bbox (default 0).
  *       `heart` cannot be inferred (board couples to grid); `rectangle` needs explicit width/height in templateParams.
  *     - count: number | "auto" | omitted — how many levels per batch; for batchVariation.mode "sweep", omit or use "auto" to use variants/axes length (see tools/levelgen/batch-variation.js)
  *     - tileTypeCount: number — distinct abstract type indices 0 .. tileTypeCount-1
