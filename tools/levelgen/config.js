@@ -18,7 +18,7 @@
  *     - templateParams: object (template-specific)
  *     - gridWidth, gridHeight (optional): cell counts (min >= 5). Omit both to infer size from template + layering
  *       (see LEVELGEN.md); set `gridInfer: false` to forbid inference. Optional `gridInferMargin` pads the bbox (default 0).
- *       `heart` cannot be inferred (board couples to grid); `rectangle` needs explicit width/height in templateParams.
+ *       `rectangle` needs explicit width/height in templateParams. `heart` needs `radius` or both `radiusX` and `radiusY` when the grid is omitted.
  *     - count: number | "auto" | omitted — how many levels per batch; for batchVariation.mode "sweep", omit or use "auto" to use variants/axes length (see tools/levelgen/batch-variation.js)
  *     - tileTypeCount: number — distinct abstract type indices 0 .. tileTypeCount-1
  *     - distribution:
@@ -141,8 +141,6 @@ module.exports = {
         "radius": 4,
         "thickness": 1
       },
-      "gridWidth": 9,
-      "gridHeight": 12,
       "count": 1,
       "tileTypeCount": 10,
       "solverConstraints": {
@@ -159,9 +157,11 @@ module.exports = {
         "overlap": "heavy",
         "maxStackPerCell": 4,
         "full": true,
-        "layerShape": "pyramid",
+        "layerShape": "paramSweep",
         "layerShapeOptions": {
-          "pyramidMinNeighbors": 3
+          "sweep": "radius",
+          "minRadius": 1,
+          "maxRadius": 4
         },
         "interleavePlacement": false
       }

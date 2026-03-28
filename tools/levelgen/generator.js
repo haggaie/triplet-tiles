@@ -753,9 +753,14 @@ function assertTemplateParamsAllowGridInference(batch) {
   const tid = String(batch.templateId || '').toLowerCase();
   const p = batch.templateParams || {};
   if (tid === 'heart') {
-    throw new Error(
-      'Grid inference: template "heart" stretches to board edges; set gridWidth and gridHeight explicitly.'
-    );
+    const sym = p.radius != null && p.radiusX == null && p.radiusY == null;
+    const asym = p.radiusX != null && p.radiusY != null;
+    if (!sym && !asym) {
+      throw new Error(
+        'Grid inference: heart needs templateParams.radius or both radiusX and radiusY.'
+      );
+    }
+    return;
   }
   if (tid === 'rectangle') {
     const w = p.width;
@@ -1156,12 +1161,6 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   let templateParams;
   const tid = String(templateId).toLowerCase();
   if (useLegacyPoolGrid) {
-    const [gw, gh] = choice(rng, gridDimensions);
-    gridWidth = gw;
-    gridHeight = gh;
-    const gMin = Math.min(gridWidth, gridHeight);
-    templateParams = sampleTemplateParams(templateId, gMin, rng);
-  } else if (tid === 'heart') {
     const [gw, gh] = choice(rng, gridDimensions);
     gridWidth = gw;
     gridHeight = gh;

@@ -59,13 +59,33 @@ test('inferGridDimensions: rectangle with explicit width/height', () => {
   assert.ok(gridHeight >= 7);
 });
 
-test('inferGridDimensions: heart throws', () => {
+test('inferGridDimensions: heart from param footprint', () => {
+  const { gridWidth, gridHeight } = inferGridDimensions(
+    {
+      templateId: 'heart',
+      templateParams: { radius: 4, thickness: 1 },
+      layering: {
+        minZ: 0,
+        maxZ: 1,
+        overlap: 'light',
+        maxStackPerCell: 3,
+        full: true,
+        layerShape: 'full'
+      }
+    },
+    inferCtx
+  );
+  assert.equal(gridWidth, 8);
+  assert.equal(gridHeight, 9);
+});
+
+test('inferGridDimensions: heart needs radius or both radii', () => {
   assert.throws(
     () =>
       inferGridDimensions(
         {
           templateId: 'heart',
-          templateParams: { radius: 4, thickness: 1 },
+          templateParams: { radiusX: 4, thickness: 1 },
           layering: {
             minZ: 0,
             maxZ: 1,
@@ -77,7 +97,7 @@ test('inferGridDimensions: heart throws', () => {
         },
         inferCtx
       ),
-    /heart/
+    /radius/
   );
 });
 

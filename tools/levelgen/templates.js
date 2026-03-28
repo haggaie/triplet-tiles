@@ -296,62 +296,48 @@ function uTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gri
 }
 
 /**
- * Heart silhouette as two upper lobes (disk union) plus a tapered lower section.
- * The classic implicit curve plus axis-aligned dilation merged the top cleft and lobes
- * into a flat bar on coarse grids; disks keep round lobes and a visible notch.
- *
- * Uses the full grid width/height around floor(W/2), floor(H/2): on even widths,
- * `resolveRadii` caps symmetric |dx| at min(cx, W-1-cx), which is one column short
- * (e.g. 7 usable columns for W=8). Here dx runs from -cx to W-1-cx so `radius: 4`
- * on an 8-wide board can span all 8 columns.
+ * @param {{ radius?: number, radiusX?: number, radiusY?: number }} params
+ * @returns {{ rxScale: number, ryScale: number }}
  */
-function heartTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
-  const cx = Math.floor(gridWidth / 2);
-  const cy = Math.floor(gridHeight / 2);
-  const halfWx = Math.max(cx, gridWidth - 1 - cx);
-  const halfHy = Math.max(cy, gridHeight - 1 - cy);
-  const p = { radius, radiusX, radiusY };
-
-  let rxScale;
-  let ryScale;
+function heartResolveScales(params) {
+  const p = params || {};
   if (p.radius != null && p.radiusX == null && p.radiusY == null) {
-    const cap = Math.min(halfWx, halfHy);
-    rxScale = ryScale = clamp(Math.max(1, Math.floor(Number(p.radius))), 1, cap);
-  } else {
-    const rxRaw =
-      p.radiusX != null ? Math.max(1, Math.floor(Number(p.radiusX))) : Math.max(3, Math.floor(gridWidth * 0.35));
-    const ryRaw =
-      p.radiusY != null ? Math.max(1, Math.floor(Number(p.radiusY))) : Math.max(3, Math.floor(gridHeight * 0.35));
-    rxScale = clamp(rxRaw, 1, halfWx);
-    ryScale = clamp(ryRaw, 1, halfHy);
+    const r = Math.max(1, Math.floor(Number(p.radius)));
+    return { rxScale: r, ryScale: r };
   }
+  if (p.radiusX != null && p.radiusY != null) {
+    return {
+      rxScale: Math.max(1, Math.floor(Number(p.radiusX))),
+      ryScale: Math.max(1, Math.floor(Number(p.radiusY)))
+    };
+  }
+  throw new Error(
+    'heart template requires templateParams.radius (symmetric) or both radiusX and radiusY'
+  );
+}
 
-  const t = clamp(thickness == null ? 1 : thickness, 0, 4);
+/**
+ * Integer cells (dx, dy) relative to board center — depends only on template params, not grid size.
+ * Placed with `centeredToGrid` so grid inference can take a bbox on a reference board.
+ */
+function heartCellsLocal(templateParams) {
+  const { rxScale, ryScale } = heartResolveScales(templateParams);
+  const t = clamp(templateParams.thickness == null ? 1 : templateParams.thickness, 0, 4);
   const s = Math.min(rxScale, ryScale);
   const pad = t > 0 ? Math.max(0, t - 1) * 0.14 * s : 0;
-  const dxMaxR = gridWidth - 1 - cx;
-  // On even W, cx > dxMaxR; lobes must reach dx = -cx and dx = dxMaxR from center.
-  const horizReach = Math.max(cx, dxMaxR);
   const oy = -0.33 * ryScale;
-  let lobeR = 0.49 * s + pad;
-  let ox = 0.39 * rxScale;
-  if (ox + lobeR < horizReach) {
-    ox = clamp(horizReach - lobeR, 0.22 * rxScale, horizReach - 0.2);
-  }
-  // Integer grid corners need a hair beyond sqrt margin so dx = ±cx / ±dxMaxR are included.
-  if (ox + lobeR < horizReach + 0.2) {
-    lobeR = horizReach - ox + 0.2;
-  }
-  // Wide enough that lower rows keep x = W−1 (dx = dxMaxR) until the stem is narrow;
-  // abs(dx)<=w is wrong on even W (dx ∈ [−cx, dxMaxR] is asymmetric).
-  const bottomHalfW0 = Math.max(
-    0.55 * rxScale + pad * (rxScale / Math.max(s, 1)),
-    horizReach + 0.5
-  );
+  const lobeR = 0.49 * s + pad;
+  const ox = 0.39 * rxScale;
+  const bottomHalfW0 = 0.55 * rxScale + pad * (rxScale / Math.max(s, 1));
 
-  const cells = [];
-  for (let dy = -cy; dy <= gridHeight - 1 - cy; dy += 1) {
-    for (let dx = -cx; dx <= gridWidth - 1 - cx; dx += 1) {
+  const dxSpan = Math.ceil(ox + lobeR + bottomHalfW0 + 1);
+  const dyMin = Math.floor(oy - lobeR - 2);
+  const dyMax = Math.ceil(ryScale + bottomHalfW0 + 2);
+
+  const seen = new Set();
+  const out = [];
+  for (let dy = dyMin; dy <= dyMax; dy += 1) {
+    for (let dx = -dxSpan; dx <= dxSpan; dx += 1) {
       const distL = Math.hypot(dx + ox, dy - oy);
       const distR = Math.hypot(dx - ox, dy - oy);
       const inLobe = distL <= lobeR || distR <= lobeR;
@@ -362,16 +348,28 @@ function heartTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth,
         const u = (dy + 0.1 * ryScale) / denom;
         if (u >= 0 && u <= 1) {
           const w = bottomHalfW0 * (1 - u) + 0.5;
-          if (dx >= -Math.min(cx, w) && dx <= Math.min(dxMaxR, w)) inBottom = true;
+          if (dx >= -w && dx <= w) inBottom = true;
         }
       }
 
       if (!inLobe && !inBottom) continue;
-      const { x: gx, y: gy } = centeredToGrid(dx, dy, gridWidth, gridHeight);
-      if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
+      const k = keyXY(dx, dy);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ dx, dy });
     }
   }
+  return out;
+}
 
+/** Heart footprint from params only; centered on the current grid (may clip if grid is smaller than the shape). */
+function heartTemplateLegacy(params, gridWidth, gridHeight) {
+  const local = heartCellsLocal(params);
+  const cells = [];
+  for (const { dx, dy } of local) {
+    const { x: gx, y: gy } = centeredToGrid(dx, dy, gridWidth, gridHeight);
+    if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
+  }
   return uniqueCells(cells);
 }
 
