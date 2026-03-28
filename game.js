@@ -2084,21 +2084,27 @@ function motionMs(fullMs) {
   return prefersReducedMotionUi() ? 0 : fullMs;
 }
 
+/** Gap between adjacent tray slot boxes in screen space (works when grid flows RTL). */
+function trayAdjacentSlotGapPx(trayRow) {
+  if (!trayRow || trayRow.children.length < 2) return 0;
+  const a = trayRow.children[0].getBoundingClientRect();
+  const b = trayRow.children[1].getBoundingClientRect();
+  const leftRect = a.left <= b.left ? a : b;
+  const rightRect = leftRect === a ? b : a;
+  return Math.max(0, rightRect.left - (leftRect.left + leftRect.width));
+}
+
 function startTrayCompactAnimation(removedSlotIndices) {
   if (!ui.tray || !ui.tray.children.length || removedSlotIndices.length === 0) return;
-  const firstRemoved = Math.min(...removedSlotIndices);
   const lastRemoved = Math.max(...removedSlotIndices);
   const count = removedSlotIndices.length;
 
   const firstSlot = ui.tray.children[0];
   const firstRect = firstSlot.getBoundingClientRect();
-  let gapPx = 0;
-  if (ui.tray.children[1]) {
-    const secondRect = ui.tray.children[1].getBoundingClientRect();
-    gapPx = secondRect.left - (firstRect.left + firstRect.width);
-  }
-  const shiftPerSlot = firstRect.width + Math.max(0, gapPx);
-  const shiftLeft = -(count * shiftPerSlot);
+  const gapPx = trayAdjacentSlotGapPx(ui.tray);
+  const shiftPerSlot = firstRect.width + gapPx;
+  const shiftMag = count * shiftPerSlot;
+  const shiftLeft = isDocumentRtl() ? shiftMag : -shiftMag;
   ui.tray.style.setProperty('--tray-shift-left', `${shiftLeft}px`);
   ui.tray.classList.add('tray-compacting');
 
@@ -2128,12 +2134,9 @@ function startTrayMakeRoomAnimation(insertIndex) {
   if (!ui.tray || !ui.tray.children.length) return;
   const firstSlot = ui.tray.children[0];
   const firstRect = firstSlot.getBoundingClientRect();
-  let gapPx = 0;
-  if (ui.tray.children[1]) {
-    const secondRect = ui.tray.children[1].getBoundingClientRect();
-    gapPx = secondRect.left - (firstRect.left + firstRect.width);
-  }
-  const shiftX = firstRect.width + Math.max(0, gapPx);
+  const gapPx = trayAdjacentSlotGapPx(ui.tray);
+  const shiftMag = firstRect.width + gapPx;
+  const shiftX = isDocumentRtl() ? -shiftMag : shiftMag;
   ui.tray.style.setProperty('--tray-shift-x', `${shiftX}px`);
   ui.tray.classList.add('tray-making-room');
   let z = 10;
