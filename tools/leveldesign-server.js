@@ -104,7 +104,11 @@ function previewHandler(body) {
   }
 
   const levelRng = mulberry32(levelSeed);
-  const level = generateOneLevel(levelRng, resolvedBatch, levelId);
+  const level = generateOneLevel(levelRng, resolvedBatch, levelId, {
+    seed: configSeed,
+    batchIndex,
+    slotIndex
+  });
 
   const { gridWidth, gridHeight } = level;
   const { templateId, templateParams } = resolvedBatch;

@@ -16,7 +16,9 @@
  *   - batch fields:
  *     - templateId: string
  *     - templateParams: object (template-specific)
- *     - gridWidth, gridHeight: number (cell counts; odd-ish recommended; min dimension >= 5 for templates; gridWidth <= 8)
+ *     - gridWidth, gridHeight (optional): cell counts (min >= 5). Omit both to infer size from template + layering
+ *       (see LEVELGEN.md); set `gridInfer: false` to forbid inference. Optional `gridInferMargin` pads the bbox (default 2).
+ *       `heart` cannot be inferred (board couples to grid); `rectangle` needs explicit width/height in templateParams.
  *     - count: number | "auto" | omitted — how many levels per batch; for batchVariation.mode "sweep", omit or use "auto" to use variants/axes length (see tools/levelgen/batch-variation.js)
  *     - tileTypeCount: number — distinct abstract type indices 0 .. tileTypeCount-1
  *     - distribution:
@@ -40,6 +42,8 @@
  * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
  *   - paramRanges.deriveTotalTripletsFromTemplate: default true — derive triplets from template (else legacy random range)
  *   - paramRanges.templateTripletFillRatio, totalTripletsMin, totalTripletsMax: same meaning as batch fields for derive/clamps
+ *   - paramRanges.poolInferSeed: passed as config.seed from CLI — seeds grid inference per level slot
+ *   - paramRanges.useLegacyPoolGrid: if true, sample gridDimensions then params (old behavior); default false = infer grid from shape
  */
 module.exports = {
   seed: 1337,
@@ -65,10 +69,8 @@ module.exports = {
     // Easy: regular silhouettes, shallow depth, fewer types.
     {
       templateId: 'diamond',
-      /** Manhattan ellipse: radiusX × radiusY (not symmetric); variants stretch vertically as grid grows. */
+      /** Manhattan ellipse: radiusX × radiusY (not symmetric); grid inferred from silhouette + paramSweep layers. */
       templateParams: { radiusX: 3, radiusY: 4 },
-      gridWidth: 7,
-      gridHeight: 10,
       count: 'auto',
       tileTypeCount: 7,
       /** Taller boards (batchVariation gridHeight 13+) often need minSlack ≥ 5 on the solution path; 3 would reject those slots forever. */
@@ -91,21 +93,19 @@ module.exports = {
       batchVariation: {
         mode: 'sweep',
         variants: [
-          { gridHeight: 10, templateParams: { radiusX: 3, radiusY: 4 } },
-          { gridHeight: 11, templateParams: { radiusX: 3, radiusY: 5 } },
-          { gridHeight: 12, templateParams: { radiusX: 3, radiusY: 5 } },
-          { gridHeight: 13, templateParams: { radiusX: 3, radiusY: 6 } },
-          { gridHeight: 14, templateParams: { radiusX: 3, radiusY: 6 } },
-          { gridHeight: 15, templateParams: { radiusX: 3, radiusY: 7 } }
+          { templateParams: { radiusX: 3, radiusY: 4 } },
+          { templateParams: { radiusX: 3, radiusY: 5 } },
+          { templateParams: { radiusX: 3, radiusY: 5 } },
+          { templateParams: { radiusX: 3, radiusY: 6 } },
+          { templateParams: { radiusX: 3, radiusY: 6 } },
+          { templateParams: { radiusX: 3, radiusY: 7 } }
         ]
       }
     },
     {
       templateId: 'circle',
-      /** Ellipse radii live under templateParams (sweep merges here); grid must fit resolveRadii clamps. */
+      /** Ellipse radii in templateParams; grid inferred (both axes required per variant when not symmetric). */
       templateParams: { radiusX: 3, radiusY: 4 },
-      gridWidth: 8,
-      gridHeight: 10,
       tileTypeCount: 8,
       solverConstraints: { requireMinSlackAtMost: 3 },
       distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.5 },
@@ -126,11 +126,11 @@ module.exports = {
       batchVariation: {
         mode: 'sweep',
         variants: [
-          { gridHeight: 7, templateParams: { radiusY: 3 } },
-          { gridHeight: 9, templateParams: { radiusY: 4 } },
-          { gridHeight: 10, templateParams: { radiusY: 4 } },
-          { gridHeight: 11, templateParams: { radiusY: 5 } },
-          { gridHeight: 12, templateParams: { radiusY: 5 } }
+          { templateParams: { radiusX: 3, radiusY: 3 } },
+          { templateParams: { radiusX: 3, radiusY: 4 } },
+          { templateParams: { radiusX: 3, radiusY: 4 } },
+          { templateParams: { radiusX: 3, radiusY: 5 } },
+          { templateParams: { radiusX: 3, radiusY: 5 } }
         ]
       }
     },
@@ -169,8 +169,6 @@ module.exports = {
     {
       templateId: 'hexagon',
       templateParams: { radius: 4 },
-      gridWidth: 8,
-      gridHeight: 12,
       count: 3,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -180,8 +178,6 @@ module.exports = {
     {
       templateId: 'triangle',
       templateParams: { radius: 4 },
-      gridWidth: 8,
-      gridHeight: 12,
       count: 2,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -191,9 +187,8 @@ module.exports = {
     // Hard: deeper stacks, 12 types, higher skew and pressure.
     {
       templateId: 'cross',
-      templateParams: { thickness: 2 },
-      gridWidth: 8,
-      gridHeight: 12,
+      /** Symmetric radius required when grid is omitted (arms come from resolveRadii). */
+      templateParams: { radius: 4, thickness: 2 },
       maxGenerateAttempts: 2800,
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
@@ -206,20 +201,18 @@ module.exports = {
       batchVariation: {
         mode: 'sweep',
         variants: [
-          { gridHeight: 7, layering: { maxZ: 1 } },
-          { gridHeight: 10, layering: { maxZ: 1 } },
-          { gridHeight: 8, layering: { maxZ: 2 } },
-          { gridHeight: 9, layering: { maxZ: 2 } },
-          { gridHeight: 10, layering: { maxZ: 2 } },
-          { gridHeight: 11, layering: { maxZ: 2 } },
+          { layering: { maxZ: 1 } },
+          { layering: { maxZ: 1 } },
+          { layering: { maxZ: 2 } },
+          { layering: { maxZ: 2 } },
+          { layering: { maxZ: 2 } },
+          { layering: { maxZ: 2 } }
         ]
       }
     },
     {
       templateId: 'ring',
       templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 8,
-      gridHeight: 14,
       count: 3,
       maxGenerateAttempts: 3000,
       tileTypeCount: 12,
@@ -230,8 +223,6 @@ module.exports = {
     {
       templateId: 't',
       templateParams: { radius: 5, thickness: 2 },
-      gridWidth: 8,
-      gridHeight: 14,
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypeCount: 12,
@@ -242,8 +233,6 @@ module.exports = {
     {
       templateId: 'u',
       templateParams: { radius: 5, thickness: 2 },
-      gridWidth: 8,
-      gridHeight: 14,
       count: 2,
       maxGenerateAttempts: 3400,
       tileTypeCount: 12,

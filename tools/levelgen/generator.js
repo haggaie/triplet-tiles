@@ -1,6 +1,10 @@
 const { getTemplateCells } = require('./templates');
 const { getFillOrder, getLayerSilhouette, subsetFillOrderEvenly } = require('./shapes');
-const { resolveBatchVariation, resolveBatchLevelCount } = require('./batch-variation');
+const {
+  resolveBatchVariation,
+  resolveBatchLevelCount,
+  paramSeedForSlot
+} = require('./batch-variation');
 
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -688,8 +692,186 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
   return { layout, layerSilhouettes };
 }
 
+/** Large reference board for bbox-based grid inference (templates center shapes in-grid). */
+const REF_GRID_FOR_INFERENCE = 256;
+
+const DEFAULT_GRID_INFER_MARGIN = 0;
+
+/** XOR mixed into `paramSeedForSlot` so grid-infer PRNG stream differs from batch-variation sampling. */
+const GRID_INFER_SEED_XOR = 0x2f4a7c31;
+
+const RESOLVE_RADII_TEMPLATE_IDS = new Set([
+  'diamond',
+  'circle',
+  'triangle',
+  'hexagon',
+  'cross',
+  'ring',
+  't',
+  'u',
+  'spiral',
+  'letter'
+]);
+
+/**
+ * @param {Array<Array<{x:number,y:number}>>} layers
+ * @returns {{ minX: number, maxX: number, minY: number, maxY: number } | null}
+ */
+function bboxOfLayers(layers) {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const cells of layers) {
+    for (const { x, y } of cells) {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    }
+  }
+  if (!Number.isFinite(minX)) return null;
+  return { minX, maxX, minY, maxY };
+}
+
+function layersCellsInBounds(layers, W, H) {
+  for (const cells of layers) {
+    for (const { x, y } of cells) {
+      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x >= W || y >= H) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * Templates that use `resolveRadii` must not rely on grid-sized defaults when inferring the board.
+ * @param {{ templateId?: string, templateParams?: object }} batch
+ */
+function assertTemplateParamsAllowGridInference(batch) {
+  const tid = String(batch.templateId || '').toLowerCase();
+  const p = batch.templateParams || {};
+  if (tid === 'heart') {
+    throw new Error(
+      'Grid inference: template "heart" stretches to board edges; set gridWidth and gridHeight explicitly.'
+    );
+  }
+  if (tid === 'rectangle') {
+    const w = p.width;
+    const h = p.height;
+    if (!Number.isInteger(w) || w < 1 || !Number.isInteger(h) || h < 1) {
+      throw new Error(
+        'Grid inference: rectangle requires integer templateParams.width and templateParams.height (>= 1).'
+      );
+    }
+    return;
+  }
+  if (!RESOLVE_RADII_TEMPLATE_IDS.has(tid)) {
+    return;
+  }
+  const sym = p.radius != null && p.radiusX == null && p.radiusY == null;
+  const asym = p.radiusX != null && p.radiusY != null;
+  if (!sym && !asym) {
+    throw new Error(
+      `Grid inference: template "${tid}" needs templateParams.radius (symmetric) or both radiusX and radiusY — ` +
+        'omitted axes would otherwise default from grid size.'
+    );
+  }
+}
+
+/**
+ * Deterministic PRNG for the reference- and verify passes only (re-seeded each full build).
+ * Must not be the same stream as layout `rng` when layerShape uses randomness.
+ * @param {{ seed: number, batchIndex: number, slotIndex: number }} ctx
+ * @returns {function(): number}
+ */
+function inferRngFromCtx(ctx) {
+  const s = (paramSeedForSlot(ctx.seed, ctx.batchIndex, ctx.slotIndex) ^ GRID_INFER_SEED_XOR) >>> 0;
+  return mulberry32(s);
+}
+
+/**
+ * @param {object} batch resolved batch (after batchVariation)
+ * @param {{ seed: number, batchIndex: number, slotIndex: number, gridInferMargin?: number }} ctx
+ * @returns {{ gridWidth: number, gridHeight: number }}
+ */
+function inferGridDimensions(batch, ctx) {
+  assertTemplateParamsAllowGridInference(batch);
+  const layeringBatch = batch.layering || {};
+  const minZLayer = Number.isInteger(layeringBatch.minZ) ? layeringBatch.minZ : 0;
+  const ref = REF_GRID_FOR_INFERENCE;
+  const runInferLayers = (W, H) => {
+    const rngI = inferRngFromCtx(ctx);
+    const tc = getTemplateCells(batch.templateId, batch.templateParams, W, H, { z: minZLayer });
+    const layerTemplateContext = {
+      templateId: batch.templateId,
+      templateParams: batch.templateParams || {},
+      minZ: minZLayer
+    };
+    const paramSweepContext =
+      (layeringBatch.layerShape || 'full') === 'paramSweep'
+        ? { templateId: batch.templateId, templateParams: batch.templateParams || {} }
+        : null;
+    return buildLayerCellsByIndex(
+      tc,
+      W,
+      H,
+      batch.layering,
+      rngI,
+      paramSweepContext,
+      layerTemplateContext
+    );
+  };
+
+  const layersRef = runInferLayers(ref, ref);
+  const bbox = bboxOfLayers(layersRef);
+  if (bbox == null) {
+    throw new Error('Grid inference: empty layer silhouettes on reference grid');
+  }
+  const rawW = bbox.maxX - bbox.minX + 1;
+  const rawH = bbox.maxY - bbox.minY + 1;
+  let margin =
+    Number.isInteger(ctx.gridInferMargin) && ctx.gridInferMargin >= 0
+      ? ctx.gridInferMargin
+      : Number.isInteger(batch.gridInferMargin) && batch.gridInferMargin >= 0
+        ? batch.gridInferMargin
+        : DEFAULT_GRID_INFER_MARGIN;
+  const shapeStrategy = layeringBatch.layerShape || 'full';
+  const maxLayer = Number.isInteger(layeringBatch.maxZ) ? layeringBatch.maxZ : 1;
+  const minLayer = Number.isInteger(layeringBatch.minZ) ? layeringBatch.minZ : 0;
+  const numLayers = maxLayer - minLayer + 1;
+  if (shapeStrategy === 'randomErosion') {
+    margin += numLayers + 2;
+  }
+  let W = Math.max(5, rawW + 2 * margin);
+  let H = Math.max(5, rawH + 2 * margin);
+
+  const cap = REF_GRID_FOR_INFERENCE;
+  let lastW = W;
+  let lastH = H;
+  while (W <= cap && H <= cap) {
+    const L = runInferLayers(W, H);
+    if (layersCellsInBounds(L, W, H)) {
+      return { gridWidth: W, gridHeight: H };
+    }
+    lastW = W;
+    lastH = H;
+    W += 1;
+    H += 1;
+  }
+  throw new Error(
+    `Grid inference: could not fit layer silhouettes (last attempt ${lastW}×${lastH}, cap ${cap})`
+  );
+}
+
 function normalizeBatchGrid(batch) {
-  if (Number.isInteger(batch.gridWidth) && Number.isInteger(batch.gridHeight)) {
+  const hasW = Number.isInteger(batch.gridWidth);
+  const hasH = Number.isInteger(batch.gridHeight);
+  if (hasW !== hasH) {
+    throw new Error('Level batch must set both gridWidth and gridHeight, or omit both');
+  }
+  if (hasW && hasH) {
     return { gridWidth: batch.gridWidth, gridHeight: batch.gridHeight };
   }
   if (Number.isInteger(batch.gridSize)) {
@@ -697,6 +879,42 @@ function normalizeBatchGrid(batch) {
     return { gridWidth: g, gridHeight: g };
   }
   throw new Error('Level batch must specify gridWidth and gridHeight (or legacy gridSize)');
+}
+
+/**
+ * @param {object} batch
+ * @param {{ seed: number, batchIndex: number, slotIndex: number, gridInferMargin?: number } | null | undefined} inferCtx required when dimensions omitted and gridInfer is not false
+ * @returns {{ gridWidth: number, gridHeight: number }}
+ */
+function resolveBatchGrid(batch, inferCtx) {
+  const hasW = Number.isInteger(batch.gridWidth);
+  const hasH = Number.isInteger(batch.gridHeight);
+  if (hasW !== hasH) {
+    throw new Error('Level batch must set both gridWidth and gridHeight, or omit both for grid inference');
+  }
+  if (hasW && hasH) {
+    return { gridWidth: batch.gridWidth, gridHeight: batch.gridHeight };
+  }
+  if (Number.isInteger(batch.gridSize)) {
+    const g = batch.gridSize;
+    return { gridWidth: g, gridHeight: g };
+  }
+  if (batch.gridInfer === false) {
+    throw new Error(
+      'Level batch must specify gridWidth and gridHeight (or legacy gridSize) when gridInfer is false'
+    );
+  }
+  if (
+    inferCtx == null ||
+    !Number.isFinite(inferCtx.seed) ||
+    !Number.isInteger(inferCtx.batchIndex) ||
+    !Number.isInteger(inferCtx.slotIndex)
+  ) {
+    throw new Error(
+      'Grid inference requires inferCtx { seed, batchIndex, slotIndex } when gridWidth/gridHeight are omitted.'
+    );
+  }
+  return inferGridDimensions(batch, inferCtx);
 }
 
 /** Abstract tile type indices `0 .. count - 1` (no dependency on game `TILE_TYPES` names). */
@@ -707,8 +925,8 @@ function rangeTileTypes(count) {
   return Array.from({ length: count }, (_, i) => i);
 }
 
-function generateOneLevel(rng, batch, levelId) {
-  const { gridWidth, gridHeight } = normalizeBatchGrid(batch);
+function generateOneLevel(rng, batch, levelId, inferCtx) {
+  const { gridWidth, gridHeight } = resolveBatchGrid(batch, inferCtx);
   const layeringBatch = batch.layering || {};
   const minZLayer = Number.isInteger(layeringBatch.minZ) ? layeringBatch.minZ : 0;
   const templateCells = getTemplateCells(batch.templateId, batch.templateParams, gridWidth, gridHeight, {
@@ -793,7 +1011,9 @@ function generateLevelsFromConfig(config) {
       // Per-level RNG fork for reproducibility while keeping batches stable.
       const levelSeed = Math.floor(rng() * 2 ** 31) ^ (nextId * 2654435761);
       const levelRng = mulberry32(levelSeed);
-      levels.push(generateOneLevel(levelRng, resolvedBatch, nextId));
+      levels.push(
+        generateOneLevel(levelRng, resolvedBatch, nextId, { seed, batchIndex: batchIdx, slotIndex: i })
+      );
       nextId += 1;
     }
     batchIdx += 1;
@@ -828,40 +1048,56 @@ const DEFAULT_POOL_PARAM_RANGES = {
   zipfExponentMax: 2
 };
 
-function sampleTemplateParams(templateId, gridSize, rng) {
+/**
+ * @param {string} templateId
+ * @param {number|function():number} gridSizeOrRng min(gridW, gridH) for rectangle sizing, or rng when second form
+ * @param {function():number} [rng] when first arg is grid size
+ */
+function sampleTemplateParams(templateId, gridSizeOrRng, rng) {
   const id = String(templateId).toLowerCase();
-  const g = Number.isInteger(gridSize) ? gridSize : 11;
+  let g;
+  let rand;
+  if (typeof gridSizeOrRng === 'function') {
+    rand = gridSizeOrRng;
+    g = 8;
+  } else {
+    g = Number.isInteger(gridSizeOrRng) ? gridSizeOrRng : 11;
+    rand = rng;
+    if (typeof rand !== 'function') {
+      throw new Error('sampleTemplateParams: rng is required when grid size is passed');
+    }
+  }
   switch (id) {
     case 'rectangle': {
-      const w = Math.max(3, Math.floor(g * 0.5) + Math.floor(rng() * Math.floor(g * 0.3)));
-      const h = Math.max(3, Math.floor(g * 0.5) + Math.floor(rng() * Math.floor(g * 0.3)));
+      const w = Math.max(3, Math.floor(g * 0.5) + Math.floor(rand() * Math.floor(g * 0.3)));
+      const h = Math.max(3, Math.floor(g * 0.5) + Math.floor(rand() * Math.floor(g * 0.3)));
       return { width: w, height: h };
     }
     case 'diamond':
-      return { radius: 3 + Math.floor(rng() * 3) };
+      return { radius: 3 + Math.floor(rand() * 3) };
     case 'heart':
-      return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+      return { radius: 3 + Math.floor(rand() * 2), thickness: 1 + Math.floor(rand() * 2) };
     case 'spiral':
-      return { radius: 3 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+      return { radius: 3 + Math.floor(rand() * 2), thickness: 1 + Math.floor(rand() * 2) };
     case 'circle':
-      return { radius: 3 + Math.floor(rng() * 3) };
+      return { radius: 3 + Math.floor(rand() * 3) };
     case 'triangle':
-      return { radius: 3 + Math.floor(rng() * 3) };
+      return { radius: 3 + Math.floor(rand() * 3) };
     case 'hexagon':
-      return { radius: 3 + Math.floor(rng() * 2) };
+      return { radius: 3 + Math.floor(rand() * 2) };
     case 'cross':
-      return { radius: 3 + Math.floor(rng() * 3), thickness: 1 + Math.floor(rng() * 3) };
+      return { radius: 3 + Math.floor(rand() * 3), thickness: 1 + Math.floor(rand() * 3) };
     case 'ring':
-      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+      return { radius: 4 + Math.floor(rand() * 2), thickness: 1 + Math.floor(rand() * 2) };
     case 't':
-      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+      return { radius: 4 + Math.floor(rand() * 2), thickness: 1 + Math.floor(rand() * 2) };
     case 'u':
-      return { radius: 4 + Math.floor(rng() * 2), thickness: 1 + Math.floor(rng() * 2) };
+      return { radius: 4 + Math.floor(rand() * 2), thickness: 1 + Math.floor(rand() * 2) };
     case 'letter':
       return {
-        letter: rng() < 0.5 ? 'S' : 'C',
-        radius: 4 + Math.floor(rng() * 2),
-        thickness: 1 + Math.floor(rng() * 2)
+        letter: rand() < 0.5 ? 'S' : 'C',
+        radius: 4 + Math.floor(rand() * 2),
+        thickness: 1 + Math.floor(rand() * 2)
       };
     default:
       return { radius: 4 };
@@ -880,12 +1116,15 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const poolIds = rangeTileTypes(poolSize);
 
   const templateId = choice(rng, ranges.templateIds);
-  const gridDimensions = ranges.gridDimensions || ranges.gridSizes?.map((g) => [g, g]) || [[7, 7]];
-  const [gw, gh] = choice(rng, gridDimensions);
-  const gridWidth = gw;
-  const gridHeight = gh;
-  const gMin = Math.min(gridWidth, gridHeight);
-  const templateParams = sampleTemplateParams(templateId, gMin, rng);
+  const useLegacyPoolGrid = ranges.useLegacyPoolGrid === true;
+  const gridDimensions = ranges.gridDimensions || ranges.gridSizes?.map((g) => [g, g]) || [
+    [7, 7],
+    [8, 8],
+    [7, 10],
+    [8, 11],
+    [8, 12]
+  ];
+  const poolInferSeed = Number.isFinite(ranges.poolInferSeed) ? ranges.poolInferSeed : 1337;
 
   const numTypesMin = Math.max(2, ranges.numTypesMin ?? 4);
   const numTypesMax = Math.min(poolIds.length, ranges.numTypesMax ?? 12);
@@ -922,6 +1161,42 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
       allowShift: rng() < 0.65
     }
   };
+
+  let gridWidth;
+  let gridHeight;
+  let templateParams;
+  const tid = String(templateId).toLowerCase();
+  if (useLegacyPoolGrid) {
+    const [gw, gh] = choice(rng, gridDimensions);
+    gridWidth = gw;
+    gridHeight = gh;
+    const gMin = Math.min(gridWidth, gridHeight);
+    templateParams = sampleTemplateParams(templateId, gMin, rng);
+  } else if (tid === 'heart') {
+    const [gw, gh] = choice(rng, gridDimensions);
+    gridWidth = gw;
+    gridHeight = gh;
+    const gMin = Math.min(gridWidth, gridHeight);
+    templateParams = sampleTemplateParams(templateId, gMin, rng);
+  } else {
+    templateParams = sampleTemplateParams(templateId, rng);
+    const inferred = inferGridDimensions(
+      {
+        templateId,
+        templateParams,
+        layering,
+        gridInferMargin: ranges.poolGridInferMargin
+      },
+      {
+        seed: poolInferSeed,
+        batchIndex: 0,
+        slotIndex: Number.isInteger(levelId) ? levelId : 0,
+        gridInferMargin: ranges.poolGridInferMargin
+      }
+    );
+    gridWidth = inferred.gridWidth;
+    gridHeight = inferred.gridHeight;
+  }
 
   const tripletsMin = Math.max(5, ranges.totalTripletsMin ?? 15);
   const tripletsMax = Math.min(50, ranges.totalTripletsMax ?? 40);
@@ -990,6 +1265,8 @@ module.exports = {
   resolveBatchLevelCount,
   DEFAULT_POOL_PARAM_RANGES,
   normalizeBatchGrid,
+  resolveBatchGrid,
+  inferGridDimensions,
   rangeTileTypes,
   buildLayerCellsByIndex,
   buildParamSweepLayerCells,

@@ -73,13 +73,17 @@
             <span class="field__label">Template</span>
             <select id="templateId" name="templateId"></select>
           </label>
+          <label class="field field--check field--block" title="Off = omit gridWidth/gridHeight like config batches that infer from the shape">
+            <input type="checkbox" id="explicitGrid" name="explicitGrid" />
+            <span>Fixed board size (explicit grid)</span>
+          </label>
           <label class="field">
             <span class="field__label">Grid width</span>
-            <input type="number" id="gridWidth" name="gridWidth" min="5" max="8" step="1" />
+            <input type="number" id="gridWidth" name="gridWidth" min="5" max="32" step="1" />
           </label>
           <label class="field">
             <span class="field__label">Grid height</span>
-            <input type="number" id="gridHeight" name="gridHeight" min="5" max="24" step="1" />
+            <input type="number" id="gridHeight" name="gridHeight" min="5" max="48" step="1" />
           </label>
         </fieldset>
 

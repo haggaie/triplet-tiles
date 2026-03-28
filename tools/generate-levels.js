@@ -82,7 +82,7 @@ function main() {
       );
       const levelSeed = Math.floor(rng() * 2 ** 31) ^ ((i + 1) * 2654435761);
       const levelRng = mulberry32(levelSeed);
-      const level = generateOneRandomLevel(levelRng, i + 1, paramRanges);
+      const level = generateOneRandomLevel(levelRng, i + 1, { ...paramRanges, poolInferSeed: seed });
       if (level == null) {
         rejected += 1;
         continue;
@@ -148,7 +148,11 @@ function main() {
           batchIndex: batchIdx,
           seed
         });
-        const level = generateOneLevel(levelRng, resolvedBatch, nextId);
+        const level = generateOneLevel(levelRng, resolvedBatch, nextId, {
+          seed,
+          batchIndex: batchIdx,
+          slotIndex: made
+        });
         nextId += 1;
 
         const scoredLevel = scoreLevel(level, scoreOpts);

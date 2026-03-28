@@ -209,11 +209,40 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+function syncExplicitGridUi() {
+  const on = $('explicitGrid').checked;
+  const gw = $('gridWidth');
+  const gh = $('gridHeight');
+  gw.disabled = !on;
+  gh.disabled = !on;
+  gw.title = on
+    ? ''
+    : 'Not sent to the generator when inferring; values show the last preview size if available.';
+  gh.title = gw.title;
+  gw.style.opacity = on ? '' : '0.75';
+  gh.style.opacity = on ? '' : '0.75';
+}
+
 function applyBatchToForm(b) {
   if (!b || typeof b !== 'object') return;
   $('templateId').value = b.templateId || 'rectangle';
-  $('gridWidth').value = b.gridWidth ?? 7;
-  $('gridHeight').value = b.gridHeight ?? 7;
+  const gs = b.gridSize;
+  const gw = b.gridWidth;
+  const gh = b.gridHeight;
+  if (Number.isInteger(gw) && Number.isInteger(gh)) {
+    $('explicitGrid').checked = true;
+    $('gridWidth').value = String(gw);
+    $('gridHeight').value = String(gh);
+  } else if (Number.isInteger(gs)) {
+    $('explicitGrid').checked = true;
+    $('gridWidth').value = String(gs);
+    $('gridHeight').value = String(gs);
+  } else {
+    $('explicitGrid').checked = false;
+    $('gridWidth').value = '';
+    $('gridHeight').value = '';
+  }
+  syncExplicitGridUi();
   $('tileTypeCount').value = b.tileTypeCount ?? 6;
   $('templateParamsJson').value = JSON.stringify(b.templateParams || {}, null, 2);
 
@@ -248,16 +277,23 @@ function applyBatchToForm(b) {
 
 function mergeFormIntoBatch(base) {
   const f = readBatchFromForm();
-  return {
+  const out = {
     ...base,
     templateId: f.templateId,
     templateParams: f.templateParams,
-    gridWidth: f.gridWidth,
-    gridHeight: f.gridHeight,
     tileTypeCount: f.tileTypeCount,
     distribution: f.distribution,
     layering: f.layering
   };
+  if ($('explicitGrid').checked) {
+    out.gridWidth = f.gridWidth;
+    out.gridHeight = f.gridHeight;
+  } else {
+    delete out.gridWidth;
+    delete out.gridHeight;
+    delete out.gridSize;
+  }
+  return out;
 }
 
 function getBatchForPreview() {
@@ -345,11 +381,24 @@ function readBatchFromForm() {
     interleavePlacement: $('interleavePlacement').checked
   };
 
+  const explicit = $('explicitGrid').checked;
+  let gridWidth;
+  let gridHeight;
+  if (explicit) {
+    gridWidth = parseInt($('gridWidth').value, 10);
+    gridHeight = parseInt($('gridHeight').value, 10);
+    if (!Number.isInteger(gridWidth) || gridWidth < 5) {
+      throw new Error('gridWidth must be an integer ≥ 5 when using fixed board size');
+    }
+    if (!Number.isInteger(gridHeight) || gridHeight < 5) {
+      throw new Error('gridHeight must be an integer ≥ 5 when using fixed board size');
+    }
+  }
+
   return {
     templateId,
     templateParams,
-    gridWidth: parseInt($('gridWidth').value, 10),
-    gridHeight: parseInt($('gridHeight').value, 10),
+    ...(explicit ? { gridWidth, gridHeight } : {}),
     tileTypeCount,
     distribution,
     layering
@@ -512,6 +561,11 @@ async function generate() {
       data.level.gridHeight
     );
     renderMetrics($('metricsSummary'), $('metricsBody'), data.score);
+
+    if (!$('explicitGrid').checked) {
+      $('gridWidth').value = String(data.level.gridWidth);
+      $('gridHeight').value = String(data.level.gridHeight);
+    }
   } catch (e) {
     if (e.name === 'AbortError') return;
     status.textContent = String(e.message || e);
@@ -673,6 +727,16 @@ function init() {
     $('levelSeed').disabled = !$('useLevelSeed').checked;
   });
 
+  $('explicitGrid').addEventListener('change', () => {
+    if ($('explicitGrid').checked) {
+      if (!$('gridWidth').value.trim()) $('gridWidth').value = '7';
+      if (!$('gridHeight').value.trim()) $('gridHeight').value = '7';
+    }
+    syncExplicitGridUi();
+    debouncedGenerate();
+  });
+  syncExplicitGridUi();
+
   $('templateId').addEventListener('change', () => {
     applyTemplateDefaults();
     debouncedGenerate();
@@ -699,7 +763,8 @@ function init() {
     'btnSlotPrev',
     'btnSlotNext',
     'btnJsonToForm',
-    'btnFormToJson'
+    'btnFormToJson',
+    'explicitGrid'
   ]);
   const inputs = document.querySelectorAll(
     '.panel--controls input, .panel--controls select, .panel--controls textarea'
