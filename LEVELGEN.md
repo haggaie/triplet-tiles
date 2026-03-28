@@ -83,7 +83,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `hexagon`: compact hexagonal silhouette.
     - `cross`: plus/cross bars (`radius`, `thickness`).
     - `ring`: donut-like outer/inner circle (`radius`, `thickness`).
-    - `t`: regular T-shaped glyph.
+    - `t`: regular T-shaped glyph. **`thickness`** applies to both strokes: **`t`** rows for the top bar and **`t`** columns for the vertical stem (centered).
     - `u`: regular U-shaped glyph.
     - `heart`: two circular upper lobes plus a tapered lower point (readable round lobes on the grid). `thickness` tweaks lobe padding. Use **`radius`** (symmetric) or **both `radiusX` and `radiusY`** — the outline is fixed from those values and **centered** on the grid, so you can omit **`gridWidth` / `gridHeight`** and infer a tight board from the drawn footprint plus layer shapes.
     - `spiral`: simple spiral path, then dilated by `thickness`.

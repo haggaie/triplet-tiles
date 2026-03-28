@@ -258,12 +258,14 @@ function tTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gri
   );
   const rBar = Math.min(rx, ry);
   const t = clamp(thickness == null ? 2 : thickness, 1, Math.max(1, Math.floor(rBar / 2) + 1));
-  const half = Math.floor(t / 2);
+  /** Exactly `t` columns wide, centered on the glyph (matches vertical bar extent `t` rows on the top arm). */
+  const stemLo = -Math.floor(t / 2);
+  const stemHi = Math.floor((t - 1) / 2);
   const cells = [];
   for (let dy = -ry; dy <= ry; dy += 1) {
     for (let dx = -rx; dx <= rx; dx += 1) {
-      const inTopBar = dy <= -ry + t && Math.abs(dx) <= rx;
-      const inStem = Math.abs(dx) <= half && dy >= -ry + t && dy <= ry;
+      const inTopBar = dy >= -ry && dy <= -ry + t - 1 && Math.abs(dx) <= rx;
+      const inStem = dx >= stemLo && dx <= stemHi && dy >= -ry + t && dy <= ry;
       if (!inTopBar && !inStem) continue;
       const { x, y } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
       if (inBounds(x, y, gridWidth, gridHeight)) cells.push({ x, y });

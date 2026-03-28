@@ -1,6 +1,6 @@
 # Level difficulty report
 
-Generated: 2026-03-28T18:52:23.031Z  
+Generated: 2026-03-28T19:02:50.840Z  
 Seed: 1337  
 Levels: 30 (rejected: 0)
 
@@ -10,24 +10,24 @@ Targets from `LEVELGEN.md` (Level configuration); metrics without entries leave 
 
 | Metric | Target range | Current generation target | Actual (this run) |
 | --- | --- | --- | --- |
-| Grid width | 7-8 | max 8 (batches + random pool) | 7 – 20 (mean 9.833) |
-| Grid height | 7-13 | often ≥ width (portrait batches) | 7 – 15 (mean 10.667) |
-| Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ | 60 – 96 (mean 75.900) |
+| Grid width | 7-8 | max 8 (batches + random pool) | 7 – 15 (mean 9.300) |
+| Grid height | 7-13 | often ≥ width (portrait batches) | 7 – 15 (mean 10.733) |
+| Tile count | 61-120 (most levels) | ~48-120 with emphasis on 60+ | 60 – 126 (mean 77.200) |
 | Layers/depth | 4-10 (most levels) | 4-10 | 2 – 6 (mean 2.633) · distinct z with ≥1 tile |
 | Tile type count | mostly 12 | 7-12 with medium/hard at 12 | 7 – 12 (mean 10.267) |
-| Difficulty score | ~0.34-0.76 | intentionally pushed upward via deeper stacks and tighter slack constraints | 0.414 – 0.774 (mean 0.653) |
+| Difficulty score | ~0.34-0.76 | intentionally pushed upward via deeper stacks and tighter slack constraints | 0.414 – 0.778 (mean 0.657) |
 | Min tray slack | mostly 1 | medium/hard batches require solver minSlack <= 1 | 1 – 1 (mean 1) |
-| Mean visibility hardness |  |  | 0.678 |
-| Mean strategic pressure (slack + rollout) |  |  | 0.728 |
-| Mean dig hardness |  |  | 0.579 |
-| Mean skill reveal share |  |  | 0.235 |
-| Mean chance reveal share |  |  | 0.765 |
-| Mean forced-move ratio (report-only) |  |  | 0.308 |
+| Mean visibility hardness |  |  | 0.679 |
+| Mean strategic pressure (slack + rollout) |  |  | 0.736 |
+| Mean dig hardness |  |  | 0.584 |
+| Mean skill reveal share |  |  | 0.219 |
+| Mean chance reveal share |  |  | 0.781 |
+| Mean forced-move ratio (report-only) |  |  | 0.306 |
 | Mean forced-move ratio (depth-k lookahead, report-only) |  |  | 0.147 |
-| Mean rollout failure rate |  |  | 0.790 |
-| Mean solution steps |  |  | 75.900 |
-| Mean difficulty range (in-level uniformity) |  |  | 0.201 |
-| Mean difficulty variance (in-level uniformity) |  |  | 0.009 |
+| Mean rollout failure rate |  |  | 0.806 |
+| Mean solution steps |  |  | 77.200 |
+| Mean difficulty range (in-level uniformity) |  |  | 0.210 |
+| Mean difficulty variance (in-level uniformity) |  |  | 0.010 |
 
 ## By batch
 
@@ -95,25 +95,25 @@ Aggregate metrics for each config batch (before difficulty tertiles; level `id` 
 |--------|-----|-----|------|
 | Grid width | 7 | 7 | 7 |
 | Grid height | 8 | 8 | 8 |
-| Tile count | 87 | 87 | 87 |
+| Tile count | 126 | 126 | 126 |
 | Layer depth (distinct z with tiles) | 6 | 6 | 6 |
 | Tile type count | 10 | 10 | 10 |
-| Difficulty score | 0.774 | 0.774 | 0.774 |
-| Visibility hardness (start) | 0.940 | 0.940 | 0.940 |
+| Difficulty score | 0.778 | 0.778 | 0.778 |
+| Visibility hardness (start) | 0.957 | 0.957 | 0.957 |
 | Strategic pressure (slack + rollout) | 0.833 | 0.833 | 0.833 |
-| Dig hardness (skill + chance reveals) | 0.565 | 0.565 | 0.565 |
-| Skill reveal share (same-column digs) | 0.284 | 0.284 | 0.284 |
-| Chance reveal share (cross-cell digs) | 0.716 | 0.716 | 0.716 |
+| Dig hardness (skill + chance reveals) | 0.581 | 0.581 | 0.581 |
+| Skill reveal share (same-column digs) | 0.231 | 0.231 | 0.231 |
+| Chance reveal share (cross-cell digs) | 0.769 | 0.769 | 0.769 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio (heuristic, report-only) | 0.448 | 0.448 | 0.448 |
-| Forced-move ratio (depth-k, report-only) | 0.241 | 0.241 | 0.241 |
+| Forced-move ratio (heuristic, report-only) | 0.341 | 0.341 | 0.341 |
+| Forced-move ratio (depth-k, report-only) | 0.183 | 0.183 | 0.183 |
 | Dead-end (rollout) failure rate | 1 | 1 | 1 |
-| Avg tappable tiles per step | 7.805 | 7.805 | 7.805 |
+| Avg tappable tiles per step | 7.690 | 7.690 | 7.690 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 87 | 87 | 87 |
-| Solver nodes expanded | 3339 | 3339 | 3339 |
-| Difficulty range (in-level uniformity) | 0.083 | 0.083 | 0.083 |
-| Difficulty variance (in-level uniformity) | 0.001 | 0.001 | 0.001 |
+| Solution steps | 126 | 126 | 126 |
+| Solver nodes expanded | 1341 | 1341 | 1341 |
+| Difficulty range (in-level uniformity) | 0.095 | 0.095 | 0.095 |
+| Difficulty variance (in-level uniformity) | 0.002 | 0.002 | 0.002 |
 
 **Level count:** 1
 
@@ -233,27 +233,27 @@ Aggregate metrics for each config batch (before difficulty tertiles; level `id` 
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid width | 20 | 20 | 20 |
-| Grid height | 11 | 11 | 11 |
+| Grid width | 12 | 12 | 12 |
+| Grid height | 12 | 12 | 12 |
 | Tile count | 75 | 75 | 75 |
 | Layer depth (distinct z with tiles) | 2 | 2 | 2 |
 | Tile type count | 12 | 12 | 12 |
-| Difficulty score | 0.601 | 0.641 | 0.621 |
-| Visibility hardness (start) | 0.616 | 0.616 | 0.616 |
-| Strategic pressure (slack + rollout) | 0.650 | 0.750 | 0.700 |
-| Dig hardness (skill + chance reveals) | 0.535 | 0.550 | 0.542 |
-| Skill reveal share (same-column digs) | 0.333 | 0.385 | 0.359 |
-| Chance reveal share (cross-cell digs) | 0.615 | 0.667 | 0.641 |
+| Difficulty score | 0.672 | 0.692 | 0.682 |
+| Visibility hardness (start) | 0.621 | 0.621 | 0.621 |
+| Strategic pressure (slack + rollout) | 0.817 | 0.817 | 0.817 |
+| Dig hardness (skill + chance reveals) | 0.605 | 0.605 | 0.605 |
+| Skill reveal share (same-column digs) | 0.150 | 0.150 | 0.150 |
+| Chance reveal share (cross-cell digs) | 0.850 | 0.850 | 0.850 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio (heuristic, report-only) | 0.227 | 0.253 | 0.240 |
-| Forced-move ratio (depth-k, report-only) | 0.080 | 0.187 | 0.133 |
-| Dead-end (rollout) failure rate | 0.633 | 0.833 | 0.733 |
-| Avg tappable tiles per step | 16.987 | 17.173 | 17.080 |
+| Forced-move ratio (heuristic, report-only) | 0.267 | 0.280 | 0.273 |
+| Forced-move ratio (depth-k, report-only) | 0.120 | 0.187 | 0.153 |
+| Dead-end (rollout) failure rate | 0.967 | 0.967 | 0.967 |
+| Avg tappable tiles per step | 16.333 | 18.333 | 17.333 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
 | Solution steps | 75 | 75 | 75 |
-| Solver nodes expanded | 660 | 2443 | 1551.500 |
-| Difficulty range (in-level uniformity) | 0.025 | 0.151 | 0.088 |
-| Difficulty variance (in-level uniformity) | 0.000 | 0.004 | 0.002 |
+| Solver nodes expanded | 130 | 5816 | 2973 |
+| Difficulty range (in-level uniformity) | 0.074 | 0.362 | 0.218 |
+| Difficulty variance (in-level uniformity) | 0.001 | 0.023 | 0.012 |
 
 **Level count:** 2
 
@@ -293,27 +293,27 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid width | 7 | 20 | 11.200 |
-| Grid height | 9 | 15 | 11.400 |
-| Tile count | 60 | 90 | 71.400 |
+| Grid width | 7 | 12 | 9.200 |
+| Grid height | 9 | 15 | 11.200 |
+| Tile count | 60 | 90 | 70.800 |
 | Layer depth (distinct z with tiles) | 2 | 3 | 2.300 |
 | Tile type count | 7 | 12 | 10.500 |
-| Difficulty score | 0.414 | 0.641 | 0.556 |
-| Visibility hardness (start) | 0.277 | 0.722 | 0.486 |
-| Strategic pressure (slack + rollout) | 0.433 | 0.833 | 0.622 |
-| Dig hardness (skill + chance reveals) | 0.535 | 0.608 | 0.571 |
-| Skill reveal share (same-column digs) | 0.140 | 0.385 | 0.262 |
-| Chance reveal share (cross-cell digs) | 0.615 | 0.860 | 0.738 |
+| Difficulty score | 0.414 | 0.659 | 0.562 |
+| Visibility hardness (start) | 0.277 | 0.722 | 0.487 |
+| Strategic pressure (slack + rollout) | 0.433 | 0.833 | 0.635 |
+| Dig hardness (skill + chance reveals) | 0.560 | 0.608 | 0.580 |
+| Skill reveal share (same-column digs) | 0.140 | 0.300 | 0.235 |
+| Chance reveal share (cross-cell digs) | 0.700 | 0.860 | 0.765 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio (heuristic, report-only) | 0.227 | 0.298 | 0.256 |
+| Forced-move ratio (heuristic, report-only) | 0.233 | 0.306 | 0.263 |
 | Forced-move ratio (depth-k, report-only) | 0.048 | 0.200 | 0.116 |
-| Dead-end (rollout) failure rate | 0.200 | 1 | 0.577 |
-| Avg tappable tiles per step | 10 | 25.133 | 18.752 |
+| Dead-end (rollout) failure rate | 0.200 | 1 | 0.603 |
+| Avg tappable tiles per step | 10 | 25.133 | 18.435 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 60 | 90 | 71.400 |
-| Solver nodes expanded | 61 | 2443 | 589.600 |
-| Difficulty range (in-level uniformity) | 0.025 | 0.329 | 0.215 |
-| Difficulty variance (in-level uniformity) | 0.000 | 0.018 | 0.010 |
+| Solution steps | 60 | 90 | 70.800 |
+| Solver nodes expanded | 61 | 995 | 347.800 |
+| Difficulty range (in-level uniformity) | 0.123 | 0.337 | 0.243 |
+| Difficulty variance (in-level uniformity) | 0.003 | 0.019 | 0.012 |
 
 **Level count:** 10
 
@@ -321,27 +321,27 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 
 | Metric | Min | Max | Mean |
 |--------|-----|-----|------|
-| Grid width | 7 | 15 | 9.500 |
-| Grid height | 9 | 15 | 11.300 |
-| Tile count | 60 | 90 | 72 |
+| Grid width | 7 | 15 | 9.900 |
+| Grid height | 9 | 15 | 11.700 |
+| Tile count | 60 | 90 | 72.600 |
 | Layer depth (distinct z with tiles) | 2 | 3 | 2.500 |
 | Tile type count | 7 | 12 | 9.700 |
-| Difficulty score | 0.645 | 0.690 | 0.671 |
-| Visibility hardness (start) | 0.622 | 0.830 | 0.712 |
-| Strategic pressure (slack + rollout) | 0.633 | 0.833 | 0.753 |
-| Dig hardness (skill + chance reveals) | 0.560 | 0.605 | 0.587 |
-| Skill reveal share (same-column digs) | 0.149 | 0.300 | 0.211 |
-| Chance reveal share (cross-cell digs) | 0.700 | 0.851 | 0.789 |
+| Difficulty score | 0.660 | 0.692 | 0.677 |
+| Visibility hardness (start) | 0.621 | 0.830 | 0.712 |
+| Strategic pressure (slack + rollout) | 0.633 | 0.833 | 0.763 |
+| Dig hardness (skill + chance reveals) | 0.574 | 0.605 | 0.591 |
+| Skill reveal share (same-column digs) | 0.149 | 0.254 | 0.196 |
+| Chance reveal share (cross-cell digs) | 0.746 | 0.851 | 0.804 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio (heuristic, report-only) | 0.250 | 0.379 | 0.323 |
-| Forced-move ratio (depth-k, report-only) | 0.067 | 0.205 | 0.134 |
-| Dead-end (rollout) failure rate | 0.600 | 1 | 0.840 |
-| Avg tappable tiles per step | 7.621 | 16.154 | 12.288 |
+| Forced-move ratio (heuristic, report-only) | 0.267 | 0.379 | 0.323 |
+| Forced-move ratio (depth-k, report-only) | 0.067 | 0.205 | 0.138 |
+| Dead-end (rollout) failure rate | 0.600 | 1 | 0.860 |
+| Avg tappable tiles per step | 7.621 | 18.333 | 12.657 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 60 | 90 | 72 |
-| Solver nodes expanded | 96 | 691 | 245.400 |
-| Difficulty range (in-level uniformity) | 0.116 | 0.348 | 0.236 |
-| Difficulty variance (in-level uniformity) | 0.002 | 0.021 | 0.011 |
+| Solution steps | 60 | 90 | 72.600 |
+| Solver nodes expanded | 96 | 5816 | 771.500 |
+| Difficulty range (in-level uniformity) | 0.074 | 0.362 | 0.233 |
+| Difficulty variance (in-level uniformity) | 0.001 | 0.023 | 0.011 |
 
 **Level count:** 10
 
@@ -351,25 +351,25 @@ Bands are **tertiles** (bottom/middle/top third by difficulty score).
 |--------|-----|-----|------|
 | Grid width | 7 | 10 | 8.800 |
 | Grid height | 7 | 10 | 9.300 |
-| Tile count | 66 | 96 | 84.300 |
+| Tile count | 66 | 126 | 88.200 |
 | Layer depth (distinct z with tiles) | 2 | 6 | 3.100 |
 | Tile type count | 8 | 12 | 10.600 |
-| Difficulty score | 0.693 | 0.774 | 0.733 |
-| Visibility hardness (start) | 0.672 | 0.940 | 0.836 |
+| Difficulty score | 0.693 | 0.778 | 0.733 |
+| Visibility hardness (start) | 0.672 | 0.957 | 0.838 |
 | Strategic pressure (slack + rollout) | 0.750 | 0.833 | 0.810 |
-| Dig hardness (skill + chance reveals) | 0.559 | 0.612 | 0.580 |
-| Skill reveal share (same-column digs) | 0.125 | 0.304 | 0.233 |
-| Chance reveal share (cross-cell digs) | 0.696 | 0.875 | 0.767 |
+| Dig hardness (skill + chance reveals) | 0.559 | 0.612 | 0.582 |
+| Skill reveal share (same-column digs) | 0.125 | 0.304 | 0.228 |
+| Chance reveal share (cross-cell digs) | 0.696 | 0.875 | 0.772 |
 | Min tray slack (7 - tray size) | 1 | 1 | 1 |
-| Forced-move ratio (heuristic, report-only) | 0.256 | 0.448 | 0.344 |
-| Forced-move ratio (depth-k, report-only) | 0.115 | 0.302 | 0.192 |
+| Forced-move ratio (heuristic, report-only) | 0.256 | 0.417 | 0.333 |
+| Forced-move ratio (depth-k, report-only) | 0.115 | 0.302 | 0.186 |
 | Dead-end (rollout) failure rate | 0.833 | 1 | 0.953 |
-| Avg tappable tiles per step | 7.424 | 16.897 | 11.153 |
+| Avg tappable tiles per step | 7.424 | 16.897 | 11.142 |
 | Min tappable tiles (bottleneck) | 1 | 1 | 1 |
-| Solution steps | 66 | 96 | 84.300 |
-| Solver nodes expanded | 169 | 8738 | 1830.700 |
-| Difficulty range (in-level uniformity) | 0.083 | 0.347 | 0.153 |
-| Difficulty variance (in-level uniformity) | 0.001 | 0.021 | 0.006 |
+| Solution steps | 66 | 126 | 88.200 |
+| Solver nodes expanded | 169 | 8738 | 1630.900 |
+| Difficulty range (in-level uniformity) | 0.094 | 0.347 | 0.154 |
+| Difficulty variance (in-level uniformity) | 0.002 | 0.021 | 0.006 |
 
 **Level count:** 10
 

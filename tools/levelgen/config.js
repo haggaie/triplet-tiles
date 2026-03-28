@@ -228,7 +228,16 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.5 },
       distribution: { mode: 'zipf', totalTriplets: 25, exponent: 1.45 },
-      layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 0 }, interleavePlacement: true }
+      layering: {
+        minZ: 0,
+        maxZ: 6,
+        overlap: 'heavy',
+        maxStackPerCell: 6,
+        full: true,
+        layerShape: 'paramSweep',
+        layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null },
+        interleavePlacement: true
+      }
     },
     {
       templateId: 'u',
