@@ -30,6 +30,7 @@
     - Base score per match (e.g. 10 points per tile).
     - Optional combo multiplier if multiple matches occur in quick succession.
     - Bonus for clearing the last group that completes the level.
+    - **Between levels (decision)**: The run score shown during play **resets to 0 at the start of every level** (including when advancing after a win). Each layout is scored independently so the number stays interpretable, per-level targets or star bands stay meaningful across a varied difficulty curve, and short early boards do not inflate a single cumulative headline. Longer-horizon figures (e.g. tiles cleared, levels completed) belong in meta **Progress tracking**, not in the main level score.
 - **Win / loss conditions**
   - **Win**: All tiles on the board have been moved and matched; tray is empty or partially filled.
   - **Loss**: Tray overflow; optional loss if move limit is introduced in special modes.
