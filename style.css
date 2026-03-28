@@ -133,6 +133,8 @@ body {
   flex-direction: column;
   min-height: 0;
   width: 100%;
+  /* Avoid WebKit tap flash on game surface; tile faces are decorative, not text to copy */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .openmoji-credit {
@@ -494,6 +496,8 @@ body {
 
 .board {
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
   /* Restore hit-testing for tiles and board focus (parent .board-scroll-align is pointer-events: none) */
   pointer-events: auto;
   /* Intrinsic size is set in JS (fit cap × cell floor); fallback for no-JS / first paint. */
@@ -550,6 +554,9 @@ body {
   object-fit: contain;
   flex-shrink: 0;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 
 .tile {
@@ -563,6 +570,9 @@ body {
   font-size: var(--tile-icon-size);
   cursor: pointer;
   color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   box-shadow:
     var(--tile-drop-board),
     0 0 0 1px var(--wood-edge),
@@ -650,6 +660,8 @@ body {
 
 .tray {
   --tray-gap: 0.3rem;
+  user-select: none;
+  -webkit-user-select: none;
   /* Shared empty-slot look: inner fill and ring match .tray-slot-inner inset */
   --tray-slot-inner-bg: rgb(20 17 14 / 0.94);
   --tray-slot-ring: 6px;
@@ -727,6 +739,9 @@ body {
   justify-content: center;
   font-size: var(--tile-icon-size);
   color: var(--ink);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   box-shadow:
     var(--tile-drop-tray),
     0 0 0 1px var(--wood-edge),
