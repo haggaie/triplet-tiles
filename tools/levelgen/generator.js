@@ -441,7 +441,7 @@ function computeMaxTilesFromLayers(layerCellsByIndex) {
 
 /**
  * @param {number} maxTiles — sum of per-layer silhouette sizes (one tile per cell per layer).
- * @param {{ fillRatio?: number, clampMin?: number, clampMax?: number }} [options]
+ * @param {{ fillRatio?: number }} [options]
  * @returns {number} total triplets
  */
 function resolveTotalTripletsFromCapacity(maxTiles, options = {}) {
@@ -456,10 +456,6 @@ function resolveTotalTripletsFromCapacity(maxTiles, options = {}) {
       ? Math.max(0, Math.min(1, options.fillRatio))
       : 1;
   let t = Math.floor((maxTiles * fillRatio) / 3);
-  const clampMin = typeof options.clampMin === 'number' ? options.clampMin : null;
-  const clampMax = typeof options.clampMax === 'number' ? options.clampMax : null;
-  if (clampMin != null) t = Math.max(t, Math.floor(clampMin));
-  if (clampMax != null) t = Math.min(t, Math.floor(clampMax));
   while (t > 0 && 3 * t > maxTiles) t -= 1;
   if (t < 1) t = 1;
   while (3 * t > maxTiles) t -= 1;
@@ -467,14 +463,6 @@ function resolveTotalTripletsFromCapacity(maxTiles, options = {}) {
     throw new Error(`cannot fit any triplet in maxTiles=${maxTiles}`);
   }
   return t;
-}
-
-function distributionUsesAutoTotalTriplets(distribution) {
-  return (
-    distribution &&
-    typeof distribution === 'object' &&
-    (distribution.totalTriplets === 'auto' || distribution.totalTriplets === true)
-  );
 }
 
 function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeight, layering, layoutOptions = {}) {
@@ -869,10 +857,9 @@ function generateOneLevel(rng, batch, levelId, inferCtx) {
   const distIn = batch.distribution;
   let distribution = distIn;
   let layoutOpts = {};
-  if (distributionUsesAutoTotalTriplets(distIn)) {
-    if (distIn.mode !== 'zipf' && distIn.mode !== 'weightedTriplets') {
-      throw new Error('distribution.totalTriplets "auto" is only valid for zipf or weightedTriplets');
-    }
+  const derivesTripletsFromShape =
+    distIn && (distIn.mode === 'zipf' || distIn.mode === 'weightedTriplets');
+  if (derivesTripletsFromShape) {
     const precomputedLayers = buildLayerCellsByIndex(
       templateCells,
       gridWidth,
@@ -885,9 +872,7 @@ function generateOneLevel(rng, batch, levelId, inferCtx) {
     const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
     const fillRatio =
       typeof batch.templateTripletFillRatio === 'number' ? batch.templateTripletFillRatio : 1;
-    const clampMin = Number.isInteger(batch.totalTripletsMin) ? batch.totalTripletsMin : undefined;
-    const clampMax = Number.isInteger(batch.totalTripletsMax) ? batch.totalTripletsMax : undefined;
-    const totalTriplets = resolveTotalTripletsFromCapacity(maxTiles, { fillRatio, clampMin, clampMax });
+    const totalTriplets = resolveTotalTripletsFromCapacity(maxTiles, { fillRatio });
     distribution = { ...distIn, totalTriplets };
     layoutOpts = { precomputedLayerCellsByIndex: precomputedLayers };
   }
@@ -956,8 +941,6 @@ const DEFAULT_POOL_PARAM_RANGES = {
   ],
   numTypesMin: 6,
   numTypesMax: 12,
-  totalTripletsMin: 15,
-  totalTripletsMax: 45,
   maxZMin: 3,
   maxZMax: 9,
   layerShapes: ['full', 'pyramid', 'shift'],
@@ -1104,39 +1087,24 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
     gridHeight = inferred.gridHeight;
   }
 
-  const tripletsMin = Math.max(5, ranges.totalTripletsMin ?? 15);
-  const tripletsMax = Math.min(50, ranges.totalTripletsMax ?? 40);
-  const deriveFromTemplate = ranges.deriveTotalTripletsFromTemplate !== false;
-
   try {
     const templateCells = getTemplateCells(templateId, templateParams, gridWidth, gridHeight, { z: 0 });
     const layerTemplateContext = { templateId, templateParams, minZ: 0 };
-    let distribution;
-    let layoutOpts = {};
-    if (deriveFromTemplate) {
-      const precomputedLayers = buildLayerCellsByIndex(
-        templateCells,
-        gridWidth,
-        gridHeight,
-        layering,
-        rng,
-        null,
-        layerTemplateContext
-      );
-      const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
-      const fillRatio =
-        typeof ranges.templateTripletFillRatio === 'number' ? ranges.templateTripletFillRatio : 1;
-      const totalTriplets = resolveTotalTripletsFromCapacity(maxTiles, {
-        fillRatio,
-        clampMin: tripletsMin,
-        clampMax: tripletsMax
-      });
-      distribution = { mode: 'zipf', totalTriplets, exponent, order };
-      layoutOpts = { precomputedLayerCellsByIndex: precomputedLayers };
-    } else {
-      const totalTriplets = tripletsMin + Math.floor(rng() * (tripletsMax - tripletsMin + 1));
-      distribution = { mode: 'zipf', totalTriplets, exponent, order };
-    }
+    const precomputedLayers = buildLayerCellsByIndex(
+      templateCells,
+      gridWidth,
+      gridHeight,
+      layering,
+      rng,
+      null,
+      layerTemplateContext
+    );
+    const maxTiles = computeMaxTilesFromLayers(precomputedLayers);
+    const fillRatio =
+      typeof ranges.templateTripletFillRatio === 'number' ? ranges.templateTripletFillRatio : 1;
+    const totalTriplets = resolveTotalTripletsFromCapacity(maxTiles, { fillRatio });
+    const distribution = { mode: 'zipf', totalTriplets, exponent, order };
+    const layoutOpts = { precomputedLayerCellsByIndex: precomputedLayers };
     const countsByType = distributionToCounts(distribution, typeIds);
     const seq = buildTypeSequence(rng, countsByType);
     const { layout, layerSilhouettes } = generateLayoutFromSequence(
@@ -1178,7 +1146,6 @@ module.exports = {
   buildParamSweepLayerCells,
   computeMaxTilesFromLayers,
   resolveTotalTripletsFromCapacity,
-  distributionUsesAutoTotalTriplets,
   THICKNESS_SWEEP_TEMPLATE_IDS
 };
 

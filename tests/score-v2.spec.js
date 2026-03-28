@@ -13,7 +13,6 @@ function lightRectangleBatch() {
     tileTypeCount: 6,
     distribution: {
       mode: 'weightedTriplets',
-      totalTriplets: 12,
       weights: { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }
     },
     layering: {
@@ -35,7 +34,6 @@ function heavyDiamondBatch() {
     tileTypeCount: 8,
     distribution: {
       mode: 'weightedTriplets',
-      totalTriplets: 18,
       weights: { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 }
     },
     layering: {

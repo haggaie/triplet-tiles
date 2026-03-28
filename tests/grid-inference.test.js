@@ -126,7 +126,7 @@ test('generateOneLevel infers grid when ctx provided', () => {
       templateId: 'hexagon',
       templateParams: { radius: 4 },
       tileTypeCount: 6,
-      distribution: { mode: 'zipf', totalTriplets: 8, exponent: 0.5 },
+      distribution: { mode: 'zipf', exponent: 0.5 },
       layering: { minZ: 0, maxZ: 2, maxStackPerCell: 3, layerShape: 'full' }
     },
     422,

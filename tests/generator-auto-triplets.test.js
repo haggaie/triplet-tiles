@@ -19,12 +19,7 @@ test('resolveTotalTripletsFromCapacity: floor fillRatio and respect maxTiles', (
   assert.equal(resolveTotalTripletsFromCapacity(30, { fillRatio: 0.5 }), 5);
 });
 
-test('resolveTotalTripletsFromCapacity: clamps then fits to maxTiles', () => {
-  assert.equal(resolveTotalTripletsFromCapacity(30, { clampMin: 15 }), 10);
-  assert.equal(resolveTotalTripletsFromCapacity(100, { clampMax: 8 }), 8);
-});
-
-test('generateOneLevel with totalTriplets auto fills to derived triplet count (full layers)', () => {
+test('generateOneLevel derives total triplets from shape (zipf, full layers)', () => {
   const rng = mulberry32(99_001);
   const batch = {
     templateId: 'rectangle',
@@ -32,7 +27,7 @@ test('generateOneLevel with totalTriplets auto fills to derived triplet count (f
     gridWidth: 7,
     gridHeight: 7,
     tileTypeCount: 4,
-    distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.5 },
+    distribution: { mode: 'zipf', exponent: 0.5 },
     layering: {
       minZ: 0,
       maxZ: 1,
