@@ -15,6 +15,9 @@ const deployables = [
   'levels.generated.js',
   'manifest.webmanifest',
   'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png',
   'sw.js'
 ];
 const deployLibDir = path.join(projectRoot, 'lib');

@@ -2,7 +2,7 @@
  * Offline precache for Triplet Tiles. Bump CACHE_NAME when this list or shell assets change.
  * @see lib/tile-types.js TILE_TYPES openmojiHex for SVG filenames.
  */
-const CACHE_NAME = 'triplet-tiles-v11';
+const CACHE_NAME = 'triplet-tiles-v12';
 
 const PRECACHE_PATHS = [
   'index.html',
@@ -11,6 +11,9 @@ const PRECACHE_PATHS = [
   'assets/phosphor/regular/Phosphor.woff2',
   'manifest.webmanifest',
   'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'apple-touch-icon.png',
   'sw.js',
   'game.js',
   'tile-layering.js',
