@@ -1,6 +1,6 @@
 /**
  * Silhouette / shape utilities for level generation.
- * Used to derive fill order and per-layer silhouettes (pyramid, shift).
+ * Used to derive fill order and per-layer silhouettes (pyramid, shift). `paramSweep` is handled in generator.js.
  */
 
 function keyXY(x, y) {
@@ -120,95 +120,6 @@ function shiftSilhouette(cells, dx, dy, gridWidth, gridHeight) {
   return out;
 }
 
-function randomInt(rng, lo, hi) {
-  return lo + Math.floor(rng() * (hi - lo + 1));
-}
-
-function isConnected(cells) {
-  if (cells.length <= 1) return true;
-  const set = cellSet(cells);
-  const q = [cells[0]];
-  const visited = new Set([keyXY(cells[0].x, cells[0].y)]);
-  while (q.length > 0) {
-    const cur = q.pop();
-    const nbrs = [
-      { x: cur.x + 1, y: cur.y },
-      { x: cur.x - 1, y: cur.y },
-      { x: cur.x, y: cur.y + 1 },
-      { x: cur.x, y: cur.y - 1 }
-    ];
-    for (const n of nbrs) {
-      const k = keyXY(n.x, n.y);
-      if (!set.has(k) || visited.has(k)) continue;
-      visited.add(k);
-      q.push(n);
-    }
-  }
-  return visited.size === cells.length;
-}
-
-function edgeCells(cells) {
-  const set = cellSet(cells);
-  const out = [];
-  for (const c of cells) {
-    const hasL = set.has(keyXY(c.x - 1, c.y));
-    const hasR = set.has(keyXY(c.x + 1, c.y));
-    const hasU = set.has(keyXY(c.x, c.y - 1));
-    const hasD = set.has(keyXY(c.x, c.y + 1));
-    if (!(hasL && hasR && hasU && hasD)) out.push(c);
-  }
-  return out;
-}
-
-function randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, options = {}, rng) {
-  const random = typeof rng === 'function' ? rng : Math.random;
-  if (layerIndex <= 0) return baseCells;
-
-  const baseCount = Math.max(1, baseCells.length);
-  const erosionRate = Math.max(0, Math.min(1, options.erosionRate == null ? 0.2 : options.erosionRate));
-  const minCellFraction = Math.max(0.05, Math.min(1, options.minCellFraction == null ? 0.1 : options.minCellFraction));
-  const minCells = Math.max(1, Math.floor(baseCount * minCellFraction));
-  const allowShift = options.allowShift === true;
-  let current = [...baseCells];
-
-  for (let step = 0; step < layerIndex; step += 1) {
-    if (current.length <= minCells) break;
-    const boundary = edgeCells(current);
-    if (boundary.length === 0) break;
-    const removeCount = Math.max(1, Math.min(boundary.length, Math.floor(boundary.length * erosionRate)));
-    const order = [...boundary];
-    for (let i = order.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(random() * (i + 1));
-      const tmp = order[i];
-      order[i] = order[j];
-      order[j] = tmp;
-    }
-
-    const removeKeys = new Set();
-    for (const c of order) {
-      if (removeKeys.size >= removeCount) break;
-      if (current.length - removeKeys.size - 1 < minCells) break;
-      removeKeys.add(keyXY(c.x, c.y));
-      const candidate = current.filter(p => !removeKeys.has(keyXY(p.x, p.y)));
-      if (!isConnected(candidate)) {
-        removeKeys.delete(keyXY(c.x, c.y));
-      }
-    }
-    const next = current.filter(c => !removeKeys.has(keyXY(c.x, c.y)));
-    if (next.length < minCells || next.length === 0) break;
-    current = next;
-  }
-
-  if (allowShift && layerIndex > 0) {
-    const dx = randomInt(random, -1, 1);
-    const dy = randomInt(random, -1, 1);
-    const shifted = shiftSilhouette(current, dx, dy, gridWidth, gridHeight);
-    if (shifted.length >= minCells) current = shifted;
-  }
-
-  return current.length > 0 ? current : baseCells;
-}
-
 /**
  * Get the silhouette for a given layer index (0 = base) using the chosen strategy.
  * @param {Array<{x: number, y: number}>} baseCells
@@ -216,11 +127,11 @@ function randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, o
  * @param {number} gridHeight
  * @param {string} layerShape 'full' | 'pyramid' | 'shift'
  * @param {number} layerIndex 0-based layer index (0 = bottom)
- * @param {{ shiftDx?: number, shiftDy?: number, erosionRate?: number, minCellFraction?: number, allowShift?: boolean, pyramidMinNeighbors?: number }} options
- * @param {Function} [rng]
+ * @param {{ shiftDx?: number, shiftDy?: number, pyramidMinNeighbors?: number }} options
+ * @param {Function} [_rng] unused; kept for call-site compatibility
  * @returns {Array<{x: number, y: number}>} cells allowed for that layer
  */
-function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerIndex, options = {}, rng) {
+function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerIndex, options = {}, _rng) {
   if (layerIndex === 0) return baseCells;
 
   switch (layerShape) {
@@ -246,9 +157,6 @@ function getLayerSilhouette(baseCells, gridWidth, gridHeight, layerShape, layerI
       );
       return shifted.length > 0 ? shifted : baseCells;
     }
-
-    case 'randomErosion':
-      return randomErosionSilhouette(baseCells, gridWidth, gridHeight, layerIndex, options, rng);
 
     default:
       return baseCells;

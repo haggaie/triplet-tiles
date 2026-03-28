@@ -837,13 +837,6 @@ function inferGridDimensions(batch, ctx) {
       : Number.isInteger(batch.gridInferMargin) && batch.gridInferMargin >= 0
         ? batch.gridInferMargin
         : DEFAULT_GRID_INFER_MARGIN;
-  const shapeStrategy = layeringBatch.layerShape || 'full';
-  const maxLayer = Number.isInteger(layeringBatch.maxZ) ? layeringBatch.maxZ : 1;
-  const minLayer = Number.isInteger(layeringBatch.minZ) ? layeringBatch.minZ : 0;
-  const numLayers = maxLayer - minLayer + 1;
-  if (shapeStrategy === 'randomErosion') {
-    margin += numLayers + 2;
-  }
   let W = Math.max(5, rawW + 2 * margin);
   let H = Math.max(5, rawH + 2 * margin);
 
@@ -1041,7 +1034,7 @@ const DEFAULT_POOL_PARAM_RANGES = {
   maxZMin: 3,
   maxZMax: 9,
   overlaps: ['medium', 'heavy'],
-  layerShapes: ['full', 'pyramid', 'shift', 'randomErosion'],
+  layerShapes: ['full', 'pyramid', 'shift'],
   maxStackPerCellMin: 3,
   maxStackPerCellMax: 6,
   zipfExponentMin: 0.3,
@@ -1155,11 +1148,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
     maxStackPerCell,
     full: true,
     layerShape,
-    layerShapeOptions: {
-      erosionRate: 0.15 + rng() * 0.2,
-      minCellFraction: 0.08 + rng() * 0.1,
-      allowShift: rng() < 0.65
-    }
+    layerShapeOptions: {}
   };
 
   let gridWidth;

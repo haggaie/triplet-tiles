@@ -173,7 +173,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 20, exponent: 0.9 },
-      layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.2, minCellFraction: 0.1, allowShift: true } }
+      layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'pyramid', layerShapeOptions: { pyramidMinNeighbors: 3 } }
     },
     {
       templateId: 'triangle',
@@ -218,7 +218,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 24, exponent: 1.25 },
-      layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.24, minCellFraction: 0.08, allowShift: true } }
+      layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null } }
     },
     {
       templateId: 't',
@@ -238,7 +238,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.5 },
       distribution: { mode: 'zipf', totalTriplets: 21, exponent: 1.55 },
-      layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.28, minCellFraction: 0.07, allowShift: true }, interleavePlacement: true }
+      layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null }, interleavePlacement: true }
     }
   ]
 };
