@@ -136,15 +136,35 @@ module.exports = {
     },
     // Medium
     {
-      templateId: 'heart',
-      templateParams: { radius: 4, thickness: 2 },
-      gridWidth: 8,
-      gridHeight: 12,
-      count: 3,
-      tileTypeCount: 10,
-      solverConstraints: { requireMinSlackAtMost: 1 },
-      distribution: { mode: 'zipf', totalTriplets: 18, exponent: 0.8 },
-      layering: { minZ: 0, maxZ: 5, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'randomErosion', layerShapeOptions: { erosionRate: 0.18, minCellFraction: 0.12, allowShift: true } }
+      "templateId": "heart",
+      "templateParams": {
+        "radius": 4,
+        "thickness": 1
+      },
+      "gridWidth": 9,
+      "gridHeight": 12,
+      "count": 1,
+      "tileTypeCount": 10,
+      "solverConstraints": {
+        "requireMinSlackAtMost": 1
+      },
+      "distribution": {
+        "mode": "zipf",
+        "totalTriplets": "auto",
+        "exponent": 0.8
+      },
+      "layering": {
+        "minZ": 0,
+        "maxZ": 5,
+        "overlap": "heavy",
+        "maxStackPerCell": 4,
+        "full": true,
+        "layerShape": "pyramid",
+        "layerShapeOptions": {
+          "pyramidMinNeighbors": 3
+        },
+        "interleavePlacement": false
+      }
     },
     {
       templateId: 'hexagon',

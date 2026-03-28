@@ -295,30 +295,84 @@ function uTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gri
   return uniqueCells(cells);
 }
 
+/**
+ * Heart silhouette as two upper lobes (disk union) plus a tapered lower section.
+ * The classic implicit curve plus axis-aligned dilation merged the top cleft and lobes
+ * into a flat bar on coarse grids; disks keep round lobes and a visible notch.
+ *
+ * Uses the full grid width/height around floor(W/2), floor(H/2): on even widths,
+ * `resolveRadii` caps symmetric |dx| at min(cx, W-1-cx), which is one column short
+ * (e.g. 7 usable columns for W=8). Here dx runs from -cx to W-1-cx so `radius: 4`
+ * on an 8-wide board can span all 8 columns.
+ */
 function heartTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {
-  const { rx, ry } = resolveRadii(
-    { radius, radiusX, radiusY },
-    gridWidth,
-    gridHeight,
-    { scaleX: 0.35, scaleY: 0.35, minRx: 3, minRy: 3 }
+  const cx = Math.floor(gridWidth / 2);
+  const cy = Math.floor(gridHeight / 2);
+  const halfWx = Math.max(cx, gridWidth - 1 - cx);
+  const halfHy = Math.max(cy, gridHeight - 1 - cy);
+  const p = { radius, radiusX, radiusY };
+
+  let rxScale;
+  let ryScale;
+  if (p.radius != null && p.radiusX == null && p.radiusY == null) {
+    const cap = Math.min(halfWx, halfHy);
+    rxScale = ryScale = clamp(Math.max(1, Math.floor(Number(p.radius))), 1, cap);
+  } else {
+    const rxRaw =
+      p.radiusX != null ? Math.max(1, Math.floor(Number(p.radiusX))) : Math.max(3, Math.floor(gridWidth * 0.35));
+    const ryRaw =
+      p.radiusY != null ? Math.max(1, Math.floor(Number(p.radiusY))) : Math.max(3, Math.floor(gridHeight * 0.35));
+    rxScale = clamp(rxRaw, 1, halfWx);
+    ryScale = clamp(ryRaw, 1, halfHy);
+  }
+
+  const t = clamp(thickness == null ? 1 : thickness, 0, 4);
+  const s = Math.min(rxScale, ryScale);
+  const pad = t > 0 ? Math.max(0, t - 1) * 0.14 * s : 0;
+  const dxMaxR = gridWidth - 1 - cx;
+  // On even W, cx > dxMaxR; lobes must reach dx = -cx and dx = dxMaxR from center.
+  const horizReach = Math.max(cx, dxMaxR);
+  const oy = -0.33 * ryScale;
+  let lobeR = 0.49 * s + pad;
+  let ox = 0.39 * rxScale;
+  if (ox + lobeR < horizReach) {
+    ox = clamp(horizReach - lobeR, 0.22 * rxScale, horizReach - 0.2);
+  }
+  // Integer grid corners need a hair beyond sqrt margin so dx = ±cx / ±dxMaxR are included.
+  if (ox + lobeR < horizReach + 0.2) {
+    lobeR = horizReach - ox + 0.2;
+  }
+  // Wide enough that lower rows keep x = W−1 (dx = dxMaxR) until the stem is narrow;
+  // abs(dx)<=w is wrong on even W (dx ∈ [−cx, dxMaxR] is asymmetric).
+  const bottomHalfW0 = Math.max(
+    0.55 * rxScale + pad * (rxScale / Math.max(s, 1)),
+    horizReach + 0.5
   );
+
   const cells = [];
-  // Sample a heart implicit curve on a grid; scale to [-1.5,1.5]^2.
-  // Grid y grows downward (matches CSS); the classic implicit form assumes y up — negate so the point sits bottom.
-  for (let dy = -ry; dy <= ry; dy += 1) {
-    for (let dx = -rx; dx <= rx; dx += 1) {
-      const x = rx > 0 ? (dx / rx) * 1.5 : 0;
-      const y = ry > 0 ? -(dy / ry) * 1.5 : 0;
-      const a = x * x + y * y - 1;
-      const inside = a * a * a - x * x * y * y * y <= 0;
-      if (!inside) continue;
-      const { x: gx, y: gy } = centeredSymmetricToGrid(dx, dy, rx, ry, gridWidth, gridHeight);
+  for (let dy = -cy; dy <= gridHeight - 1 - cy; dy += 1) {
+    for (let dx = -cx; dx <= gridWidth - 1 - cx; dx += 1) {
+      const distL = Math.hypot(dx + ox, dy - oy);
+      const distR = Math.hypot(dx - ox, dy - oy);
+      const inLobe = distL <= lobeR || distR <= lobeR;
+
+      let inBottom = false;
+      if (dy >= -0.1 * ryScale) {
+        const denom = ryScale + 0.1 * ryScale + 1e-9;
+        const u = (dy + 0.1 * ryScale) / denom;
+        if (u >= 0 && u <= 1) {
+          const w = bottomHalfW0 * (1 - u) + 0.5;
+          if (dx >= -Math.min(cx, w) && dx <= Math.min(dxMaxR, w)) inBottom = true;
+        }
+      }
+
+      if (!inLobe && !inBottom) continue;
+      const { x: gx, y: gy } = centeredToGrid(dx, dy, gridWidth, gridHeight);
       if (inBounds(gx, gy, gridWidth, gridHeight)) cells.push({ x: gx, y: gy });
     }
   }
 
-  const t = clamp(thickness == null ? 1 : thickness, 0, 4);
-  return t > 0 ? dilate(cells, gridWidth, gridHeight, t - 1) : uniqueCells(cells);
+  return uniqueCells(cells);
 }
 
 function spiralTemplateLegacy({ radius, radiusX, radiusY, thickness }, gridWidth, gridHeight) {

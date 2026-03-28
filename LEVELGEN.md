@@ -86,7 +86,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `ring`: donut-like outer/inner circle (`radius`, `thickness`).
     - `t`: regular T-shaped glyph.
     - `u`: regular U-shaped glyph.
-    - `heart`: implicit heart curve, then dilated by `thickness`.
+    - `heart`: two circular upper lobes plus a tapered lower point (readable round lobes on the grid). `thickness` adds width without axis-aligned dilation (which used to flatten the top cleft). Use `radiusX` / `radiusY` for a taller or wider heart; symmetric `radius` is supported. On **even** board widths, the heart still spans **all** columns (`dx` from `-floor(W/2)` to `W-1-cx`); lobes widen as needed so `radius` up to `max(floor(W/2), W-1-floor(W/2))` can use the full width.
     - `spiral`: simple spiral path, then dilated by `thickness`.
     - `letter`: crude glyphs for `S` and `C` (strokes), plus a fallback to a shrunk diamond for other letters.
 
