@@ -207,7 +207,7 @@ module.exports = {
     },
     {
       templateId: 't',
-      templateParams: { radius: 5, thickness: 2 },
+      templateParams: { radiusX: 3, radiusY: 5, thickness: 2 },
       count: 2,
       maxGenerateAttempts: 3200,
       tileTypeCount: 12,
@@ -215,7 +215,7 @@ module.exports = {
       distribution: { mode: 'zipf', exponent: 1.45 },
       layering: {
         minZ: 0,
-        maxZ: 6, maxStackPerCell: 6, layerShape: 'paramSweep',
+        maxZ: 4, maxStackPerCell: 6, layerShape: 'paramSweep',
         layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null },
         interleavePlacement: true
       }
