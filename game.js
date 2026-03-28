@@ -2244,6 +2244,8 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
 
   animation.finished.then(() => {
     finishFly(false);
+  }).catch((err) => {
+    if (err && err.name !== 'AbortError') throw err;
   });
 
   return {
