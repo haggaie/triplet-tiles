@@ -36,7 +36,6 @@
  *     - layering:
  *       - minZ: number (usually 0)
  *       - maxZ: number (inclusive)
- *       - overlap: "light" | "medium" | "heavy"
  *       - maxStackPerCell: number
  * - forcedLookahead (optional): `{}` or partial overrides — depth-k forced metric; defaults from `forced-lookahead-defaults.js`
  * - pool: when generationMode === "randomPool" - { count, keep?, paramRanges? }
@@ -79,11 +78,7 @@ module.exports = {
       distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.4 },
       layering: {
         minZ: 0,
-        maxZ: 2,
-        overlap: 'medium',
-        maxStackPerCell: 3,
-        full: true,
-        layerShape: 'paramSweep',
+        maxZ: 2, maxStackPerCell: 3, layerShape: 'paramSweep',
         layerShapeOptions: {
           sweep: 'radius',
           minRadius: 1,
@@ -111,11 +106,7 @@ module.exports = {
       distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 0.5 },
       layering: {
         minZ: 0,
-        maxZ: 2,
-        overlap: 'medium',
-        maxStackPerCell: 3,
-        full: true,
-        layerShape: 'paramSweep',
+        maxZ: 2, maxStackPerCell: 3, layerShape: 'paramSweep',
         layerShapeOptions: {
           sweep: 'radius',
           minRadius: 1,
@@ -154,9 +145,7 @@ module.exports = {
       "layering": {
         "minZ": 0,
         "maxZ": 5,
-        "overlap": "heavy",
         "maxStackPerCell": 4,
-        "full": true,
         "layerShape": "paramSweep",
         "layerShapeOptions": {
           "sweep": "radius",
@@ -173,7 +162,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 20, exponent: 0.9 },
-      layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'pyramid', layerShapeOptions: { pyramidMinNeighbors: 3 } }
+      layering: { minZ: 0, maxZ: 6, maxStackPerCell: 4, layerShape: 'pyramid', layerShapeOptions: { pyramidMinNeighbors: 3 } }
     },
     {
       templateId: 'triangle',
@@ -182,7 +171,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 21, exponent: 1.0 },
-      layering: { minZ: 0, maxZ: 6, overlap: 'heavy', maxStackPerCell: 4, full: true, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 1 } }
+      layering: { minZ: 0, maxZ: 6, maxStackPerCell: 4, layerShape: 'shift', layerShapeOptions: { shiftDx: 1, shiftDy: 1 } }
     },
     // Hard: deeper stacks, 12 types, higher skew and pressure.
     {
@@ -193,7 +182,8 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 'auto', exponent: 1.15 },
-      layering: { minZ: 0, maxZ: 2, full: true, layerShape: 'paramSweep', layerShapeOptions: {
+      layering: { minZ: 0, maxZ: 2,
+        layerShape: 'paramSweep', layerShapeOptions: {
         sweep: 'thickness',
         minThickness: 1,
         maxThickness: null
@@ -218,7 +208,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1 },
       distribution: { mode: 'zipf', totalTriplets: 24, exponent: 1.25 },
-      layering: { minZ: 0, maxZ: 8, overlap: 'heavy', maxStackPerCell: 5, full: true, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null } }
+      layering: { minZ: 0, maxZ: 8, maxStackPerCell: 5, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null } }
     },
     {
       templateId: 't',
@@ -230,11 +220,7 @@ module.exports = {
       distribution: { mode: 'zipf', totalTriplets: 25, exponent: 1.45 },
       layering: {
         minZ: 0,
-        maxZ: 6,
-        overlap: 'heavy',
-        maxStackPerCell: 6,
-        full: true,
-        layerShape: 'paramSweep',
+        maxZ: 6, maxStackPerCell: 6, layerShape: 'paramSweep',
         layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null },
         interleavePlacement: true
       }
@@ -247,7 +233,7 @@ module.exports = {
       tileTypeCount: 12,
       solverConstraints: { requireMinSlackAtMost: 1, requireMaxDifficultyRange: 0.5 },
       distribution: { mode: 'zipf', totalTriplets: 21, exponent: 1.55 },
-      layering: { minZ: 0, maxZ: 9, overlap: 'heavy', maxStackPerCell: 6, full: true, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null }, interleavePlacement: true }
+      layering: { minZ: 0, maxZ: 9, maxStackPerCell: 6, layerShape: 'paramSweep', layerShapeOptions: { sweep: 'thickness', minThickness: 1, maxThickness: null }, interleavePlacement: true }
     }
   ]
 };

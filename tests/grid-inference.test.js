@@ -20,9 +20,7 @@ test('inferGridDimensions: diamond + paramSweep yields tight portrait board', ()
       layering: {
         minZ: 0,
         maxZ: 2,
-        overlap: 'medium',
         maxStackPerCell: 3,
-        full: true,
         layerShape: 'paramSweep',
         layerShapeOptions: { sweep: 'radius', minRadius: 1, maxRadius: null }
       }
@@ -38,7 +36,7 @@ test('inferGridDimensions: symmetric circle', () => {
     {
       templateId: 'circle',
       templateParams: { radius: 4 },
-      layering: { minZ: 0, maxZ: 1, overlap: 'light', maxStackPerCell: 3, full: true, layerShape: 'full' }
+      layering: { minZ: 0, maxZ: 1, maxStackPerCell: 3, layerShape: 'full' }
     },
     inferCtx
   );
@@ -51,7 +49,7 @@ test('inferGridDimensions: rectangle with explicit width/height', () => {
     {
       templateId: 'rectangle',
       templateParams: { width: 5, height: 7 },
-      layering: { minZ: 0, maxZ: 1, overlap: 'light', maxStackPerCell: 2, full: true, layerShape: 'full' }
+      layering: { minZ: 0, maxZ: 1, maxStackPerCell: 2, layerShape: 'full' }
     },
     inferCtx
   );
@@ -67,9 +65,7 @@ test('inferGridDimensions: heart from param footprint', () => {
       layering: {
         minZ: 0,
         maxZ: 1,
-        overlap: 'light',
         maxStackPerCell: 3,
-        full: true,
         layerShape: 'full'
       }
     },
@@ -89,9 +85,7 @@ test('inferGridDimensions: heart needs radius or both radii', () => {
           layering: {
             minZ: 0,
             maxZ: 1,
-            overlap: 'light',
             maxStackPerCell: 3,
-            full: true,
             layerShape: 'full'
           }
         },
@@ -108,7 +102,7 @@ test('inferGridDimensions: circle with only radiusY throws', () => {
         {
           templateId: 'circle',
           templateParams: { radiusY: 4 },
-          layering: { minZ: 0, maxZ: 1, overlap: 'light', maxStackPerCell: 3, full: true, layerShape: 'full' }
+          layering: { minZ: 0, maxZ: 1, maxStackPerCell: 3, layerShape: 'full' }
         },
         inferCtx
       ),
@@ -133,7 +127,7 @@ test('generateOneLevel infers grid when ctx provided', () => {
       templateParams: { radius: 4 },
       tileTypeCount: 6,
       distribution: { mode: 'zipf', totalTriplets: 8, exponent: 0.5 },
-      layering: { minZ: 0, maxZ: 2, overlap: 'medium', maxStackPerCell: 3, full: true, layerShape: 'full' }
+      layering: { minZ: 0, maxZ: 2, maxStackPerCell: 3, layerShape: 'full' }
     },
     422,
     { seed: 1, batchIndex: 2, slotIndex: 3 }

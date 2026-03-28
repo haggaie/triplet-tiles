@@ -264,9 +264,7 @@ function applyBatchToForm(b) {
   const ly = b.layering || {};
   $('minZ').value = ly.minZ ?? 0;
   $('maxZ').value = ly.maxZ ?? 0;
-  $('overlap').value = ly.overlap || 'medium';
   $('maxStackPerCell').value = ly.maxStackPerCell ?? 3;
-  $('layerFull').checked = ly.full !== false;
   $('layerShape').value = ly.layerShape || 'full';
   $('interleavePlacement').checked = !!ly.interleavePlacement;
   $('layerShapeOptionsJson').value = JSON.stringify(ly.layerShapeOptions || {}, null, 2);
@@ -372,9 +370,7 @@ function readBatchFromForm() {
   const layering = {
     minZ: parseInt($('minZ').value, 10),
     maxZ: parseInt($('maxZ').value, 10),
-    overlap: $('overlap').value,
     maxStackPerCell: parseInt($('maxStackPerCell').value, 10),
-    full: $('layerFull').checked,
     layerShape: $('layerShape').value,
     layerShapeOptions,
     interleavePlacement: $('interleavePlacement').checked

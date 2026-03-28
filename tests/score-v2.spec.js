@@ -19,9 +19,7 @@ function lightRectangleBatch() {
     layering: {
       minZ: 0,
       maxZ: 2,
-      overlap: 'light',
       maxStackPerCell: 3,
-      full: true,
       layerShape: 'full'
     }
   };
@@ -43,9 +41,7 @@ function heavyDiamondBatch() {
     layering: {
       minZ: 0,
       maxZ: 5,
-      overlap: 'heavy',
       maxStackPerCell: 5,
-      full: true,
       layerShape: 'full'
     }
   };

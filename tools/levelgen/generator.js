@@ -147,18 +147,6 @@ function buildTypeSequence(rng, countsByType, _options = {}) {
   return bag;
 }
 
-function overlapBias(overlap) {
-  switch (overlap) {
-    case 'heavy':
-      return 0.75;
-    case 'medium':
-      return 0.45;
-    case 'light':
-    default:
-      return 0.2;
-  }
-}
-
 /**
  * Distribute tile indices to layers when using fill-bottom + per-layer silhouettes.
  * Base layer (layerIndex 0) gets nBase tiles; remaining tiles fill upper layers in order
@@ -490,13 +478,12 @@ function distributionUsesAutoTotalTriplets(distribution) {
 }
 
 function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeight, layering, layoutOptions = {}) {
-  const { minZ, maxZ, overlap, maxStackPerCell, full, layerShape, layerShapeOptions, interleavePlacement } = layering;
+  const { minZ, maxZ, layerShape, layerShapeOptions, interleavePlacement } = layering;
   const minLayer = Number.isInteger(minZ) ? minZ : 0;
   const maxLayer = Number.isInteger(maxZ) ? maxZ : 1;
   if (maxLayer < minLayer) throw new Error('layering.maxZ must be >= minZ');
 
   const numLayers = maxLayer - minLayer + 1;
-  const useFullFill = full === true;
   const shapeStrategy = layerShape || 'full';
   const shapeOpts = layerShapeOptions || {};
   const paramSweepContext = layoutOptions.paramSweepContext || null;
@@ -550,65 +537,30 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
   }
 
   const baseCells = layerCellsByIndex[0];
-  // When full is true, we fill every layer in deterministic order.
-  const fillOrdersByLayer = useFullFill
-    ? layerCellsByIndex.map(cells => getFillOrder(cells))
-    : null;
-
-  let stackCap = Math.max(1, maxStackPerCell || 2);
-  const neededCap = Math.ceil(seq.length / Math.max(1, baseCells.length));
-  if (neededCap > stackCap) stackCap = Math.min(6, neededCap);
+  const fillOrdersByLayer = layerCellsByIndex.map(cells => getFillOrder(cells));
 
   const usedPositions = new Set();
   const posKey = (cx, cy, cz) => `${cx},${cy},${cz}`;
-  const bias = overlapBias(overlap);
 
   let layerCounts;
-  if (useFullFill && numLayers >= 2) {
+  if (numLayers >= 2) {
     const nBase = Math.min(seq.length, baseCells.length);
     const upperCaps = layerCellsByIndex.slice(1).map(cells => cells.length);
     layerCounts = partitionTilesToLayers(seq.length, nBase, upperCaps);
-  } else if (useFullFill && numLayers === 1) {
-    layerCounts = [seq.length];
   } else {
-    const caps = layerCellsByIndex.map(c => c.length);
-    let left = seq.length;
-    layerCounts = [];
-    for (let k = 0; k < numLayers; k += 1) {
-      const cap = caps[k];
-      const n = Math.min(cap, left);
-      layerCounts.push(n);
-      left -= n;
-    }
-    if (left > 0) {
-      for (let k = 0; k < numLayers && left > 0; k += 1) {
-        const extra = Math.min(left, caps[k] - layerCounts[k]);
-        if (extra > 0) {
-          layerCounts[k] += extra;
-          left -= extra;
-        }
-      }
-    }
-    if (left > 0) {
-      throw new Error(
-        `total layer capacity ${caps.reduce((a, b) => a + b, 0)} < ${seq.length} tiles; ` +
-        'use layerShape "full" or reduce tile count'
-      );
-    }
+    layerCounts = [seq.length];
   }
 
-  const stackCount = new Map();
   const layout = [];
   let seqIndex = 0;
-  const useInterleave = interleavePlacement === true && useFullFill;
+  const useInterleave = interleavePlacement === true;
 
   for (let layerIdx = 0; layerIdx < numLayers; layerIdx += 1) {
     const z = minLayer + layerIdx;
-    const cells = layerCellsByIndex[layerIdx];
     const n = layerCounts[layerIdx] || 0;
-    const fillOrder = fillOrdersByLayer ? fillOrdersByLayer[layerIdx] : null;
+    const fillOrder = fillOrdersByLayer[layerIdx];
 
-    if (useFullFill && fillOrder && n > 0) {
+    if (n > 0 && fillOrder) {
       const baseSeqIndex = seqIndex;
       seqIndex += n;
       const placedCells = n >= fillOrder.length
@@ -627,38 +579,8 @@ function generateLayoutFromSequence(rng, templateCells, seq, gridWidth, gridHeig
         const type = seq[seqIdx];
         const cell = placedCells[j];
         usedPositions.add(posKey(cell.x, cell.y, z));
-        const k = `${cell.x},${cell.y}`;
-        stackCount.set(k, (stackCount.get(k) || 0) + 1);
         layout.push({ type, x: cell.x, y: cell.y, z });
       }
-      continue;
-    }
-
-    for (let j = 0; j < n && seqIndex < seq.length; j += 1) {
-      const type = seq[seqIndex++];
-      const canStack = [];
-      const canUse = [];
-      for (const c of cells) {
-        if (usedPositions.has(posKey(c.x, c.y, z))) continue;
-        const used = stackCount.get(`${c.x},${c.y}`) || 0;
-        if (used < stackCap) {
-          canUse.push(c);
-          if (used > 0) canStack.push(c);
-        }
-      }
-      if (canUse.length === 0) {
-        throw new Error(
-          `no free (x,y,z) slot at z=${z} (layer cells=${cells.length}, stackCap=${stackCap}); ` +
-          'try layerShape "full" or fewer tiles'
-        );
-      }
-      const cell = (canStack.length > 0 && rng() < bias)
-        ? choice(rng, canStack)
-        : choice(rng, canUse);
-      const k = `${cell.x},${cell.y}`;
-      stackCount.set(k, (stackCount.get(k) || 0) + 1);
-      usedPositions.add(posKey(cell.x, cell.y, z));
-      layout.push({ type, x: cell.x, y: cell.y, z });
     }
   }
 
@@ -1038,7 +960,6 @@ const DEFAULT_POOL_PARAM_RANGES = {
   totalTripletsMax: 45,
   maxZMin: 3,
   maxZMax: 9,
-  overlaps: ['medium', 'heavy'],
   layerShapes: ['full', 'pyramid', 'shift'],
   maxStackPerCellMin: 3,
   maxStackPerCellMax: 6,
@@ -1140,7 +1061,6 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const maxZMin = Math.max(1, ranges.maxZMin ?? 2);
   const maxZMax = Math.min(4, ranges.maxZMax ?? 3);
   const maxZ = maxZMin + Math.floor(rng() * (maxZMax - maxZMin + 1));
-  const overlap = choice(rng, ranges.overlaps);
   const layerShape = choice(rng, ranges.layerShapes);
   const mscMin = ranges.maxStackPerCellMin ?? 3;
   const mscMax = ranges.maxStackPerCellMax ?? 4;
@@ -1149,9 +1069,7 @@ function generateOneRandomLevel(rng, levelId, paramRanges = {}) {
   const layering = {
     minZ: 0,
     maxZ,
-    overlap,
     maxStackPerCell,
-    full: true,
     layerShape,
     layerShapeOptions: {}
   };

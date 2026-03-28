@@ -37,10 +37,10 @@ test('resolveBatchLevelCount: count auto without sweep throws', () => {
 });
 
 test('deepMerge merges nested objects', () => {
-  const a = { layering: { maxZ: 2, overlap: 'light' }, x: 1 };
+  const a = { layering: { maxZ: 2, maxStackPerCell: 3 }, x: 1 };
   deepMerge(a, { layering: { maxZ: 5 }, templateParams: { radius: 3 } });
   assert.equal(a.layering.maxZ, 5);
-  assert.equal(a.layering.overlap, 'light');
+  assert.equal(a.layering.maxStackPerCell, 3);
   assert.equal(a.templateParams.radius, 3);
 });
 

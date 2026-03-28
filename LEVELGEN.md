@@ -56,9 +56,7 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
     - `distribution`: how many tiles of each type to place (see section 3).
     - `layering`:
       - `minZ`, `maxZ`: inclusive range of layers to use (0-based).
-      - `overlap`: `'light' | 'medium' | 'heavy'` (bias towards reusing stacks).
-      - `maxStackPerCell`: soft cap on how many tiles can stack at one `(x, y)` (one per z); auto-raised if needed so the silhouette can hold all tiles.
-      - `full`: if `true`, placement uses deterministic fill order and greedy lower‑z‑first budgets; each layer may be **fully** tiled (row‑major) or **partially** tiled with cells spread along that order if the level runs out of tiles (see **Fill and layer-shape strategies** below).
+      - `maxStackPerCell`: optional; retained on batches for compatibility. Layout places at most one tile per `(x, y, z)` and does not use this value for placement.
       - `layerShape`: `'full' | 'pyramid' | 'shift' | 'paramSweep'` — how upper layers derive their silhouette from the base (default `'full'`).
       - `layerShapeOptions`: optional strategy params:
         - for `pyramid`: `{ pyramidMinNeighbors? }` — keep a cell on the next layer if at least this many of its four cardinal neighbors lie in the current silhouette (default **2**; use **4** for strict interior / old behavior).
@@ -95,9 +93,9 @@ All of this runs at **build time**. At runtime, the game simply loads `levels.ge
       - Converts `distribution` → exact tile counts per type (always multiples of 3).
       - Shuffles those types into a single sequence (**no** tray-feasibility or slack shaping).
       - Converts the sequence into a multi-layer layout over the template silhouette:
-        - Tiles are assigned to layers between `minZ` and `maxZ`. When `full` is true, layers fill in **increasing z**: base up to capacity, then the next layer up to capacity, and so on. Full layers use row-major order; **partial** layers use cells **spaced along** that order so coverage is spread over the silhouette (not clumped in low‑y rows). With `full` false, the same greedy z-order applies to tile budgets per layer.
+        - Tiles are assigned to layers between `minZ` and `maxZ` using **deterministic full-fill**: base layer up to capacity, then each upper layer in z-order. Each layer uses row-major fill order; **partial** layers (fewer tiles than cells) use cells **spaced along** that order so coverage is spread over the silhouette (not clumped in low‑y rows).
         - **Layer silhouettes**: each layer’s allowed cells come from `layerShape`: `'full'` = per-layer `getTemplateCells(..., { z: minZ + layerIndex })` so silhouettes follow **z-aware** footprints (same `templateParams`, possibly **slightly** different `(x,y)` sets per layer at edges); `'pyramid'` / `'shift'` derive from the **base** silhouette built with `getTemplateCells(..., { z: minZ })` then morph; `'paramSweep'` = per-layer `getTemplateCells` with **`sweep: 'footprintZ'`**, **`sweep: 'radius'`** (shrinking radius + z), or **`sweep: 'thickness'`** — all pass **`z = minZ + layerIndex`** where applicable.
-        - Overlap density is controlled via `overlap` + `maxStackPerCell`.
+        - **`maxStackPerCell`** is accepted on batches for compatibility but placement no longer uses a stack-density sampler; each `(x,y,z)` gets at most one tile from the generator.
         - **Each (x, y, z) position is used at most once** — only one tile per cell per layer.
         - Ensures at least **two layers** in every generated level.
     - Returns `{ levels, meta: { seed } }`.
@@ -199,7 +197,7 @@ The **number of tile types** in a level strongly affects difficulty: more types 
 - **Per-level**: Each batch's `tileTypeCount` fixes how many distinct abstract kinds appear. Using more types (e.g. 8–12) increases tray pressure and strategic difficulty; using fewer (e.g. 2–4) keeps levels easier.
 - **Setting it**: Prefer `tileTypeCount: N` so the generator uses ids `0..N-1` with no shared name list in the levelgen config. Letting the generator *choose* type count automatically (e.g. to hit a target difficulty) would require coupling generation to the solver/scorer and is usually not worth the complexity; configuring per batch is simpler and predictable.
 
-So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "many types" dimension. The tray holds 7 tiles, so with up to 12 types you still avoid the "7 singletons = instant loss" case. To raise difficulty for medium/hard, use **more types** in those batches (e.g. all 12) and combine with more triplets, heavier overlap, and/or more layers.
+So yes, the **fixed global cap** (currently 12 types in `game.js`) limits the "many types" dimension. The tray holds 7 tiles, so with up to 12 types you still avoid the "7 singletons = instant loss" case. To raise difficulty for medium/hard, use **more types** in those batches (e.g. all 12) and combine with more triplets, deeper stacks, and/or more layers.
 
 #### 3.4. Zipf-based distribution
 
@@ -309,7 +307,7 @@ npx playwright test
 
 #### 5.1 Fill and layer-shape strategies (implemented)
 
-- **`full: true`** (recommended): **Every layer** is filled in a deterministic **row-by-row** order (sort by `(y, x)`), so each layer’s silhouette is fully and cleanly filled—no random scatter. Tile counts per layer respect each layer’s cell capacity (so with `layerShape: 'pyramid'` or `'shift'`, upper layers may have fewer cells and thus fewer tiles).
+- **Placement** always uses deterministic **row-by-row** order per layer (sort by `(y, x)`). Layers fill in increasing **z** up to each layer’s tile budget. **Partial** layers (not enough tiles to cover every cell) spread placements along that order with `subsetFillOrderEvenly`. Tile counts per layer respect each layer’s cell capacity (e.g. `pyramid` / `shift` upper layers may have fewer cells).
 - **`layerShape`** controls each layer’s allowed cells (and thus its fill shape):
   - **`'full'`**: Each layer uses `getTemplateCells(..., { z: minZ + layerIndex })` (same `templateParams`); silhouettes match **z-aware** footprints and may differ **slightly** between layers at edges; all layers are fully filled in order.
   - **`'pyramid'`**: Layer 0 = full silhouette; each higher layer applies one shrink step: a cell stays if at least **`pyramidMinNeighbors`** of its four cardinal neighbors are in the silhouette below (default **3**). Use **`pyramidMinNeighbors: 4`** to match the previous “strict interior” rule (all four neighbors in-set). Each layer is fully filled in order, producing a pyramid-like stack.
@@ -326,7 +324,7 @@ npx playwright test
   - Adjust:
     - Templates (shape complexity).
     - Tile distributions (explicit/weighted/Zipf).
-    - Layering (depth, overlap).
+    - Layering (depth, `maxStackPerCell` metadata).
   - Use `tests/levelgen.spec.js` and/or additional tooling to inspect solver metrics and difficulty distribution across levels.
 - **Tune Zipf mode**:
   - Use lower exponents (`~0.3-0.7`) for easier, more uniform mixes.

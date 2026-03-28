@@ -36,9 +36,7 @@ test('generateOneLevel with totalTriplets auto fills to derived triplet count (f
     layering: {
       minZ: 0,
       maxZ: 1,
-      overlap: 'light',
       maxStackPerCell: 3,
-      full: true,
       layerShape: 'full'
     }
   };
