@@ -51,6 +51,31 @@ The Playwright configuration in `playwright.config.js` starts a simple static se
 - Mobile layouts: several portrait/landscape viewports, level select overlay, and iPhone-style viewport/UA/DPR (`tests/mobile-viewport.spec.js`) — asserts **no horizontal page overflow**, **tiles fully inside** `#board` (not clipped by `overflow: hidden`), **`#board` pixel size matches** `measureBoardLayout` for the level’s `gridWidth`/`gridHeight`, **full board visible** in the viewport after scroll, and that `#board` / `#tray` stay within the viewport width.
 - **Audio:** `tests/audio-sfx.spec.js` — after a click on `#app`, asserts SFX buffers finished decoding (`sfxBuffersLoaded`) and the Web Audio context is usable (`getAudioDiagnostics()` via `window.__tripletTestHooks`). Does not assert that speakers produce sound.
 - **Modal / inert:** `tests/modal-a11y.spec.js` — win and loss overlays, level picker, and **Settings** (`#settings-open-button`); asserts `inert` on `#app header` and `main` while open, **Escape** closes level select and Settings, and win/loss **Escape** behavior.
+- **Performance benchmark (Playwright):** `tests/perf-board-interaction.spec.js` — deterministic board picks on the **last heavy level** (`startLevel(31)`, UI “level 32”) vs a **large baseline** (`startLevel(29)`), with `setSkipAnimations(true)` and a fixed shuffle. Records wall time per pick (median over repetitions), Chromium **long task** counts when supported, and **User Timing** sums for `renderBoard`, `getTappableTiles`, and `getBoardFitRectPx` (via `__tripletTestHooks.setPerfMarksEnabled`). Attaches `perf-board-interaction.json` to the test report. See **Performance benchmarks** below.
+
+## Performance benchmarks
+
+The perf spec is meant for **before/after comparisons** when optimizing hot paths (layout reads, tappable scans, DOM updates). Absolute milliseconds vary by machine and CI; treat **regressions** as sustained increases in median **ms per pick**, long-task counts, or summed measures.
+
+**Run** (single worker reduces noise from parallel Chromium instances):
+
+```bash
+npx playwright test tests/perf-board-interaction.spec.js --workers=1
+```
+
+**Optional** mobile-like CPU stress in Chromium (rate ≥ 1; higher is slower):
+
+```bash
+PERF_CPU_THROTTLE=4 npx playwright test tests/perf-board-interaction.spec.js --workers=1
+```
+
+**Interpretation:**
+
+- **`ratioMsPerMove`** (heavy ÷ baseline): both levels use the same timed pick count when the level stays in play; heavy should remain **slower per pick** than baseline (the test asserts this as a sanity check).
+- **`measureSumsMedian`**: aggregated User Timing duration across the timed picks — useful to see whether `getTappableTiles` vs `getBoardFitRectPx` moved after a change.
+- **`longTaskMedian`**: optional; if the Long Task API is unavailable, counts stay at zero.
+
+**Test hooks** (for custom scripts): `setPerfMarksEnabled(true|false)`, `clearPerfEntriesForTest()`.
 
 Run only mobile layout checks:
 

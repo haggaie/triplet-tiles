@@ -8,7 +8,7 @@ alwaysApply: false
 
 # TESTING.md — E2E and keyboard/focus notes
 
-**Authority:** [TESTING.md](TESTING.md) — Playwright setup, run commands, what suites cover (`game-core`, `board-keyboard`, `powerups`, `progression-stats`, `mobile-viewport`), manual keyboard/focus expectations.
+**Authority:** [TESTING.md](TESTING.md) — Playwright setup, run commands, what suites cover (`game-core`, `board-keyboard`, `powerups`, `progression-stats`, `mobile-viewport`, `perf-board-interaction`), manual keyboard/focus expectations.
 
 ## Before editing
 

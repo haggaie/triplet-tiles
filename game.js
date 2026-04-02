@@ -161,20 +161,22 @@ function getViewportHeightPx() {
  * Matches prior square cap when grid is square: min(maxW,maxH) was the old fit side.
  */
 function getBoardFitRectPx() {
-  const vw = document.documentElement.clientWidth;
-  const vh = getViewportHeightPx();
-  let maxW = Math.min(448, vw * 0.92);
-  let maxH = Math.min(448, vh - rootRemToPx(14.25));
-  const scroll = ui.boardScroll;
-  if (scroll && scroll.clientWidth > 0 && scroll.clientHeight > 0) {
-    const innerW = scroll.clientWidth - BOARD_SCROLL_ALIGN_PAD_PX;
-    const innerH = scroll.clientHeight - BOARD_SCROLL_ALIGN_PAD_PX;
-    if (innerW > 0 && innerH > 0) {
-      maxW = Math.min(maxW, innerW);
-      maxH = Math.min(maxH, innerH);
+  return perfMeasureSync('getBoardFitRectPx', () => {
+    const vw = document.documentElement.clientWidth;
+    const vh = getViewportHeightPx();
+    let maxW = Math.min(448, vw * 0.92);
+    let maxH = Math.min(448, vh - rootRemToPx(14.25));
+    const scroll = ui.boardScroll;
+    if (scroll && scroll.clientWidth > 0 && scroll.clientHeight > 0) {
+      const innerW = scroll.clientWidth - BOARD_SCROLL_ALIGN_PAD_PX;
+      const innerH = scroll.clientHeight - BOARD_SCROLL_ALIGN_PAD_PX;
+      if (innerW > 0 && innerH > 0) {
+        maxW = Math.min(maxW, innerW);
+        maxH = Math.min(maxH, innerH);
+      }
     }
-  }
-  return { maxW: Math.max(120, maxW), maxH: Math.max(120, maxH) };
+    return { maxW: Math.max(120, maxW), maxH: Math.max(120, maxH) };
+  });
 }
 
 function readBoardCellMinPx() {
@@ -525,6 +527,32 @@ let _actionCompleteResolve = null;
 
 /** When true, tile fly/combine/compact animations are skipped (used only by tests that play a full level). */
 let skipAnimationsForTests = false;
+
+/** When true, wrap hot paths in performance.measure for Playwright perf specs (zero overhead when false). */
+let _perfMarksEnabled = false;
+let _perfMarkSeq = 0;
+
+/** @template T
+ * @param {string} name
+ * @param {() => T} fn
+ * @returns {T} */
+function perfMeasureSync(name, fn) {
+  if (!_perfMarksEnabled) return fn();
+  const id = _perfMarkSeq++;
+  const start = `${name}-${id}-s`;
+  const end = `${name}-${id}-e`;
+  performance.mark(start);
+  try {
+    return fn();
+  } finally {
+    performance.mark(end);
+    try {
+      performance.measure(name, start, end);
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
 /** Optional `() => number in [0,1)` for deterministic shuffle in tests; otherwise `Math.random`. */
 let _shuffleRandom = null;
@@ -1308,8 +1336,10 @@ function isTileCovered(tile, ignoreTileId = null) {
 
 /** If ignoreTileId is set, tappable tiles are computed as if that tile were already removed (for early clickability during fly). */
 function getTappableTiles(ignoreTileId = null) {
-  return state.boardTiles.filter(
-    tile => !tile.removed && tile.id !== ignoreTileId && !isTileCovered(tile, ignoreTileId)
+  return perfMeasureSync('getTappableTiles', () =>
+    state.boardTiles.filter(
+      tile => !tile.removed && tile.id !== ignoreTileId && !isTileCovered(tile, ignoreTileId)
+    )
   );
 }
 
@@ -2789,83 +2819,85 @@ function renderHud() {
 }
 
 function renderBoard(withSettleAnimation = false) {
-  if (withSettleAnimation) {
-    ui.board.classList.add('board-settle');
-    const removeSettle = () => {
-      ui.board.classList.remove('board-settle');
-      ui.board.removeEventListener('transitionend', removeSettle);
-    };
-    ui.board.addEventListener('transitionend', removeSettle);
-  }
-
-  const level = LEVELS[state.currentLevelIndex];
-  const { gridWidth, gridHeight } = normalizeGridDims(level);
-  const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
-  ui.board.style.width = `${widthPx}px`;
-  ui.board.style.height = `${heightPx}px`;
-  document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
-
-  const tappableIds = new Set(getTappableTiles().map(t => t.id));
-  const boardCanFocus =
-    !state.isLevelOver && tappableIds.size > 0 && !state.isRemoveTypeMode;
-  ui.board.tabIndex = boardCanFocus ? 0 : -1;
-
-  const tilesToRender = state.boardTiles
-    .filter(tile => !tile.removed)
-    .slice()
-    .sort((a, b) => a.z - b.z);
-
-  const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-  const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
-
-  const existingById = new Map();
-  for (const child of ui.board.children) {
-    const id = child.dataset.tileId;
-    if (id) existingById.set(id, child);
-  }
-
-  const orderedElements = [];
-  for (const tile of tilesToRender) {
-    let el = existingById.get(tile.id);
-    if (!el) {
-      el = document.createElement('div');
-      el.dataset.tileId = tile.id;
-    } else {
-      existingById.delete(tile.id);
+  perfMeasureSync('renderBoard', () => {
+    if (withSettleAnimation) {
+      ui.board.classList.add('board-settle');
+      const removeSettle = () => {
+        ui.board.classList.remove('board-settle');
+        ui.board.removeEventListener('transitionend', removeSettle);
+      };
+      ui.board.addEventListener('transitionend', removeSettle);
     }
 
-    el.id = boardTileActiveDescendantId(tile.id);
-    const tappable = tappableIds.has(tile.id);
-    el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
-    const typeStr = String(tile.type);
-    if (el.dataset.tileType !== typeStr) {
-      mountTileFace(el, tile.type);
-      el.dataset.tileType = typeStr;
-    }
-    el.tabIndex = -1;
-    if (tappable) {
-      el.setAttribute('role', 'button');
-      el.setAttribute(
-        'aria-label',
-        t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
-      );
-    } else {
-      el.removeAttribute('role');
-      el.removeAttribute('aria-label');
-    }
-    const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
-    const lx = layeredLeft + layoutOffset.x;
-    const ly = layeredTop + layoutOffset.y;
-    el.style.cssText = `left:${lx}px;top:${ly}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
-    orderedElements.push(el);
-  }
+    const level = LEVELS[state.currentLevelIndex];
+    const { gridWidth, gridHeight } = normalizeGridDims(level);
+    const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
+    ui.board.style.width = `${widthPx}px`;
+    ui.board.style.height = `${heightPx}px`;
+    document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
-  for (const el of existingById.values()) el.remove();
-  for (const el of orderedElements) {
-    if (el.parentNode !== ui.board) ui.board.appendChild(el);
-  }
+    const tappableIds = new Set(getTappableTiles().map(t => t.id));
+    const boardCanFocus =
+      !state.isLevelOver && tappableIds.size > 0 && !state.isRemoveTypeMode;
+    ui.board.tabIndex = boardCanFocus ? 0 : -1;
 
-  finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
+    const tilesToRender = state.boardTiles
+      .filter(tile => !tile.removed)
+      .slice()
+      .sort((a, b) => a.z - b.z);
+
+    const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
+    const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
+
+    const existingById = new Map();
+    for (const child of ui.board.children) {
+      const id = child.dataset.tileId;
+      if (id) existingById.set(id, child);
+    }
+
+    const orderedElements = [];
+    for (const tile of tilesToRender) {
+      let el = existingById.get(tile.id);
+      if (!el) {
+        el = document.createElement('div');
+        el.dataset.tileId = tile.id;
+      } else {
+        existingById.delete(tile.id);
+      }
+
+      el.id = boardTileActiveDescendantId(tile.id);
+      const tappable = tappableIds.has(tile.id);
+      el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
+      const typeStr = String(tile.type);
+      if (el.dataset.tileType !== typeStr) {
+        mountTileFace(el, tile.type);
+        el.dataset.tileType = typeStr;
+      }
+      el.tabIndex = -1;
+      if (tappable) {
+        el.setAttribute('role', 'button');
+        el.setAttribute(
+          'aria-label',
+          t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
+        );
+      } else {
+        el.removeAttribute('role');
+        el.removeAttribute('aria-label');
+      }
+      const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
+      const lx = layeredLeft + layoutOffset.x;
+      const ly = layeredTop + layoutOffset.y;
+      el.style.cssText = `left:${lx}px;top:${ly}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
+      orderedElements.push(el);
+    }
+
+    for (const el of existingById.values()) el.remove();
+    for (const el of orderedElements) {
+      if (el.parentNode !== ui.board) ui.board.appendChild(el);
+    }
+
+    finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
+  });
 }
 
 function renderTray(forceRebuild = false) {
@@ -2958,6 +2990,14 @@ if (typeof window !== 'undefined') {
     },
     setSkipAnimations(skip) {
       skipAnimationsForTests = !!skip;
+    },
+    setPerfMarksEnabled(on) {
+      _perfMarksEnabled = !!on;
+    },
+    clearPerfEntriesForTest() {
+      if (typeof performance === 'undefined') return;
+      performance.clearMarks();
+      performance.clearMeasures();
     },
     resetAllProgress() {
       try {
