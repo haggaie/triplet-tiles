@@ -21,6 +21,48 @@ function medianOf(nums) {
 }
 
 /**
+ * User Timing measures nest: `renderBoard` includes `getTappableTiles` and `getBoardFitRectPx` time.
+ * Per-rep: divide measure totals by that rep's move count so wall ms/pick matches renderBoard breakdown.
+ * @param {Array<{ totalMs: number, moves: number, measureSums: { renderBoard: number, getTappableTiles: number, getBoardFitRectPx: number } }>} samples
+ */
+function computeHotspotsFromSamples(samples) {
+  const perRep = samples
+    .filter((s) => s.moves > 0)
+    .map((s) => {
+      const { totalMs, moves, measureSums: m } = s;
+      const rb = m.renderBoard;
+      const tap = m.getTappableTiles;
+      const fit = m.getBoardFitRectPx;
+      /** `getBoardFitRectPx` is nested inside `renderBoard`; this % is meaningful. */
+      const fitPctOfRenderBoard = rb > 0 ? (fit / rb) * 100 : 0;
+      /**
+       * Sum of `getTappableTiles` measures includes the harness probe before each click plus
+       * in-renderBoard calls — do not subtract from `renderBoard` or treat as % of it.
+       */
+      const approxRenderBoardMinusLayoutReads = Math.max(0, rb - fit);
+      return {
+        wallMsPerPick: totalMs / moves,
+        renderBoardMsPerPick: rb / moves,
+        getTappableTilesMsPerPick: tap / moves,
+        getBoardFitRectPxMsPerPick: fit / moves,
+        getBoardFitRectPxPctOfRenderBoard: fitPctOfRenderBoard,
+        approxRestOfRenderBoardMsPerPick: approxRenderBoardMinusLayoutReads / moves
+      };
+    });
+  const pick = (fn) => medianOf(perRep.map(fn));
+  return {
+    medianMoves: medianOf(samples.map((s) => s.moves)),
+    medianWallMsPerPick: pick((r) => r.wallMsPerPick),
+    medianRenderBoardMsPerPick: pick((r) => r.renderBoardMsPerPick),
+    medianGetTappableTilesMsPerPick: pick((r) => r.getTappableTilesMsPerPick),
+    medianGetBoardFitRectPxMsPerPick: pick((r) => r.getBoardFitRectPxMsPerPick),
+    medianGetBoardFitRectPxPctOfRenderBoard: pick((r) => r.getBoardFitRectPxPctOfRenderBoard),
+    medianApproxRestOfRenderBoardMsPerPick: pick((r) => r.approxRestOfRenderBoardMsPerPick),
+    perRep
+  };
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  * @param {number} levelIndex
  */
@@ -42,6 +84,9 @@ async function runScenarioOnce(page, levelIndex) {
         if (t.length === 0 || h.getState().isLevelOver) break;
         h.clickTileById(t[0].id);
       }
+
+      /** Drop measures from startLevel + warmup so sums match the timed loop only. */
+      h.clearPerfEntriesForTest();
 
       let longTaskCount = 0;
       let longTaskMax = 0;
@@ -159,6 +204,9 @@ test.describe('perf board interaction', () => {
     const ratioMsPerMove =
       baseline.medianMsPerMove > 0 ? heavy.medianMsPerMove / baseline.medianMsPerMove : null;
 
+    const hotspotsHeavy = computeHotspotsFromSamples(heavy.samples);
+    const hotspotsBaseline = computeHotspotsFromSamples(baseline.samples);
+
     const summary = {
       viewport: { width: 412, height: 915 },
       maxTimedMoves: MAX_TIMED_MOVES,
@@ -166,8 +214,35 @@ test.describe('perf board interaction', () => {
       medianReps: MEDIAN_REPS,
       heavy,
       baseline,
-      ratioMsPerMove
+      ratioMsPerMove,
+      hotspots: {
+        /** Interpretation: optimize where % of renderBoard grows on heavy vs baseline. */
+        heavy: hotspotsHeavy,
+        baseline: hotspotsBaseline
+      }
     };
+
+    const fmtPct = (n) => `${n.toFixed(1)}%`;
+    const fmtMs = (n) => `${n.toFixed(3)} ms`;
+    // eslint-disable-next-line no-console
+    console.log(`
+[perf-board-interaction] Hotspots (median of per-rep ms/pick over ${MEDIAN_REPS} reps)
+
+  HEAVY level (index ${HEAVY_LEVEL_INDEX}, UI level ${HEAVY_LEVEL_INDEX + 1})
+    Wall time / pick:           ${fmtMs(hotspotsHeavy.medianWallMsPerPick)}  (click path: probe + pick + tray + hud + …)
+    renderBoard / pick:         ${fmtMs(hotspotsHeavy.medianRenderBoardMsPerPick)}
+    getBoardFitRectPx / pick:     ${fmtMs(hotspotsHeavy.medianGetBoardFitRectPxMsPerPick)}  (${fmtPct(hotspotsHeavy.medianGetBoardFitRectPxPctOfRenderBoard)} of renderBoard — layout reads; good cache target)
+    approx rest of renderBoard: ${fmtMs(hotspotsHeavy.medianApproxRestOfRenderBoardMsPerPick)}  (DOM tile loop, inner tappable, offsets, …; nested overlap — see TESTING.md)
+    getTappableTiles sum / pick:  ${fmtMs(hotspotsHeavy.medianGetTappableTilesMsPerPick)}  (includes harness probe + in-board; rises with N² on heavy levels)
+    Long tasks (median): count=${heavy.longTaskMedian.count}, max=${fmtMs(heavy.longTaskMedian.maxDur)}
+
+  BASELINE level (index ${BASELINE_LEVEL_INDEX})
+    Wall time / pick:           ${fmtMs(hotspotsBaseline.medianWallMsPerPick)}
+    getBoardFitRectPx % of RB:  ${fmtPct(hotspotsBaseline.medianGetBoardFitRectPxPctOfRenderBoard)}  vs heavy ${fmtPct(hotspotsHeavy.medianGetBoardFitRectPxPctOfRenderBoard)}
+    getTappableTiles sum / pick: ${fmtMs(hotspotsBaseline.medianGetTappableTilesMsPerPick)}  vs heavy ${fmtMs(hotspotsHeavy.medianGetTappableTilesMsPerPick)}
+
+  Ratio wall ms/pick (heavy / baseline): ${ratioMsPerMove != null ? ratioMsPerMove.toFixed(2) : 'n/a'}
+`);
 
     await test.info().attach('perf-board-interaction.json', {
       body: JSON.stringify(summary, null, 2),

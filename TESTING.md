@@ -72,7 +72,9 @@ PERF_CPU_THROTTLE=4 npx playwright test tests/perf-board-interaction.spec.js --w
 **Interpretation:**
 
 - **`ratioMsPerMove`** (heavy ÷ baseline): both levels use the same timed pick count when the level stays in play; heavy should remain **slower per pick** than baseline (the test asserts this as a sanity check).
-- **`measureSumsMedian`**: aggregated User Timing duration across the timed picks — useful to see whether `getTappableTiles` vs `getBoardFitRectPx` moved after a change.
+- **Console hotspot block**: printed each run — median **wall ms/pick** vs **renderBoard ms/pick**, **`getBoardFitRectPx` as % of renderBoard** (layout reads; valid subset), **approx rest of renderBoard** (renderBoard minus fit time — mostly DOM tile updates and work nested inside `renderBoard`, with User Timing overlap), and **`getTappableTiles` sum per pick** (includes the harness’s probe call before each click **plus** in-board calls; compare heavy vs baseline for O(n²) tappable work).
+- **Nested User Timing**: `renderBoard`’s measured duration **includes** time inside `getBoardFitRectPx` and inner `getTappableTiles`. Summing `renderBoard + getBoardFitRectPx + getTappableTiles` **double-counts**; the spec clears perf entries **after warmup** so measures match the timed loop only.
+- **`measureSumsMedian`** in the JSON: raw sums over the timed loop — use with the above rules.
 - **`longTaskMedian`**: optional; if the Long Task API is unavailable, counts stay at zero.
 
 **Test hooks** (for custom scripts): `setPerfMarksEnabled(true|false)`, `clearPerfEntriesForTest()`.
