@@ -1178,6 +1178,31 @@ body {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+.level-select-card-completed:not(.level-select-card-current) {
+  border-color: rgb(var(--accent-rgb) / 0.35);
+}
+
+.level-select-card-check {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: rgb(var(--accent-rgb) / 0.92);
+  color: rgb(12 10 8);
+  font-size: 0.65rem;
+  line-height: 1;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+  pointer-events: none;
+}
+
 .level-select-mini-wrap {
   position: relative;
   flex-shrink: 0;

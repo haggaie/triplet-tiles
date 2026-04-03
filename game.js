@@ -534,6 +534,8 @@ const defaultPowerups = {
 
 const state = {
   currentLevelIndex: 0,
+  /** Sorted unique level indices the player has cleared at least once (persisted in progression). */
+  completedLevelIndices: [],
   boardTiles: [],
   trayTiles: [],
   score: 0,
@@ -1381,6 +1383,30 @@ function clampLevelIndex(n) {
   return Math.max(0, Math.min(Math.floor(x), LEVELS.length - 1));
 }
 
+/**
+ * @param {unknown} arr
+ * @returns {number[]}
+ */
+function normalizeCompletedLevelIndices(arr) {
+  if (!Array.isArray(arr)) return [];
+  const set = new Set();
+  for (const x of arr) {
+    set.add(clampLevelIndex(x));
+  }
+  return [...set].sort((a, b) => a - b);
+}
+
+function isLevelIndexCompleted(levelIndex) {
+  return state.completedLevelIndices.includes(clampLevelIndex(levelIndex));
+}
+
+function recordLevelCompleted(levelIndex) {
+  const i = clampLevelIndex(levelIndex);
+  if (state.completedLevelIndices.includes(i)) return;
+  state.completedLevelIndices.push(i);
+  state.completedLevelIndices.sort((a, b) => a - b);
+}
+
 function loadProgression() {
   const progression = loadLocal(STORAGE_KEYS.PROGRESSION, {
     highestLevelIndex: 0,
@@ -1395,6 +1421,7 @@ function loadProgression() {
     lastPlayed = highestSaved;
   }
   state.currentLevelIndex = lastPlayed;
+  state.completedLevelIndices = normalizeCompletedLevelIndices(progression?.completedLevelIndices);
 
   const stats = loadLocal(STORAGE_KEYS.STATS, defaultStats);
   state.stats = { ...defaultStats, ...stats };
@@ -1408,7 +1435,11 @@ function saveProgression() {
   const prevHigh = Number(prev.highestLevelIndex) || 0;
   const highestLevelIndex = Math.max(prevHigh, state.currentLevelIndex);
   const lastPlayedLevelIndex = state.currentLevelIndex;
-  saveLocal(STORAGE_KEYS.PROGRESSION, { highestLevelIndex, lastPlayedLevelIndex });
+  saveLocal(STORAGE_KEYS.PROGRESSION, {
+    highestLevelIndex,
+    lastPlayedLevelIndex,
+    completedLevelIndices: state.completedLevelIndices
+  });
 }
 
 function saveStats() {
@@ -2587,6 +2618,7 @@ function triggerWin() {
   state.stats.levelsCompleted += 1;
   state.stats.currentWinStreak += 1;
   state.stats.bestWinStreak = Math.max(state.stats.bestWinStreak, state.stats.currentWinStreak);
+  recordLevelCompleted(state.currentLevelIndex);
   saveStats();
   saveProgression();
   audioSvc.playSfx(SFX_IDS.LEVEL_WIN);
@@ -2799,14 +2831,23 @@ function buildLevelSelectGrid() {
 
   for (const i of indices) {
     const level = LEVELS[i];
+    const completed = isLevelIndexCompleted(i);
     const card = document.createElement('div');
     card.className = 'level-select-card';
     card.dataset.levelIndex = String(i);
     if (i === state.currentLevelIndex) card.classList.add('level-select-card-current');
+    if (completed) card.classList.add('level-select-card-completed');
 
     const mini = document.createElement('div');
     mini.className = 'level-select-mini-wrap';
     renderMiniLevel(mini, level, i);
+    if (completed) {
+      const check = document.createElement('span');
+      check.className = 'level-select-card-check';
+      check.setAttribute('aria-hidden', 'true');
+      check.innerHTML = '<i class="ph ph-check" aria-hidden="true"></i>';
+      mini.appendChild(check);
+    }
     card.appendChild(mini);
 
     const label = document.createElement('span');
@@ -2832,9 +2873,10 @@ function buildLevelSelectGrid() {
     };
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
+    const completedNote = completed ? `, ${t('levelSelect.completedLabel')}` : '';
     card.setAttribute(
       'aria-label',
-      isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
+      (isLevelSelectDebugEnabled() && levelSelectGroupBy === 'shape'
         ? t('levelSelect.cardAriaShape', {
             id: level.id,
             name: translateLevelDisplayName(level),
@@ -2844,7 +2886,7 @@ function buildLevelSelectGrid() {
             id: level.id,
             name: translateLevelDisplayName(level),
             difficulty: difficultyLabel(diffBand)
-          })
+          })) + completedNote
     );
     card.addEventListener('click', pickLevel);
     card.addEventListener('keydown', (ev) => {
@@ -3239,6 +3281,7 @@ if (typeof window !== 'undefined') {
       syncAudioUi();
       state.stats = { ...defaultStats };
       state.powerups = { ...defaultPowerups };
+      state.completedLevelIndices = [];
       state.currentLevelIndex = 0;
       startLevel(0);
     },

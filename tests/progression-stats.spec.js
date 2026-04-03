@@ -41,6 +41,7 @@ test.describe('Triplet Tiles - Progression & Stats', () => {
     expect(state.stats.levelsCompleted).toBeGreaterThanOrEqual(1);
     expect(state.stats.currentWinStreak).toBeGreaterThanOrEqual(1);
     expect(state.stats.bestWinStreak).toBeGreaterThanOrEqual(state.stats.currentWinStreak);
+    expect(state.completedLevelIndices).toContain(0);
 
     // Progression should be saved to localStorage.
     const progression = await page.evaluate(() => {
@@ -50,6 +51,7 @@ test.describe('Triplet Tiles - Progression & Stats', () => {
       );
     });
     expect(progression.highestLevelIndex).toBeGreaterThanOrEqual(0);
+    expect(progression.completedLevelIndices).toContain(0);
   });
 
   test('losing a level resets currentWinStreak but not bestWinStreak', async ({ page }) => {
