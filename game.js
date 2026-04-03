@@ -606,15 +606,75 @@ function buildCoverStructures(boardTiles) {
   }
 }
 
+/**
+ * Decrements cover counts for tiles that were covered by `removedId`.
+ * @returns {string[]} Tile ids that became uncovered (cover count went from 1 → 0).
+ */
 function applyCoverDecrementsForRemoved(removedId) {
   const coveredIds = _coversListById.get(removedId);
-  if (!coveredIds) return;
+  if (!coveredIds) return [];
+  const newlyExposed = [];
   for (const tid of coveredIds) {
     const below = state.boardTiles.find(x => x.id === tid);
     if (!below || below.removed) continue;
-    const next = (_coverCountById.get(tid) || 0) - 1;
-    _coverCountById.set(tid, Math.max(0, next));
+    const prev = _coverCountById.get(tid) || 0;
+    const next = Math.max(0, prev - 1);
+    _coverCountById.set(tid, next);
+    if (prev > 0 && next === 0) newlyExposed.push(tid);
   }
+  return newlyExposed;
+}
+
+/** Last committed tappable set after a full/incremental board render (for DOM diff). */
+let _lastRenderedTappableIds = null;
+
+/** Last applied layout so picks can skip repositioning when the viewport grid is unchanged. */
+let _lastBoardLayoutSig = null;
+
+function boardLayoutSignaturesEqual(a, b) {
+  return (
+    a &&
+    b &&
+    a.cellSize === b.cellSize &&
+    a.ox === b.ox &&
+    a.oy === b.oy &&
+    a.widthPx === b.widthPx &&
+    a.heightPx === b.heightPx
+  );
+}
+
+/**
+ * Tappable/blocked, optional settle animation, and a11y on a board tile element.
+ * Preserves `tile-keyboard-focus` (managed separately).
+ */
+function syncTileBoardInteractionVisual(el, tile, { tappable, withSettleIn }) {
+  el.classList.add('tile');
+  el.classList.toggle('tappable', tappable);
+  el.classList.toggle('blocked', !tappable);
+  el.classList.toggle('tile-settle-in', !!withSettleIn);
+  el.tabIndex = -1;
+  if (tappable) {
+    if (el.getAttribute('role') !== 'button') el.setAttribute('role', 'button');
+    const label = t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) });
+    if (el.getAttribute('aria-label') !== label) el.setAttribute('aria-label', label);
+  } else {
+    el.removeAttribute('role');
+    el.removeAttribute('aria-label');
+  }
+}
+
+function setTileBoardPosition(el, tile, cellSize, layoutOffset) {
+  const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
+  const lx = layeredLeft + layoutOffset.x;
+  const ly = layeredTop + layoutOffset.y;
+  const zi = String(10 + tile.z);
+  const lxStr = `${lx}px`;
+  const lyStr = `${ly}px`;
+  if (el.style.left !== lxStr) el.style.left = lxStr;
+  if (el.style.top !== lyStr) el.style.top = lyStr;
+  const tf = 'translate(-50%,-50%)';
+  if (el.style.transform !== tf) el.style.transform = tf;
+  if (el.style.zIndex !== zi) el.style.zIndex = zi;
 }
 
 /** Cover count from committed state; optional `ignoreTileId` treats that tile as absent (e.g. mid-fly). */
@@ -1442,6 +1502,9 @@ function boardTileActiveDescendantId(tileId) {
 /** Roving tabindex: one logical focus on #board; this id is the active tile for arrows / Enter. */
 let _boardKeyboardFocusTileId = null;
 
+/** Last tile element that had `tile-keyboard-focus` applied (for incremental class sync). */
+let _lastKeyboardFocusVisualTileId = null;
+
 /** After a pick, `{ x, y, z }` of the removed tile — used once in the next `renderBoard` to place focus near/below. */
 let _boardKeyboardPickAnchor = null;
 
@@ -1673,12 +1736,20 @@ function ensureBoardKeyboardFocusTileId(ignoreTileId = null) {
 
 function syncBoardKeyboardFocusVisual() {
   if (!ui.board) return;
-  for (const child of ui.board.children) {
-    if (!child.dataset.tileId) continue;
-    const isKb =
-      child.dataset.tileId === _boardKeyboardFocusTileId && child.classList.contains('tappable');
-    child.classList.toggle('tile-keyboard-focus', isKb);
+  const newId = _boardKeyboardFocusTileId;
+  const oldId = _lastKeyboardFocusVisualTileId;
+  if (oldId && oldId !== newId) {
+    ui.board.querySelector(`[data-tile-id="${oldId}"]`)?.classList.remove('tile-keyboard-focus');
   }
+  let nextVisualId = null;
+  if (newId) {
+    const activeEl = ui.board.querySelector(`[data-tile-id="${newId}"]`);
+    const showKb = activeEl && activeEl.classList.contains('tappable');
+    activeEl?.classList.toggle('tile-keyboard-focus', !!showKb);
+    if (showKb) nextVisualId = newId;
+  }
+  _lastKeyboardFocusVisualTileId = nextVisualId;
+
   const boardFocused = document.activeElement === ui.board;
   const activeEl =
     _boardKeyboardFocusTileId &&
@@ -1698,9 +1769,12 @@ function syncBoardKeyboardFocusVisual() {
 function clearBoardKeyboardFocusVisual() {
   if (!ui.board) return;
   ui.board.removeAttribute('aria-activedescendant');
-  for (const child of ui.board.children) {
-    child.classList.remove('tile-keyboard-focus');
+  if (_lastKeyboardFocusVisualTileId) {
+    ui.board.querySelector(`[data-tile-id="${_lastKeyboardFocusVisualTileId}"]`)?.classList.remove(
+      'tile-keyboard-focus'
+    );
   }
+  _lastKeyboardFocusVisualTileId = null;
 }
 
 function scrollKeyboardFocusedTileIntoView() {
@@ -1945,26 +2019,39 @@ function onTrayFocusOut(e) {
 function updateBoardTappableState(ignoreTileId = null) {
   if (!ui.board) return;
   const tappableIds = new Set(getTappableTiles(ignoreTileId).map(t => t.id));
-  for (const child of ui.board.children) {
-    const id = child.dataset.tileId;
-    if (!id) continue;
-    const tappable = tappableIds.has(id);
-    const hasSettle = child.classList.contains('tile-settle-in');
-    child.className = 'tile' + (hasSettle ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
-    const tile = state.boardTiles.find(t => t.id === id);
-    if (tappable && tile) {
-      child.tabIndex = -1;
-      child.setAttribute('role', 'button');
-      child.setAttribute(
-        'aria-label',
-        t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
-      );
-    } else {
-      child.tabIndex = -1;
-      child.removeAttribute('role');
-      child.removeAttribute('aria-label');
+  const prev = _lastRenderedTappableIds;
+
+  if (prev == null) {
+    for (const child of ui.board.children) {
+      const id = child.dataset.tileId;
+      if (!id) continue;
+      const tappable = tappableIds.has(id);
+      const tile = state.boardTiles.find(t => t.id === id);
+      if (!tile || tile.removed) continue;
+      syncTileBoardInteractionVisual(child, tile, {
+        tappable,
+        withSettleIn: child.classList.contains('tile-settle-in')
+      });
+    }
+  } else {
+    const dirty = new Set();
+    for (const id of tappableIds) {
+      if (!prev.has(id)) dirty.add(id);
+    }
+    for (const id of prev) {
+      if (!tappableIds.has(id)) dirty.add(id);
+    }
+    for (const id of dirty) {
+      const el = ui.board.querySelector(`[data-tile-id="${id}"]`);
+      const tile = state.boardTiles.find(t => t.id === id);
+      if (!el || !tile || tile.removed) continue;
+      syncTileBoardInteractionVisual(el, tile, {
+        tappable: tappableIds.has(id),
+        withSettleIn: el.classList.contains('tile-settle-in')
+      });
     }
   }
+  _lastRenderedTappableIds = tappableIds;
 
   if (_boardKeyboardPickAnchor != null && ignoreTileId != null) {
     const { cellSize, layoutOffset } = getBoardKeyboardLayoutMetrics();
@@ -2065,7 +2152,7 @@ function handleBoardTileClick(tileId) {
     applyCoverDecrementsForRemoved(tileId);
     state.stats.tilesClearedTotal += pick.removedTypes.length * 3;
     saveStats();
-    renderBoard(true);
+    renderBoard(true, { incrementalPickRemovedId: tileId });
     renderTray();
     if (pick.removedTypes.length > 0) {
       audioSvc.playSfx(SFX_IDS.MATCH_CLEAR);
@@ -2109,7 +2196,7 @@ function handleBoardTileClick(tileId) {
     tile.removed = true;
     applyCoverDecrementsForRemoved(tile.id);
     state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
-    renderBoard(true);
+    renderBoard(true, { incrementalPickRemovedId: tile.id });
     renderTray();
     handleMatchingInTrayAnimated(() => {
       renderHud();
@@ -2895,7 +2982,15 @@ function renderHud() {
   ui.removeTypeButton.disabled = state.powerups.removeType <= 0 || state.isLevelOver;
 }
 
-function renderBoard(withSettleAnimation = false) {
+/**
+ * @param {boolean} withSettleAnimation
+ * @param {{ incrementalPickRemovedId?: string }} [opts]
+ *        Pass `incrementalPickRemovedId` after a single-tile pick when layout is unchanged to skip full-board DOM work.
+ */
+function renderBoard(withSettleAnimation = false, opts = {}) {
+  const incrementalPickRemovedId =
+    opts && typeof opts.incrementalPickRemovedId === 'string' ? opts.incrementalPickRemovedId : null;
+
   perfMeasureSync('renderBoard', () => {
     if (withSettleAnimation) {
       ui.board.classList.add('board-settle');
@@ -2909,9 +3004,11 @@ function renderBoard(withSettleAnimation = false) {
     const level = LEVELS[state.currentLevelIndex];
     const { gridWidth, gridHeight } = normalizeGridDims(level);
     const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
-    ui.board.style.width = `${widthPx}px`;
-    ui.board.style.height = `${heightPx}px`;
-    document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
+    const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
+    const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
+
+    const sig = { cellSize, ox: layoutOffset.x, oy: layoutOffset.y, widthPx, heightPx };
+    const layoutUnchanged = boardLayoutSignaturesEqual(_lastBoardLayoutSig, sig);
 
     const tappableIds = new Set(getTappableTiles().map(t => t.id));
     const boardCanFocus =
@@ -2923,8 +3020,56 @@ function renderBoard(withSettleAnimation = false) {
       .slice()
       .sort((a, b) => a.z - b.z);
 
-    const layoutFootprint = level.layout.map((t) => ({ x: t.x, y: t.y, z: t.z }));
-    const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
+    const prevTap = _lastRenderedTappableIds;
+
+    if (incrementalPickRemovedId && prevTap && layoutUnchanged && ui.board) {
+      const removedEl = ui.board.querySelector(`[data-tile-id="${incrementalPickRemovedId}"]`);
+      if (removedEl) {
+        removedEl.remove();
+
+        const dirty = new Set();
+        for (const id of tappableIds) {
+          if (!prevTap.has(id)) dirty.add(id);
+        }
+        for (const id of prevTap) {
+          if (!tappableIds.has(id)) dirty.add(id);
+        }
+        dirty.delete(incrementalPickRemovedId);
+
+        let ok = true;
+        for (const id of dirty) {
+          const el = ui.board.querySelector(`[data-tile-id="${id}"]`);
+          const tile = state.boardTiles.find(t => t.id === id);
+          if (!el || !tile || tile.removed) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          for (const id of dirty) {
+            const el = ui.board.querySelector(`[data-tile-id="${id}"]`);
+            const tile = state.boardTiles.find(t => t.id === id);
+            syncTileBoardInteractionVisual(el, tile, {
+              tappable: tappableIds.has(id),
+              withSettleIn: false
+            });
+          }
+          if (withSettleAnimation) {
+            for (const tile of tilesToRender) {
+              ui.board.querySelector(`[data-tile-id="${tile.id}"]`)?.classList.add('tile-settle-in');
+            }
+          }
+          _lastRenderedTappableIds = tappableIds;
+          _lastBoardLayoutSig = sig;
+          finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
+          return;
+        }
+      }
+    }
+
+    ui.board.style.width = `${widthPx}px`;
+    ui.board.style.height = `${heightPx}px`;
+    document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
 
     const existingById = new Map();
     for (const child of ui.board.children) {
@@ -2944,27 +3089,16 @@ function renderBoard(withSettleAnimation = false) {
 
       el.id = boardTileActiveDescendantId(tile.id);
       const tappable = tappableIds.has(tile.id);
-      el.className = 'tile' + (withSettleAnimation ? ' tile-settle-in' : '') + (tappable ? ' tappable' : ' blocked');
+      syncTileBoardInteractionVisual(el, tile, {
+        tappable,
+        withSettleIn: withSettleAnimation
+      });
       const typeStr = String(tile.type);
       if (el.dataset.tileType !== typeStr) {
         mountTileFace(el, tile.type);
         el.dataset.tileType = typeStr;
       }
-      el.tabIndex = -1;
-      if (tappable) {
-        el.setAttribute('role', 'button');
-        el.setAttribute(
-          'aria-label',
-          t('board.exposedTileAria', { type: localizedTileTypeLabel(tile.type) })
-        );
-      } else {
-        el.removeAttribute('role');
-        el.removeAttribute('aria-label');
-      }
-      const { left: layeredLeft, top: layeredTop } = boardTileCenterPx(tile, cellSize);
-      const lx = layeredLeft + layoutOffset.x;
-      const ly = layeredTop + layoutOffset.y;
-      el.style.cssText = `left:${lx}px;top:${ly}px;transform:translate(-50%,-50%);z-index:${10 + tile.z}`;
+      setTileBoardPosition(el, tile, cellSize, layoutOffset);
       orderedElements.push(el);
     }
 
@@ -2973,6 +3107,8 @@ function renderBoard(withSettleAnimation = false) {
       if (el.parentNode !== ui.board) ui.board.appendChild(el);
     }
 
+    _lastRenderedTappableIds = tappableIds;
+    _lastBoardLayoutSig = sig;
     finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
   });
 }
