@@ -48,19 +48,6 @@
           </div>
         </div>
         <div class="top-bar-right">
-          <select
-            id="locale-select"
-            class="locale-select btn btn-ghost btn-small"
-            aria-label="Language"
-            data-i18n-aria-label="locale.selectLabel"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-            <option value="ru">Русский</option>
-            <option value="he">עברית</option>
-            <option value="ar">العربية</option>
-          </select>
           <div class="header-fullscreen-wrap">
             <button
               type="button"
@@ -312,6 +299,23 @@
             </button>
           </div>
           <div class="settings-body">
+            <section class="settings-section" aria-labelledby="settings-section-language">
+              <h3 id="settings-section-language" class="settings-section-title" data-i18n="settings.sectionLanguage">
+                Language
+              </h3>
+              <select
+                id="locale-select"
+                class="locale-select settings-locale-select"
+                aria-labelledby="settings-section-language"
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="ru">Русский</option>
+                <option value="he">עברית</option>
+                <option value="ar">العربية</option>
+              </select>
+            </section>
             <section
               class="settings-section"
               id="settings-display-section"

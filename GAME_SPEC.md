@@ -187,7 +187,7 @@
   - Low battery usage; minimal background processing.
 - **Offline behavior**
   - Fully playable offline.
-  - Local save of progression, settings (audio/haptics), and **language** (`triplet_tiles_locale`; supported UI locales include English, Spanish, German, Russian, Hebrew, Arabic). Level **titles** are translated in `lib/i18n.js` (tutorial names, fallback level, and generator tokens such as `level.shape.DIAMOND` for names like `DIAMOND 12`). Adding a new template shape label in generated names requires a matching `level.shape.*` key per locale. Optional query override: `?lang=` with a supported code (e.g. `en`, `es`, `de`, `ru`, `he`, `ar`).
+  - Local save of progression, settings (audio/haptics), and **language** (`triplet_tiles_locale`; language is chosen in **Settings**; supported UI locales include English, Spanish, German, Russian, Hebrew, Arabic). Level **titles** are translated in `lib/i18n.js` (tutorial names, fallback level, and generator tokens such as `level.shape.DIAMOND` for names like `DIAMOND 12`). Adding a new template shape label in generated names requires a matching `level.shape.*` key per locale. Optional query override: `?lang=` with a supported code (e.g. `en`, `es`, `de`, `ru`, `he`, `ar`).
 - **Input & layout**
   - Responsive layout for portrait orientation on mobile.
   - Adaptive UI for various aspect ratios on web (desktop and tablet).

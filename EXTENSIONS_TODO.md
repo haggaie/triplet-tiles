@@ -25,7 +25,7 @@ Cross-references: [GAME_SPEC.md](GAME_SPEC.md) (roadmap & optional mechanics), [
 
 ## Features
 
-- [x] **Internationalization (i18n)** — Extracted user-visible strings (`lib/i18n.js`, `data-i18n*` in `index.html`); locale control (`#locale-select`, persisted + `?lang=`); `dir`/`lang` on `<html>` for RTL-capable locales; scores via `Intl.NumberFormat` (`formatGameInteger`). Add more locales by extending `MESSAGES` and `<option>`s.
+- [x] **Internationalization (i18n)** — Extracted user-visible strings (`lib/i18n.js`, `data-i18n*` in `index.html`); locale control in Settings (`#locale-select`, persisted + `?lang=`); `dir`/`lang` on `<html>` for RTL-capable locales; scores via `Intl.NumberFormat` (`formatGameInteger`). Add more locales by extending `MESSAGES` and `<option>`s.
 
 *From [GAME_SPEC.md](GAME_SPEC.md) (optional / later):*
 
