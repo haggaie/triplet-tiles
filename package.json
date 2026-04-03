@@ -26,6 +26,7 @@
     "lib/board-view.js",
     "lib/game-model.js",
     "lib/tile-types.js",
+    "lib/win-star-fx.js",
     "lib/package.json"
   ],
   "scripts": {

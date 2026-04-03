@@ -31,6 +31,7 @@ import {
   translateLevelDisplayName,
   setLocale
 } from './lib/i18n.js';
+import { startWinStarFx, stopWinStarFx } from './lib/win-star-fx.js';
 
 const TL = globalThis.TripletTileLayering;
 if (!TL) throw new Error('TripletTileLayering not loaded; include tile-layering.js before game.js');
@@ -412,7 +413,21 @@ function showWinOverlayUi() {
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
   ui.overlay.classList.remove('hidden');
-  requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+  stopWinStarFx();
+  if (ui.winStarFx) {
+    if (!prefersReducedMotionUi() && !skipAnimationsForTests) {
+      ui.winStarFx.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        startWinStarFx(ui.winStarFx);
+        focusElementIfStillMounted(ui.overlayPrimary);
+      });
+    } else {
+      ui.winStarFx.classList.add('hidden');
+      requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+    }
+  } else {
+    requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
+  }
 }
 
 function showLossOverlayUi(reason) {
@@ -426,6 +441,8 @@ function showLossOverlayUi(reason) {
   _gameOverlayOutcome = 'loss';
   _focusBeforeGameOverlay = document.activeElement;
   setModalBackdropInert('game');
+  stopWinStarFx();
+  ui.winStarFx?.classList.add('hidden');
   ui.overlay.classList.remove('hidden');
   requestAnimationFrame(() => focusElementIfStillMounted(ui.overlayPrimary));
 }
@@ -878,6 +895,7 @@ function initDomRefs() {
   ui.overlayMessage = document.getElementById('overlay-message');
   ui.overlayPrimary = document.getElementById('overlay-primary');
   ui.overlaySecondary = document.getElementById('overlay-secondary');
+  ui.winStarFx = document.getElementById('win-star-fx');
 
   ui.levelSelectButton = document.getElementById('level-select-button');
   ui.levelSelectOverlay = document.getElementById('level-select-overlay');
@@ -2638,11 +2656,45 @@ function triggerLoss(reason) {
 }
 
 function hideOverlay() {
+  stopWinStarFx();
+  ui.winStarFx?.classList.add('hidden');
   ui.overlay.classList.add('hidden');
   setModalBackdropInert('none');
   _gameOverlayOutcome = null;
   focusElementIfStillMounted(_focusBeforeGameOverlay);
   _focusBeforeGameOverlay = null;
+}
+
+/**
+ * DevTools: replay the level-complete star canvas (not used by gameplay).
+ * If `#overlay` is hidden, calls `showWinOverlayUi()` so the canvas can size; dismiss with normal controls or Escape.
+ * @param {{ force?: boolean }} [options] Pass `{ force: true }` to run even when `prefers-reduced-motion` is set.
+ */
+function previewWinStarFx(options = {}) {
+  const force = options.force === true;
+  if (prefersReducedMotionUi() && !force) {
+    console.warn(
+      '[Triplet] previewWinStarFx: skipped (prefers-reduced-motion). Pass { force: true } to override.'
+    );
+    return;
+  }
+  if (!ui.winStarFx || !ui.overlay) return;
+
+  const replayStarsOnly = () => {
+    stopWinStarFx();
+    ui.winStarFx.classList.remove('hidden');
+    requestAnimationFrame(() => startWinStarFx(ui.winStarFx));
+  };
+
+  if (ui.overlay.classList.contains('hidden')) {
+    showWinOverlayUi();
+    if (skipAnimationsForTests || (prefersReducedMotionUi() && force)) {
+      replayStarsOnly();
+    }
+    return;
+  }
+
+  replayStarsOnly();
 }
 
 // --- Level selection grid ---
@@ -3260,6 +3312,13 @@ if (typeof window !== 'undefined') {
     setSkipAnimations(skip) {
       skipAnimationsForTests = !!skip;
     },
+    /**
+     * DevTools: replay win star canvas. Opens the win overlay if it is closed (same as a real win). Dismiss normally.
+     * @param {{ force?: boolean }} [options] `force: true` — run even when `prefers-reduced-motion`.
+     */
+    previewWinStarFx,
+    /** Stops the star canvas rAF and clears the layer (same module as gameplay). */
+    stopWinStarFx,
     setPerfMarksEnabled(on) {
       _perfMarksEnabled = !!on;
     },
