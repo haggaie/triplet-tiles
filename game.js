@@ -3381,6 +3381,10 @@ if (typeof window !== 'undefined') {
     getAudioDiagnostics() {
       return typeof audioSvc.getDiagnostics === 'function' ? audioSvc.getDiagnostics() : null;
     },
+    /** DevTools: runs the same unlock as first tap on #app (SFX load + music play if not muted). */
+    unlockAudioForTest() {
+      audioSvc.unlock();
+    },
     /** Playwright: trigger SFX by `SFX_IDS` string (e.g. match / win duck tests). */
     playTestSfx(eventId) {
       audioSvc.playSfx(eventId);
