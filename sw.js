@@ -2,7 +2,7 @@
  * Offline precache for Triplet Tiles. Bump CACHE_NAME when this list or shell assets change.
  * @see lib/tile-types.js TILE_TYPES openmojiHex for SVG filenames.
  */
-const CACHE_NAME = 'triplet-tiles-v14';
+const CACHE_NAME = 'triplet-tiles-v15';
 
 const PRECACHE_PATHS = [
   'index.html',
@@ -48,6 +48,26 @@ const PRECACHE_PATHS = [
 
 function absolutePrecacheUrls(scope) {
   return PRECACHE_PATHS.map((p) => new URL(p, scope).href);
+}
+
+/**
+ * Precache uses `fetch(url)` (default mode cors). `<audio>` / media use `mode: "no-cors"`, which
+ * does not match the same cache entry. Fall back to a cors Request for the same URL.
+ * @param {Request} req
+ * @returns {Promise<Response | undefined>}
+ */
+async function matchCached(req) {
+  let res = await caches.match(req);
+  if (res) return res;
+  const scope = self.registration.scope;
+  if (!req.url.startsWith(scope)) return undefined;
+  return caches.match(
+    new Request(req.url, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'same-origin'
+    })
+  );
 }
 
 self.addEventListener('install', (event) => {
@@ -113,7 +133,7 @@ self.addEventListener('fetch', (event) => {
           }
           return res;
         } catch (e) {
-          const cached = await caches.match(req);
+          const cached = await matchCached(req);
           if (cached) return cached;
           if (req.mode === 'navigate') {
             const indexUrl = new URL('index.html', self.registration.scope).href;
@@ -124,7 +144,7 @@ self.addEventListener('fetch', (event) => {
         }
       }
 
-      const cached = await caches.match(req);
+      const cached = await matchCached(req);
       if (cached) return cached;
 
       try {
