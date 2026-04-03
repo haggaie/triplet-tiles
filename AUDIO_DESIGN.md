@@ -64,7 +64,8 @@ Gameplay code should trigger **named events**; a small audio layer resolves asse
 Matches [GAME_SPEC.md](GAME_SPEC.md): **separate volume sliders for music and SFX**.
 
 - **Buses:** `Bus_Music`, `Bus_SFX` (optional `Bus_UI` → can map to SFX at first).
-- **Master:** User sliders × optional global mute.
+- **Master:** **Shipped:** header **all-sound mute** (`setMasterMuted`) toggles both channels; **future:** optional single master volume trim ([SETTINGS_SPEC.md](SETTINGS_SPEC.md)). Per-channel sliders in Settings set `musicVolume` / `sfxVolume` (`0…1`).
+- **Fresh-install defaults** (before `localStorage` override, [`lib/audio-service.js`](lib/audio-service.js)): music unmuted @ **0.55**, SFX unmuted @ **0.85**. Haptics default follows **`prefers-reduced-motion`** (off when reduced motion is requested).
 - **Voice budget (mobile web):** ~**4–6** simultaneous one-shot SFX; **one** music stream. Preload short SFX; stream music.
 
 ---

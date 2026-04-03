@@ -9,14 +9,14 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | Area | Notes |
 |------|--------|
 | **Ambient loop** | **Done.** File: `assets/audio/music_ambient_loop_01.mp3`. Module: [`lib/audio-service.js`](lib/audio-service.js) (`HTMLAudioElement`, loop, volume, mute, `visibilitychange` pause). **Duck** on match / win (~−3 dB, attack / hold / release). Wired from [`game.js`](game.js); storage key `triplet_tiles_audio` (`STORAGE_KEYS.AUDIO`). |
-| **Music UI** | **Done.** Header control: mute toggle + volume range ([`index.html`](index.html), [`style.css`](style.css)). Icons may use Phosphor in current `game.js`. |
+| **Music UI** | **Done.** **Settings** dialog: music mute + volume range; **header:** all-sound mute only ([`index.html`](index.html), [`game.js`](game.js), [`SETTINGS_SPEC.md`](SETTINGS_SPEC.md)). Phosphor icons in `game.js`. |
 | **First-play unlock** | **Done.** First `pointerdown` or game key (Enter / Space / arrows) on `#app` calls `audioSvc.unlock()` for autoplay policy. |
 | **Offline / PWA** | **Done.** [`sw.js`](sw.js) precaches music, **six `sfx_*.opus` files**, and `lib/audio-service.js`. |
 | **SFX files** | **Shipped (web).** `assets/audio/sfx_*.opus` (encoded from WAV masters in `assets/audio/source/` via `npm run optimize:audio`). |
 | **SFX playback** | **Done.** Pick, match, win, loss ([`game.js`](game.js)); no separate tray-land cue ([AUDIO_DESIGN.md](AUDIO_DESIGN.md) note). |
 | **Web Audio + `Bus_SFX`** | **Done.** `AudioContext` + master gain for SFX; music stays on `HTMLAudioElement`. |
-| **SFX settings** | **Done.** Second row in header: mute + volume; persisted in `triplet_tiles_audio` with music. |
-| **Haptics** | **Done.** `navigator.vibrate` patterns ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); `prefers-reduced-motion` default off; 65 ms min gap (match pick skipped if busy; win/loss deferred); toggle persisted in `triplet_tiles_audio`; header control ([`index.html`](index.html), [`game.js`](game.js), [`lib/audio-service.js`](lib/audio-service.js)). |
+| **SFX settings** | **Done.** Settings dialog: SFX mute + volume; persisted in `triplet_tiles_audio` with music. |
+| **Haptics** | **Done.** `navigator.vibrate` patterns ([AUDIO_DESIGN.md](AUDIO_DESIGN.md)); `prefers-reduced-motion` default off; 65 ms min gap (match pick skipped if busy; win/loss deferred); toggle persisted in `triplet_tiles_audio`; control in Settings ([`index.html`](index.html), [`game.js`](game.js), [`lib/audio-service.js`](lib/audio-service.js)). |
 
 **Attribution (repo only):** [Late Afternoon Garden Loop](https://suno.com/s/e6A9f0jUQL7tZCh1) (Suno) — [AUDIO_DESIGN.md](AUDIO_DESIGN.md).
 
@@ -26,7 +26,8 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 1. ~~**Haptics** — Phase 5~~ **Done** (`navigator.vibrate`, reduced-motion, rate limit, toggle storage).
 2. **Polish** — Optional Playwright “unlocked after gesture” smoke (`tests/audio-sfx.spec.js`).
-3. **Optional** — Compact “Sound” popover if the header feels crowded.
+3. **`#audio-master-volume`** — Single trim in `.audio-master-strip` per [SETTINGS_SPEC.md](SETTINGS_SPEC.md) (persist `masterVolume` in `triplet_tiles_audio`).
+4. **Optional** — Further overflow polish if the header gains more controls.
 
 ---
 
@@ -73,9 +74,11 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 
 | Priority | Task | Status | Notes |
 |----------|------|--------|--------|
-| **P1** | **Music** slider + mute | **Done** | Header; [GAME_SPEC.md](GAME_SPEC.md) §7. |
-| **P1** | **SFX** slider + mute | **Done** | Second row in `.audio-stack`; Phosphor `waveform` / `waveform-slash`. |
-| **P1** | Compact placement / overflow | **Open** | If the bar gets crowded, consider a single “Sound” popover. |
+| **P1** | **Music** slider + mute | **Done** | Settings dialog; [GAME_SPEC.md](GAME_SPEC.md) §7; [SETTINGS_SPEC.md](SETTINGS_SPEC.md). |
+| **P1** | **SFX** slider + mute | **Done** | Settings dialog; Phosphor `waveform` / `waveform-slash`. |
+| **P1** | **All-sound (master) mute** | **Done** | Header `.audio-master-strip`; `setMasterMuted`. |
+| **P2** | **Master volume** (`#audio-master-volume`) | **Open** | [SETTINGS_SPEC.md](SETTINGS_SPEC.md). |
+| **P1** | Compact placement / overflow | **Done (v1)** | Per-channel audio moved into Settings; optional master volume still backlog. |
 
 ---
 
@@ -96,7 +99,7 @@ Executes [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Order is **risk- and player-impact 
 | **P1** | `navigator.vibrate` + `hapticsEnabled` | **Done** | Patterns in [AUDIO_DESIGN.md](AUDIO_DESIGN.md); `HAPTIC_KIND` + `triggerHaptic` in [`lib/audio-service.js`](lib/audio-service.js). |
 | **P1** | `prefers-reduced-motion` → haptics off by default (explicit toggle on = override) | **Done** | `defaultHapticsFromReducedMotion()` on load when `hapticsEnabled` absent from storage. |
 | **P1** | Rate-limit vibrate (50–80 ms min gap) | **Done** | 65 ms; pick/match dropped if under gap; win/loss scheduled after gap. |
-| **P1** | Persist haptics toggle | **Done** | Same JSON as music/SFX; header row + [`game.js`](game.js) `syncAudioUi` / `setHapticsEnabled`. |
+| **P1** | Persist haptics toggle | **Done** | Same JSON as music/SFX; Settings + [`game.js`](game.js) `syncAudioUi` / `setHapticsEnabled`. |
 
 ---
 

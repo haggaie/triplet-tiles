@@ -2,18 +2,24 @@
 
 ## Goal
 
-Reduce **top-bar chrome** by moving secondary controls into a single **Settings** dialog. Keep **level, restart, score**, **one** settings entry, and **master sound** (quick mute + **master volume**) visible at all times — they are **not** dialog-only and **must not** be hidden when `compactChrome` (or equivalent) collapses the rest of the audio UI.
+Reduce **top-bar chrome** by moving secondary controls into a single **Settings** dialog. Keep **level, restart, score**, **one** settings entry, and **all-sound (master) mute** visible at all times — it is **not** dialog-only.
+
+**Shipped (current):** header `.audio-master-strip` exposes **`#audio-master-mute-toggle`** only ([`index.html`](index.html), [`game.js`](game.js)).
+
+**Backlog:** **`#audio-master-volume`** — a single range scaling both buses on top of each channel slider (on large screens), persisted e.g. as `masterVolume` in `triplet_tiles_audio`. Until that ships, the always-visible row is **mute-only**; per-channel sliders remain the primary loudness controls ([AUDIO_DESIGN.md](AUDIO_DESIGN.md) mixer).
+
+When / if **`triplet_tiles_ui.compactChrome`** drives layout, the master strip **must never** be hidden; only secondary chrome may collapse.
 
 ## Always-visible chrome
 
-| Strip | Controls | Notes |
-| ----- | -------- | ----- |
-| **Play / meta** | Level label + choose level, restart, score | Unchanged. |
-| **Settings entry** | Gear (or labeled “Settings”) | Opens dialog. |
-| **Master sound** | `#audio-master-mute-toggle` | All-sound mute (see below). |
-| **Master sound** | `#audio-master-volume` (or same row once implemented) | Single slider scaling **both** music and SFX audibility (e.g. combined gain multiplier or proportional duck of both buses); persists in `triplet_tiles_audio` **only if** the JSON shape is extended with a dedicated field; until then, spec the ID and behavior so implementation can follow. |
+| Strip | Controls | Status |
+| ----- | -------- | ------ |
+| **Play / meta** | Level label + choose level, restart, score | Shipped |
+| **Settings entry** | `#settings-open-button` (gear) | Shipped — opens dialog |
+| **Master sound** | `#audio-master-mute-toggle` | Shipped — `audioSvc.setMasterMuted()` ([`lib/audio-service.js`](lib/audio-service.js)) |
+| **Master sound** | `#audio-master-volume` | **Not shipped** — see backlog above |
 
-**Hide behind Settings / compact layout:** display mode buttons, install prompt, per-channel music + SFX rows (mute + range), haptics — **not** the master mute or master volume row.
+**In Settings / compact-by-design:** full-screen (`#fullscreen-toggle`), install (`#install-app-button`), **per-channel** music + SFX (mute + range: `#music-mute-toggle`, `#music-volume`, `#sfx-mute-toggle`, `#sfx-volume`), haptics (`#haptics-toggle`). These are **not** duplicated in the header in the current UI.
 
 ## Entry point
 
@@ -35,31 +41,30 @@ Footer (sticky within panel): **Reset to defaults** (see below) + **Close**.
 
 ### Sound — master mute & master volume (product behavior)
 
-- **Placement:** Keep **master mute** and **master volume** in a **dedicated always-visible row** (e.g. `.audio-master-strip` in the header), **outside** the collapsible `.audio-stack` block, so compact mode can hide per-channel rows only.
-- **Master mute — `#audio-master-mute-toggle`:** icon `speaker-simple-high` / `speaker-simple-slash`; toggles both channels via `audioSvc.setMasterMuted()` ([`lib/audio-service.js`](lib/audio-service.js)).
-- **“On” (audible):** both music and SFX are unmuted **and** each channel volume is `> 0` **and** (once implemented) master volume is `> 0`.
-- **Click when on:** mute both channels. **Click when off:** unmute both. Individual music/SFX toggles still apply afterward; `syncAudioUi()` keeps the master control in sync.
-- **Master volume — `#audio-master-volume`:** one range `0…1` (or `0…100`) that scales **both** music and SFX output together on top of each channel’s slider (implementation detail: e.g. multiply effective gains or drive a shared “trim” in `createAudioService`). Must remain next to master mute in the always-visible strip.
+- **Placement (shipped):** **Master mute** lives in **`.audio-master-strip`** in the **header**. Per-channel rows live **only** in the Settings dialog ([`index.html`](index.html)). There is **no** header `.audio-stack`; compact layout cannot yet hide per-channel header rows because they are not in the header.
+- **Master mute — `#audio-master-mute-toggle`:** Phosphor `speaker-simple-high` / `speaker-simple-slash`; toggles both channels via `audioSvc.setMasterMuted()` ([`lib/audio-service.js`](lib/audio-service.js)).
+- **“On” (audible) in UI:** `syncAudioUi()` treats the master control as “on” only when **both** music and SFX are unmuted **and** each channel volume is **`> 0`** ([`game.js`](game.js)). When master volume is added, extend this with **master `> 0`**.
+- **Click when on:** mute both channels (`musicMuted` + `sfxMuted`). **Click when off:** unmute both. Per-channel toggles and sliders in Settings apply afterward; `syncAudioUi()` refreshes icons, `aria-pressed`, and slider disabled state (sliders disabled while their channel is muted).
+- **Master volume — `#audio-master-volume` (backlog):** one range `0…1` (or `0…100`) scaling **both** outputs on top of each channel slider; persist `masterVolume` default `1` with backward-compatible loads. Place next to master mute in `.audio-master-strip`.
 
-**Current code note:** Master volume is **specified** here; wire-up in `game.js` / `audio-service.js` may lag until implemented. Until then, only master mute is required to satisfy always-visible **master sound**.
+**Implementation note:** Master **volume** is specified for a future change; **master mute** satisfies the always-visible “all sound” control today.
 
 ## Persistence
 
 | Data | Storage | Notes |
 | ---- | ------- | ----- |
-| Music / SFX / haptics | `localStorage` key **`triplet_tiles_audio`** | JSON via `createAudioService` — bind the same controls to `audioSvc`. Master mute sets `musicMuted` and `sfxMuted` together (one save). **Master volume:** when added, extend persisted JSON with e.g. `masterVolume` (number `0…1`), default `1`, without breaking existing loads (optional fields + fallbacks). |
-| UI chrome layout | New key **`triplet_tiles_ui`** (recommended) | JSON, e.g. `{ "compactChrome": true }`. Version later if schema evolves. |
+| Music / SFX / haptics | `localStorage` key **`triplet_tiles_audio`** | JSON via `createAudioService` ([`lib/audio-service.js`](lib/audio-service.js)). Defaults: music unmuted @ **0.55**, SFX unmuted @ **0.85**; haptics default follows `prefers-reduced-motion` (off when reduced motion). Master mute sets `musicMuted` and `sfxMuted` together (one save). **`masterVolume`:** reserve for future master slider (optional field, default `1`). |
+| UI chrome layout | **`triplet_tiles_ui`** | JSON default `{ "compactChrome": true }` ([`game.js`](game.js)). **Reset to defaults** rewrites this key. Reading `compactChrome` to show/hide chrome is **not** wired yet — reserved for future layout modes. |
 | Full screen | None required | Reflect real `fullscreenElement` / `display-mode` only. |
 
 **Reset to defaults:** Call existing audio defaults (via service API or re-init pattern) **and** clear or rewrite `triplet_tiles_ui` to defaults; do **not** clear progression (`triplet_tiles_progression`, stats, powerups, session).
 
 ## Behavior
 
-- **Open:** Move focus to the **first focusable** control in the dialog (or the heading with `tabindex="-1"` if you use that pattern consistently).
-- **Close:** Close button, **Escape**, optional scrim click; **restore focus** to the Settings launcher.
-- **Focus trap:** While open, Tab cycles within the dialog (align with `tests/modal-a11y.spec.js`).
-- **Game state:** Opening Settings should **pause** or block input so taps do not affect the board; document the chosen rule in `game.js` (single place).
-- **Reduced motion:** Dialog show/hide respects `prefers-reduced-motion` (instant or minimal transition).
+- **Open:** `showSettings()` ([`game.js`](game.js)) focuses **`#settings-close`** on the next frame; `setModalBackdropInert('settings')` sets **`inert`** on the app header, **`<main>`**, and the level-complete `#overlay` when present so background UI is non-interactive.
+- **Close:** Close button, **Escape**, scrim click on `#settings-overlay`; **restore focus** to the element that opened Settings (`focusElementIfStillMounted(_focusBeforeSettings)`).
+- **Tests:** Escape + inert while open for Settings — `tests/modal-a11y.spec.js` (`settings sets inert on header, main, and game overlay`). Full Tab focus trap is not asserted there; keep behavior consistent with other modals.
+- **Reduced motion:** Prefer minimal or no motion for dialog transitions when styling allows.
 
 ## Presentation
 
@@ -69,9 +74,9 @@ Footer (sticky within panel): **Reset to defaults** (see below) + **Close**.
 
 ## Implementation notes
 
-- **Moving DOM:** Relocating `#fullscreen-toggle`, `#install-app-button`, and the **per-channel** part of the audio UI from the header into the dialog is fine as long as **`game.js` retains the same element IDs**. **`#audio-master-mute-toggle` and `#audio-master-volume` stay in the header** (always-visible strip), not dialog-only.
-- **Compact chrome:** When `triplet_tiles_ui.compactChrome` is true, hide display mode, install, **and** the collapsible **per-channel** audio rows **only** — **never** hide the master mute / master volume strip.
-- **Install button:** Keep current logic that toggles `.hidden`; inside Settings it can always live in **Display** even if hidden until installable.
+- **IDs:** `game.js` binds by **`#music-mute-toggle`**, **`#music-volume`**, **`#sfx-mute-toggle`**, **`#sfx-volume`**, **`#haptics-toggle`** inside the dialog; **`#audio-master-mute-toggle`** stays in the header. **`#audio-master-volume`** is reserved in this spec for the future master slider.
+- **Compact chrome (future):** If `compactChrome` ever hides header clusters, **never** hide `.audio-master-strip`. Today, per-channel audio is dialog-only, so there are no header per-channel rows to collapse.
+- **Install button:** Keep logic that toggles `.hidden`; inside Settings **Display** section even when hidden until installable.
 
 ## Out of scope (v1)
 
@@ -81,8 +86,9 @@ Footer (sticky within panel): **Reset to defaults** (see below) + **Close**.
 
 ## Acceptance checklist
 
-- [ ] Settings reachable in ≤2 actions from play.
-- [ ] All former header audio/display/haptics controls work identically after move (including master mute + per-channel controls).
-- [ ] Audio still persists under `triplet_tiles_audio` only.
-- [ ] Focus trap + Escape + focus restore covered by existing or extended tests.
-- [ ] No regression when `compactChrome` hides header clusters; **master mute + master volume** remain visible and usable.
+- [x] Settings reachable in ≤2 actions from play (gear in header).
+- [x] Master mute (header) + per-channel music / SFX + haptics (Settings) wired to `audioSvc`; display mode + install in Settings.
+- [x] Audio persists under `triplet_tiles_audio` only.
+- [x] Escape closes Settings; inert on header/main/game overlay while open — `tests/modal-a11y.spec.js`. Focus returns to launcher on close.
+- [ ] **`#audio-master-volume`** implemented, persisted, and covered by manual / automated checks.
+- [ ] When **`compactChrome`** (or equivalent) hides other header UI, **master mute** (and future master volume) remain visible — **N/A** until compact layout reads `triplet_tiles_ui`.

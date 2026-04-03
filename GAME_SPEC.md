@@ -168,7 +168,7 @@
 - **Audio**
   - Gentle ambient music loop per theme.
   - SFX: tile pick, tray placement, match, level win, and fail sounds.
-  - Separate volume sliders for music and SFX.
+  - **Controls:** Separate **music** and **SFX** mute toggles + volume sliders live in the **Settings** dialog; **all-sound (master) mute** stays in the **header** always ([SETTINGS_SPEC.md](SETTINGS_SPEC.md)). Optional **master volume** (single trim for both channels) is specified in SETTINGS_SPEC but not shipped yet — per-channel sliders are the loudness controls today.
   - Full audio & haptics design (events, mixer, haptics, accessibility): [AUDIO_DESIGN.md](AUDIO_DESIGN.md). Implementation phases and asset prompts: [AUDIO_IMPLEMENTATION_PLAN.md](AUDIO_IMPLEMENTATION_PLAN.md).
 
 ### 8. Meta & Events (Lightweight)
