@@ -3385,6 +3385,10 @@ if (typeof window !== 'undefined') {
     unlockAudioForTest() {
       audioSvc.unlock();
     },
+    /** DevTools: `AudioContext.resume()` — use after a real click if `sfxContextState` stays `suspended`. */
+    resumeSfxContextForTest() {
+      if (typeof audioSvc.resumeSfxIfSuspended === 'function') audioSvc.resumeSfxIfSuspended();
+    },
     /** Playwright: trigger SFX by `SFX_IDS` string (e.g. match / win duck tests). */
     playTestSfx(eventId) {
       audioSvc.playSfx(eventId);
