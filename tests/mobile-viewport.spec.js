@@ -6,12 +6,25 @@ const H_OVERFLOW_TOLERANCE_PX = 2;
 /** Subpixel / rounding when comparing tile rects to the board playfield (`#board` uses `overflow: hidden`). */
 const BOARD_CLIP_TOLERANCE_PX = 2;
 
+/** Matches `style.css` / `game.js`: narrow layout full-bleed board (under 768px). */
+const NARROW_LAYOUT_MAX_WIDTH_PX = 767;
+
+/**
+ * True for viewports that use the phone full-bleed board (narrow + not landscape-wide breakpoint).
+ * Excludes e.g. 844×390 where min-width 768px applies.
+ */
+function viewportUsesNarrowFullBleedBoard(vp) {
+  return vp.width <= NARROW_LAYOUT_MAX_WIDTH_PX && vp.height >= vp.width;
+}
+
 /**
  * Typical phone portrait sizes plus landscape and a slightly shorter screen to stress
  * vertical layout without changing the horizontal fit contract.
  */
 const MOBILE_VIEWPORTS = [
   { name: 'iPhone SE portrait', width: 375, height: 667 },
+  /* Between 600–768px used to show gaps: .main-layout align-items:center shrunk #board-scroll */
+  { name: 'mid narrow portrait', width: 526, height: 800 },
   { name: 'iPhone 14 portrait', width: 390, height: 844 },
   { name: 'Pixel 7 portrait', width: 412, height: 915 },
   { name: 'narrow Android portrait', width: 360, height: 800 },
@@ -42,6 +55,37 @@ async function assertNoHorizontalPageOverflow(page) {
  * Every in-play tile must lie fully inside the board's clip rect; otherwise `overflow: hidden`
  * visually truncates tiles without changing document scroll width (easy to miss with layout-only tests).
  */
+/**
+ * On narrow layouts the mat should span `#board-scroll` inner width (no side stripes), unless
+ * `--board-cell-min` forces a board wider than the scrollport (horizontal pan).
+ */
+async function assertNarrowLayoutBoardFillsScrollportWidth(page) {
+  const m = await page.evaluate(() => {
+    const scroll = document.getElementById('board-scroll');
+    const board = document.getElementById('board');
+    if (!scroll || !board) return null;
+    const cs = getComputedStyle(scroll);
+    const pl = parseFloat(cs.paddingLeft) || 0;
+    const pr = parseFloat(cs.paddingRight) || 0;
+    const innerW = scroll.clientWidth - pl - pr;
+    const bw = board.getBoundingClientRect().width;
+    const horizOverflow = scroll.scrollWidth > scroll.clientWidth + 1;
+    return { innerW, bw, horizOverflow, delta: Math.abs(innerW - bw) };
+  });
+  expect(m, 'board/scroll metrics').toBeTruthy();
+  if (m.horizOverflow) {
+    expect(
+      m.bw,
+      'when min cell forces horizontal pan, board should be wider than scrollport inner width'
+    ).toBeGreaterThan(m.innerW - BOARD_CLIP_TOLERANCE_PX);
+  } else {
+    expect(
+      m.delta,
+      `#board should span #board-scroll inner width (innerW=${m.innerW}px, board=${m.bw}px)`
+    ).toBeLessThanOrEqual(BOARD_CLIP_TOLERANCE_PX);
+  }
+}
+
 async function assertBoardPlayfieldMatchesLevelGrid(page) {
   const d = await page.evaluate(() => {
     const b = document.getElementById('board');
@@ -157,6 +201,9 @@ for (const vp of MOBILE_VIEWPORTS) {
         await loadLevel(page, levelIndex);
         await assertNoHorizontalPageOverflow(page);
         await assertBoardPlayfieldMatchesLevelGrid(page);
+        if (viewportUsesNarrowFullBleedBoard(vp)) {
+          await assertNarrowLayoutBoardFillsScrollportWidth(page);
+        }
         await assertBoardScrollportVisibleInViewport(page);
         await assertBoardTilesFullyInsidePlayfield(page);
         await assertElementContainedHorizontally(page, '#board-scroll');
@@ -178,11 +225,13 @@ for (const vp of MOBILE_VIEWPORTS) {
 }
 
 test.describe('Board scroll — min cell floor', () => {
-  test.use({ viewport: { width: 375, height: 667 } });
+  /* Short viewport so width-first phone layout still overflows vertically and #board-scroll must pan */
+  test.use({ viewport: { width: 375, height: 480 } });
 
   test('first generated level (grid 7): playfield is larger than scrollport so it can pan', async ({ page }) => {
     await loadLevel(page, 2);
     await assertNoHorizontalPageOverflow(page);
+    await assertNarrowLayoutBoardFillsScrollportWidth(page);
     const m = await page.evaluate(() => {
       const scroll = document.getElementById('board-scroll');
       const board = document.getElementById('board');
@@ -243,6 +292,7 @@ test.describe('iPhone 12 device metrics (Chromium)', () => {
     await loadLevel(page, 2);
     await assertNoHorizontalPageOverflow(page);
     await assertBoardPlayfieldMatchesLevelGrid(page);
+    await assertNarrowLayoutBoardFillsScrollportWidth(page);
     await assertBoardScrollportVisibleInViewport(page);
     await assertBoardTilesFullyInsidePlayfield(page);
     await assertElementContainedHorizontally(page, '#board-scroll');

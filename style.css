@@ -61,6 +61,8 @@
     inset 0 1px 0 rgb(255 255 255 / 0.11),
     inset 0 -6px 18px rgb(0 0 0 / 0.38);
   --board-guide: rgb(235 213 184 / 0.24);
+  /* Dashed inner guide inset from the mat’s outer edge (wood ring); same on all sides */
+  --board-guide-inset: 5px;
   /* Soft outer ring so the playfield reads as a mat against the page gradient */
   --board-mat-ambient: 0 0 44px 14px rgb(0 0 0 / 0.28);
   --tray-rail: linear-gradient(
@@ -353,7 +355,9 @@ body {
   justify-content: center;
   align-self: center;
   width: 100%;
-  max-width: min(448px, 92vw);
+  max-width: min(448px, 100%);
+  box-sizing: border-box;
+  padding-inline: max(0.75rem, env(safe-area-inset-left, 0px)) max(0.75rem, env(safe-area-inset-right, 0px));
   flex-shrink: 0;
 }
 
@@ -461,8 +465,8 @@ body {
   align-items: center;
   /* Top-align chrome; #board-scroll flex:1 owns the middle — avoids empty bands above power-ups */
   justify-content: flex-start;
-  padding: 0.65rem max(0.75rem, env(safe-area-inset-left, 0px)) 0.65rem
-    max(0.75rem, env(safe-area-inset-right, 0px));
+  /* Horizontal inset only on power-ups / tray; #board-scroll is full-bleed for the playfield */
+  padding: 0.65rem 0;
   gap: 0.85rem;
   min-height: 0;
 }
@@ -490,6 +494,7 @@ body {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
+  /* Edge-to-edge with #app; header/tray keep their own safe-area padding */
   /* Lets .board use cqw/cqh for no-JS / pre-hydration cap that matches the real scrollport */
   container-type: size;
   container-name: board-scroll;
@@ -504,8 +509,8 @@ body {
   margin-bottom: 0;
   flex-shrink: 0;
   align-self: center;
-  /* Room for board drop-shadow and tappable hover lift so panning does not clip against the scrollport */
-  padding: 12px;
+  /* Vertical room for mat drop-shadow; horizontal flush so #board spans the scrollport */
+  padding: 12px 0;
   /* Clicks / focus on padding hit #board-scroll underneath; #board re-enables interaction */
   pointer-events: none;
 }
@@ -520,8 +525,9 @@ body {
   box-sizing: border-box;
   /* Tighter chrome budget than 16.75rem; scrollport-sized cap when container queries run.
      Runtime sets width/height from gridWidth × gridHeight; fallback is square until hydration. */
-  width: min(448px, 92vw, calc(100dvh - 14.25rem));
-  height: min(448px, 92vw, calc(100dvh - 14.25rem));
+  /* No 448 cap here: narrow layouts use full width (JS); ≥768px overrides below */
+  width: min(100%, calc(100dvh - 14.25rem));
+  height: min(448px, 100%, calc(100dvh - 14.25rem));
   max-width: none;
   flex-shrink: 0;
   background: var(--board-felt);
@@ -538,7 +544,7 @@ body {
 
 @supports (width: 1cqw) {
   .board {
-    width: min(448px, 92vw, calc(100cqw - 24px));
+    width: min(100cqw, calc(100cqh - 24px));
     height: min(448px, calc(100cqh - 24px));
   }
 }
@@ -546,11 +552,81 @@ body {
 .board::before {
   content: '';
   position: absolute;
-  inset: 5px;
+  inset: var(--board-guide-inset);
   border-radius: 17px;
-  border: 1px dashed var(--board-guide);
-  box-shadow: inset 0 0 0 1px rgb(235 213 184 / 0.06);
+  border: none;
+  border-top: 1px dashed var(--board-guide);
+  border-bottom: 1px dashed var(--board-guide);
+  /* Match prior full-frame inset; only top/bottom so sides stay clean next to removed vertical dashes */
+  box-shadow:
+    inset 0 1px 0 0 rgb(235 213 184 / 0.06),
+    inset 0 -1px 0 0 rgb(235 213 184 / 0.06);
   pointer-events: none;
+}
+
+/*
+ * Phones (≤767px): stretch the playfield column edge-to-edge. Base `.main-layout` uses
+ * `align-items: center`, which lets `#board-scroll` shrink to the board width and leaves gaps;
+ * `.powerups` / `.tray-wrapper` keep their own `align-self` / width where needed.
+ */
+@media (max-width: 767px) {
+  .main-layout {
+    align-items: stretch;
+  }
+
+  .board-scroll {
+    scrollbar-gutter: auto;
+    min-width: 0;
+    align-self: stretch;
+  }
+
+  .board-scroll-align {
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+  }
+}
+
+/*
+ * Tablet/desktop (≥768px): inset shell + 92vw-style cap; phones keep full-bleed board above.
+ */
+@media (min-width: 768px) {
+  .main-layout {
+    padding: 0.65rem max(0.75rem, env(safe-area-inset-left, 0px)) 0.65rem
+      max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .powerups {
+    max-width: min(448px, 92vw);
+    padding-inline: 0;
+  }
+
+  .board-scroll {
+    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  }
+
+  .board-scroll-align {
+    padding: 12px;
+  }
+
+  .board {
+    width: min(448px, 92%, calc(100dvh - 14.25rem));
+    height: min(448px, 92%, calc(100dvh - 14.25rem));
+  }
+
+  @supports (width: 1cqw) {
+    .board {
+      width: min(448px, 92vw, calc(100cqw - 24px));
+      height: min(448px, calc(100cqh - 24px));
+    }
+  }
+
+  /* Full stitch frame + inner ring (phones keep top/bottom dashes only) */
+  .board::before {
+    border: 1px dashed var(--board-guide);
+    box-shadow: inset 0 0 0 1px rgb(235 213 184 / 0.06);
+  }
 }
 
 /* Plank + seamless noise + line grain (top). Noise uses soft-light so mid-gray stays neutral on wood. */
@@ -1381,13 +1457,13 @@ body {
   }
 
   .main-layout {
-    padding: 0.45rem max(0.55rem, env(safe-area-inset-left, 0px)) 0.45rem
-      max(0.55rem, env(safe-area-inset-right, 0px));
+    padding: 0.45rem 0;
     gap: 0.55rem;
   }
 
   .powerups {
     gap: 0.35rem;
+    padding-inline: max(0.55rem, env(safe-area-inset-left, 0px)) max(0.55rem, env(safe-area-inset-right, 0px));
   }
 
   .tray-wrapper {

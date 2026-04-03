@@ -147,9 +147,6 @@ function rootRemToPx(rem) {
   return rem * fs;
 }
 
-/** Matches `.board-scroll-align` horizontal + vertical padding (12px × 2). */
-const BOARD_SCROLL_ALIGN_PAD_PX = 24;
-
 /** Cached DOM layout inputs for `measureBoardLayout`; invalidated on viewport / scrollport change. */
 let _layoutReadCache = null;
 
@@ -174,12 +171,29 @@ function readLayoutInputs() {
   _layoutReadCache = perfMeasureSync('getBoardFitRectPx', () => {
     const vw = document.documentElement.clientWidth;
     const vh = getViewportHeightPx();
-    let maxW = Math.min(448, vw * 0.92);
+    const wideLayout =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(min-width: 768px)').matches;
+    /* 448px cap applies to wide/tablet shell; narrow full-bleed uses full viewport width (see GAME_SPEC §4.1). */
+    let maxW = wideLayout ? Math.min(448, vw * 0.92) : vw;
     let maxH = Math.min(448, vh - rootRemToPx(14.25));
     const scroll = ui.boardScroll;
     if (scroll && scroll.clientWidth > 0 && scroll.clientHeight > 0) {
-      const innerW = scroll.clientWidth - BOARD_SCROLL_ALIGN_PAD_PX;
-      const innerH = scroll.clientHeight - BOARD_SCROLL_ALIGN_PAD_PX;
+      const cs = getComputedStyle(scroll);
+      const pl = parseFloat(cs.paddingLeft) || 0;
+      const pr = parseFloat(cs.paddingRight) || 0;
+      const pt = parseFloat(cs.paddingTop) || 0;
+      const pb = parseFloat(cs.paddingBottom) || 0;
+      const align = ui.boardScrollAlign;
+      let alignPadX = 0;
+      let alignPadY = 0;
+      if (align && align.isConnected) {
+        const as = getComputedStyle(align);
+        alignPadX = (parseFloat(as.paddingLeft) || 0) + (parseFloat(as.paddingRight) || 0);
+        alignPadY = (parseFloat(as.paddingTop) || 0) + (parseFloat(as.paddingBottom) || 0);
+      }
+      const innerW = scroll.clientWidth - pl - pr - alignPadX;
+      const innerH = scroll.clientHeight - pt - pb - alignPadY;
       if (innerW > 0 && innerH > 0) {
         maxW = Math.min(maxW, innerW);
         maxH = Math.min(maxH, innerH);
@@ -214,7 +228,15 @@ function readBoardCellMinPx() {
  */
 function measureBoardLayout(gridWidth, gridHeight) {
   const { maxW, maxH, cellMin } = readLayoutInputs();
-  return measureBoardLayoutFromFit(gridWidth, gridHeight, { maxW, maxH, cellMinPx: cellMin });
+  const wideLayout =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(min-width: 768px)').matches;
+  return measureBoardLayoutFromFit(gridWidth, gridHeight, {
+    maxW,
+    maxH,
+    cellMinPx: cellMin,
+    preferWidthFill: !wideLayout
+  });
 }
 
 /** @param {{ gridWidth?: number, gridHeight?: number, gridSize?: number }} level */
@@ -968,6 +990,7 @@ function installLevelSelectScrollUrlSync() {
 
 function initDomRefs() {
   ui.boardScroll = document.getElementById('board-scroll');
+  ui.boardScrollAlign = document.querySelector('.board-scroll-align');
   ui.board = document.getElementById('board');
   ui.tray = document.getElementById('tray');
   ui.levelLabel = document.getElementById('level-label');
