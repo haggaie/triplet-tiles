@@ -2409,11 +2409,13 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
     });
   }
 
+  const dx = targetX - tileCenterX;
+  const dy = targetY - tileCenterY;
   const animation = fly.animate(
     [
-      { transform: `translate(0, 0) scale(${startScale})`, opacity: 1 },
+      { transform: `translate3d(0, 0, 0) scale(${startScale})`, opacity: 1 },
       {
-        transform: `translate(${targetX - tileCenterX}px, ${targetY - tileCenterY}px) scale(1)`,
+        transform: `translate3d(${dx}px, ${dy}px, 0) scale(1)`,
         opacity: 1
       }
     ],
@@ -2491,9 +2493,15 @@ function animateMatchCombine(type, onComplete) {
     el.style.cssText = `position:fixed;left:${startX}px;top:${startY}px;margin-left:-${half}px;margin-top:-${half}px;z-index:${zIndex}`;
     return el.animate(
       [
-        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-        { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(1.2)`, opacity: 1 },
-        { transform: `translate(${targetX - startX}px, ${targetY - startY}px) scale(0)`, opacity: 0 }
+        { transform: 'translate3d(0, 0, 0) scale(1)', opacity: 1 },
+        {
+          transform: `translate3d(${targetX - startX}px, ${targetY - startY}px, 0) scale(1.2)`,
+          opacity: 1
+        },
+        {
+          transform: `translate3d(${targetX - startX}px, ${targetY - startY}px, 0) scale(0)`,
+          opacity: 0
+        }
       ],
       { duration: motionMs(COMBINE_DURATION_MS), easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
     ).finished;
@@ -3056,7 +3064,10 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
           }
           if (withSettleAnimation) {
             for (const tile of tilesToRender) {
-              ui.board.querySelector(`[data-tile-id="${tile.id}"]`)?.classList.add('tile-settle-in');
+              ui.board.querySelector(`[data-tile-id="${tile.id}"]`)?.classList.remove('tile-settle-in');
+            }
+            for (const id of dirty) {
+              ui.board.querySelector(`[data-tile-id="${id}"]`)?.classList.add('tile-settle-in');
             }
           }
           _lastRenderedTappableIds = tappableIds;
@@ -3080,6 +3091,7 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
     const orderedElements = [];
     for (const tile of tilesToRender) {
       let el = existingById.get(tile.id);
+      const isNewEl = !el;
       if (!el) {
         el = document.createElement('div');
         el.dataset.tileId = tile.id;
@@ -3089,9 +3101,11 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
 
       el.id = boardTileActiveDescendantId(tile.id);
       const tappable = tappableIds.has(tile.id);
+      const tappableChanged = !!(prevTap && prevTap.has(tile.id) !== tappable);
+      const wantSettleIn = !!withSettleAnimation && (isNewEl || tappableChanged);
       syncTileBoardInteractionVisual(el, tile, {
         tappable,
-        withSettleIn: withSettleAnimation
+        withSettleIn: wantSettleIn
       });
       const typeStr = String(tile.type);
       if (el.dataset.tileType !== typeStr) {

@@ -608,13 +608,20 @@ body {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Promote fly to its own layer; WAAPI animates transform only (see animateTileToTray). */
 .tile-flying {
   pointer-events: none;
   transition: none;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
+/*
+ * Board settle: animate transform + opacity only. Animating box-shadow on hundreds of tiles
+ * tanks mobile GPUs (was a major source of jank on large levels).
+ */
 .board-settle .tile {
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
 }
 
 .tile-settle-in {
@@ -1266,10 +1273,10 @@ body {
 
 @keyframes tileSettleIn {
   from {
-    transform: translate(-50%, -50%) scale(0.96);
+    transform: translate3d(-50%, -50%, 0) scale(0.96);
   }
   to {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate3d(-50%, -50%, 0) scale(1);
   }
 }
 
