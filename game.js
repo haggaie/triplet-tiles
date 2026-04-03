@@ -390,6 +390,7 @@ function resetMoveEngine() {
   _applyRunning = false;
   _combiningTypes = [];
   _waitingForRoom = [];
+  resetGameplayDebugLogState();
 }
 
 function showWinOverlayUi() {
@@ -729,6 +730,95 @@ function isShuffleInteractionBlocked() {
     _combiningTypes.length > 0 ||
     _isMoveAnimating
   );
+}
+
+/**
+ * QA / dev: rich console snapshots for stuck-board or “tiles left” issues.
+ * Enable with URL `?gameplayDebug=1` or `localStorage.setItem('tripletGameplayDebug', '1')`.
+ */
+function isGameplayDebugEnabled() {
+  try {
+    if (typeof window === 'undefined') return false;
+    if (new URLSearchParams(window.location.search).get('gameplayDebug') === '1') return true;
+    return window.localStorage.getItem('tripletGameplayDebug') === '1';
+  } catch {
+    return false;
+  }
+}
+
+let _gameplayDebugLastStuckSig = '';
+let _gameplayDebugLastTwoTileSig = '';
+
+function resetGameplayDebugLogState() {
+  _gameplayDebugLastStuckSig = '';
+  _gameplayDebugLastTwoTileSig = '';
+}
+
+/**
+ * Serializable snapshot: level, each remaining board tile (position, type, cover count, tappable), tray, move engine.
+ * @returns {Record<string, unknown>}
+ */
+function getGameplayDebugSnapshot() {
+  const level = LEVELS[state.currentLevelIndex];
+  const remaining = state.boardTiles.filter(t => !t.removed);
+  const tappable = getTappableTiles();
+  const tappableIds = new Set(tappable.map(t => t.id));
+  return {
+    levelIndex: state.currentLevelIndex,
+    levelId: level?.id,
+    levelName: level?.name,
+    gridWidth: level?.gridWidth,
+    gridHeight: level?.gridHeight,
+    boardRemaining: remaining.length,
+    remainingTiles: remaining.map(t => ({
+      id: t.id,
+      type: t.type,
+      x: t.x,
+      y: t.y,
+      z: t.z,
+      coverCount: _coverCountById.get(t.id) ?? 0,
+      tappable: tappableIds.has(t.id)
+    })),
+    tray: state.trayTiles.map(t => ({ id: t.id, type: t.type })),
+    trayTypes: state.trayTiles.map(t => t.type),
+    tappableCount: tappable.length,
+    isLevelOver: state.isLevelOver,
+    engine: {
+      waitingForRoom: [..._waitingForRoom],
+      moveQueueLen: _moveQueue.length,
+      hasCurrentFly: _currentFly != null,
+      currentFly: _currentFly ? { tileId: _currentFly.tile.id, type: _currentFly.type } : null,
+      applyRunning: _applyRunning,
+      applyQueueLen: _applyQueue.length,
+      combiningTypes: [..._combiningTypes],
+      isMoveAnimating: _isMoveAnimating
+    }
+  };
+}
+
+function maybeLogGameplayDebugFromCheckWin() {
+  if (!isGameplayDebugEnabled() || state.isLevelOver) return;
+  const remaining = state.boardTiles.filter(t => !t.removed);
+  if (remaining.length === 0) return;
+
+  const snap = getGameplayDebugSnapshot();
+
+  if (remaining.length === 2) {
+    const sig =
+      JSON.stringify(snap.remainingTiles) + '|' + JSON.stringify(snap.trayTypes);
+    if (sig !== _gameplayDebugLastTwoTileSig) {
+      _gameplayDebugLastTwoTileSig = sig;
+      console.info('[Triplet gameplay] Exactly 2 tiles remain on board', snap);
+    }
+  }
+
+  if (isShuffleInteractionBlocked()) return;
+  const tap = getTappableTiles();
+  if (tap.length > 0) return;
+  const stuckSig = JSON.stringify(snap.remainingTiles) + '|' + JSON.stringify(snap.trayTypes);
+  if (stuckSig === _gameplayDebugLastStuckSig) return;
+  _gameplayDebugLastStuckSig = stuckSig;
+  console.warn('[Triplet gameplay] STUCK: no tappable tiles while board still has tiles', snap);
 }
 
 /** Randomly permutes types among non-removed board tiles; positions and ids unchanged. */
@@ -2628,6 +2718,8 @@ function checkWinCondition() {
   const anyOnBoard = state.boardTiles.some(t => !t.removed);
   if (!anyOnBoard && state.trayTiles.length === 0) {
     triggerWin();
+  } else {
+    maybeLogGameplayDebugFromCheckWin();
   }
 }
 
@@ -3377,6 +3469,12 @@ if (typeof window !== 'undefined') {
         combiningTypes: [..._combiningTypes],
         isMoveAnimating: _isMoveAnimating
       };
+    },
+    /** QA: full board/tray/cover/tappable snapshot (no flag required). */
+    getGameplayDebugSnapshot,
+    /** QA: `console.log` the snapshot JSON (pretty). */
+    dumpGameplayDebug() {
+      console.log('[Triplet gameplay] dump', JSON.stringify(getGameplayDebugSnapshot(), null, 2));
     },
     getAudioDiagnostics() {
       return typeof audioSvc.getDiagnostics === 'function' ? audioSvc.getDiagnostics() : null;
