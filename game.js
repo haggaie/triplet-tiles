@@ -467,6 +467,8 @@ function tryRestoreSession() {
   _boardKeyboardFocusTileId = null;
   _boardKeyboardPickAnchor = null;
 
+  buildCoverStructures(state.boardTiles);
+
   if (ui.board) {
     ui.board.classList.remove('board-win');
     ui.board.classList.remove('board-loss');
@@ -552,6 +554,58 @@ function perfMeasureSync(name, fn) {
       /* ignore */
     }
   }
+}
+
+/**
+ * Per tile id: how many non-removed tiles visually cover this tile (tile-layering `tileCovers`).
+ * Incrementally updated when a covering tile is removed.
+ */
+let _coverCountById = new Map();
+/** Per tile id: ids of tiles below that this tile covers (for updates when this tile is removed). */
+let _coversListById = new Map();
+
+function buildCoverStructures(boardTiles) {
+  _coverCountById = new Map();
+  _coversListById = new Map();
+  const active = boardTiles.filter(t => !t.removed);
+  for (const t of active) {
+    _coverCountById.set(t.id, 0);
+    _coversListById.set(t.id, []);
+  }
+  for (const o of active) {
+    const list = _coversListById.get(o.id);
+    for (const t of active) {
+      if (o.id === t.id) continue;
+      if (o.z <= t.z) continue;
+      if (TL.tileCovers(o, t)) {
+        _coverCountById.set(t.id, (_coverCountById.get(t.id) || 0) + 1);
+        list.push(t.id);
+      }
+    }
+  }
+}
+
+function applyCoverDecrementsForRemoved(removedId) {
+  const coveredIds = _coversListById.get(removedId);
+  if (!coveredIds) return;
+  for (const tid of coveredIds) {
+    const below = state.boardTiles.find(x => x.id === tid);
+    if (!below || below.removed) continue;
+    const next = (_coverCountById.get(tid) || 0) - 1;
+    _coverCountById.set(tid, Math.max(0, next));
+  }
+}
+
+/** Cover count from committed state; optional `ignoreTileId` treats that tile as absent (e.g. mid-fly). */
+function effectiveCoverCount(tile, ignoreTileId = null) {
+  let c = _coverCountById.get(tile.id) ?? 0;
+  if (ignoreTileId) {
+    const ign = state.boardTiles.find(x => x.id === ignoreTileId && !x.removed);
+    if (ign && TL.tileCovers(ign, tile)) {
+      c -= 1;
+    }
+  }
+  return c;
 }
 
 /** Optional `() => number in [0,1)` for deterministic shuffle in tests; otherwise `Math.random`. */
@@ -1234,6 +1288,7 @@ function restoreSnapshot() {
   state.isRemoveTypeMode = false;
   state.lastSnapshot = null;
   _boardKeyboardPickAnchor = null;
+  buildCoverStructures(state.boardTiles);
   renderBoard();
   renderTray();
   renderHud();
@@ -1310,6 +1365,8 @@ function startLevel(index) {
   state.isRemoveTypeMode = false;
   state.lastSnapshot = null;
 
+  buildCoverStructures(state.boardTiles);
+
   state.powerups = { ...defaultPowerups };
   savePowerups();
 
@@ -1329,16 +1386,17 @@ function startLevel(index) {
 }
 
 function isTileCovered(tile, ignoreTileId = null) {
-  return state.boardTiles.some(
-    other => other.id !== ignoreTileId && !other.removed && TL.tileCovers(other, tile)
-  );
+  return effectiveCoverCount(tile, ignoreTileId) > 0;
 }
 
 /** If ignoreTileId is set, tappable tiles are computed as if that tile were already removed (for early clickability during fly). */
 function getTappableTiles(ignoreTileId = null) {
   return perfMeasureSync('getTappableTiles', () =>
     state.boardTiles.filter(
-      tile => !tile.removed && tile.id !== ignoreTileId && !isTileCovered(tile, ignoreTileId)
+      tile =>
+        !tile.removed &&
+        tile.id !== ignoreTileId &&
+        effectiveCoverCount(tile, ignoreTileId) === 0
     )
   );
 }
@@ -1388,16 +1446,7 @@ function boardTileCenterInBoardSpace(tile, cellSize, layoutOffset) {
  * Used to place keyboard focus immediately when a pick starts animating, before `renderBoard`.
  */
 function getTappableTilesAsIfTileRemoved(removeId) {
-  return state.boardTiles.filter(tile => {
-    if (tile.removed || tile.id === removeId) return false;
-    return !state.boardTiles.some(
-      other =>
-        other.id !== removeId &&
-        other.id !== tile.id &&
-        !other.removed &&
-        TL.tileCovers(other, tile)
-    );
-  });
+  return getTappableTiles(removeId);
 }
 
 /**
@@ -1992,6 +2041,7 @@ function handleBoardTileClick(tileId) {
     state.boardTiles = pick.boardTiles;
     state.trayTiles = pick.trayTiles;
     state.score = pick.score;
+    applyCoverDecrementsForRemoved(tileId);
     state.stats.tilesClearedTotal += pick.removedTypes.length * 3;
     saveStats();
     renderBoard(true);
@@ -2036,6 +2086,7 @@ function handleBoardTileClick(tileId) {
 
   function applyMove(onMatchingDone) {
     tile.removed = true;
+    applyCoverDecrementsForRemoved(tile.id);
     state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
     renderBoard(true);
     renderTray();
@@ -2781,12 +2832,17 @@ function performRemoveType(type) {
   state.isRemoveTypeMode = false;
   clearRemoveTypeTrayUi();
   state.trayTiles = state.trayTiles.filter(t => t.type !== type);
+  const removedIds = [];
   state.boardTiles.forEach(tile => {
     if (!tile.removed && tile.type === type) {
       tile.removed = true;
+      removedIds.push(tile.id);
       state.stats.tilesClearedTotal += 1;
     }
   });
+  for (const id of removedIds) {
+    applyCoverDecrementsForRemoved(id);
+  }
   state.powerups.removeType -= 1;
   savePowerups();
   saveStats();

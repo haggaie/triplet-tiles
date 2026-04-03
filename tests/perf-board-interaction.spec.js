@@ -233,7 +233,7 @@ test.describe('perf board interaction', () => {
     renderBoard / pick:         ${fmtMs(hotspotsHeavy.medianRenderBoardMsPerPick)}
     getBoardFitRectPx / pick:     ${fmtMs(hotspotsHeavy.medianGetBoardFitRectPxMsPerPick)}  (${fmtPct(hotspotsHeavy.medianGetBoardFitRectPxPctOfRenderBoard)} of renderBoard — layout reads; good cache target)
     approx rest of renderBoard: ${fmtMs(hotspotsHeavy.medianApproxRestOfRenderBoardMsPerPick)}  (DOM tile loop, inner tappable, offsets, …; nested overlap — see TESTING.md)
-    getTappableTiles sum / pick:  ${fmtMs(hotspotsHeavy.medianGetTappableTilesMsPerPick)}  (includes harness probe + in-board; rises with N² on heavy levels)
+    getTappableTiles sum / pick:  ${fmtMs(hotspotsHeavy.medianGetTappableTilesMsPerPick)}  (harness probe + in-board; inner tappable is O(n) via cover refcount)
     Long tasks (median): count=${heavy.longTaskMedian.count}, max=${fmtMs(heavy.longTaskMedian.maxDur)}
 
   BASELINE level (index ${BASELINE_LEVEL_INDEX})
