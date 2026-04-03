@@ -57,6 +57,8 @@ The Playwright configuration in `playwright.config.js` starts a simple static se
 
 The perf spec is meant for **before/after comparisons** when optimizing hot paths (layout reads, tappable scans, DOM updates). Absolute milliseconds vary by machine and CI; treat **regressions** as sustained increases in median **ms per pick**, long-task counts, or summed measures.
 
+**Layout read cache:** `measureBoardLayout` reuses a single cached snapshot of viewport, `#board-scroll`, root font, and `--board-cell-min` until **`invalidateLayoutReadCache()`** runs. That happens when `#board-scroll` is resized (`ResizeObserver`), on `window` `resize`, and on `visualViewport` `resize` (mobile chrome / orientation). After invalidation, the next `renderBoard` (or other layout consumer) performs fresh reads. Use **`__tripletTestHooks.invalidateLayoutReadCache()`** if a test changes the viewport without those events.
+
 **Run** (single worker reduces noise from parallel Chromium instances):
 
 ```bash
@@ -77,7 +79,7 @@ PERF_CPU_THROTTLE=4 npx playwright test tests/perf-board-interaction.spec.js --w
 - **`measureSumsMedian`** in the JSON: raw sums over the timed loop — use with the above rules.
 - **`longTaskMedian`**: optional; if the Long Task API is unavailable, counts stay at zero.
 
-**Test hooks** (for custom scripts): `setPerfMarksEnabled(true|false)`, `clearPerfEntriesForTest()`.
+**Test hooks** (for custom scripts): `setPerfMarksEnabled(true|false)`, `clearPerfEntriesForTest()`, `invalidateLayoutReadCache()`.
 
 Run only mobile layout checks:
 

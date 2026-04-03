@@ -149,6 +149,13 @@ function rootRemToPx(rem) {
 /** Matches `.board-scroll-align` horizontal + vertical padding (12px × 2). */
 const BOARD_SCROLL_ALIGN_PAD_PX = 24;
 
+/** Cached DOM layout inputs for `measureBoardLayout`; invalidated on viewport / scrollport change. */
+let _layoutReadCache = null;
+
+function invalidateLayoutReadCache() {
+  _layoutReadCache = null;
+}
+
 /** Prefer visual viewport height on mobile (browser chrome, pinch-zoom). */
 function getViewportHeightPx() {
   const vv = window.visualViewport;
@@ -157,11 +164,13 @@ function getViewportHeightPx() {
 }
 
 /**
- * Max width/height (px) for the board mat inside #board-scroll (padding accounted for).
- * Matches prior square cap when grid is square: min(maxW,maxH) was the old fit side.
+ * Single read of viewport, #board-scroll, root rem, and --board-cell-min. Cached until invalidation.
+ * User Timing name `getBoardFitRectPx` kept for perf benchmarks (covers all layout reads in one measure on miss).
+ * @returns {{ maxW: number, maxH: number, cellMin: number }}
  */
-function getBoardFitRectPx() {
-  return perfMeasureSync('getBoardFitRectPx', () => {
+function readLayoutInputs() {
+  if (_layoutReadCache) return _layoutReadCache;
+  _layoutReadCache = perfMeasureSync('getBoardFitRectPx', () => {
     const vw = document.documentElement.clientWidth;
     const vh = getViewportHeightPx();
     let maxW = Math.min(448, vw * 0.92);
@@ -175,14 +184,27 @@ function getBoardFitRectPx() {
         maxH = Math.min(maxH, innerH);
       }
     }
-    return { maxW: Math.max(120, maxW), maxH: Math.max(120, maxH) };
+    const maxWc = Math.max(120, maxW);
+    const maxHc = Math.max(120, maxH);
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--board-cell-min').trim();
+    const n = parseFloat(raw);
+    const cellMin = Number.isFinite(n) && n > 0 ? n : 40;
+    return { maxW: maxWc, maxH: maxHc, cellMin };
   });
+  return _layoutReadCache;
+}
+
+/**
+ * Max width/height (px) for the board mat inside #board-scroll (padding accounted for).
+ * Matches prior square cap when grid is square: min(maxW,maxH) was the old fit side.
+ */
+function getBoardFitRectPx() {
+  const { maxW, maxH } = readLayoutInputs();
+  return { maxW, maxH };
 }
 
 function readBoardCellMinPx() {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue('--board-cell-min').trim();
-  const n = parseFloat(raw);
-  return Number.isFinite(n) && n > 0 ? n : 40;
+  return readLayoutInputs().cellMin;
 }
 
 /**
@@ -190,8 +212,7 @@ function readBoardCellMinPx() {
  * Single cellSize so tiles stay square; board may be rectangular if gridWidth !== gridHeight.
  */
 function measureBoardLayout(gridWidth, gridHeight) {
-  const { maxW, maxH } = getBoardFitRectPx();
-  const cellMin = readBoardCellMinPx();
+  const { maxW, maxH, cellMin } = readLayoutInputs();
   return measureBoardLayoutFromFit(gridWidth, gridHeight, { maxW, maxH, cellMinPx: cellMin });
 }
 
@@ -3055,6 +3076,7 @@ if (typeof window !== 'undefined') {
       performance.clearMarks();
       performance.clearMeasures();
     },
+    invalidateLayoutReadCache,
     resetAllProgress() {
       try {
         Object.values(STORAGE_KEYS).forEach(key => {
@@ -3130,12 +3152,38 @@ if (typeof window !== 'undefined') {
 }
 
 let _boardScrollRoTimer = 0;
+/** Coalesces invalidate + renderBoard to one frame when window/visualViewport fire in a burst. */
+let _viewportLayoutRaf = 0;
+
+function scheduleInvalidateLayoutAndRenderBoard() {
+  invalidateLayoutReadCache();
+  if (typeof requestAnimationFrame === 'undefined') {
+    renderBoard();
+    return;
+  }
+  if (_viewportLayoutRaf) return;
+  _viewportLayoutRaf = requestAnimationFrame(() => {
+    _viewportLayoutRaf = 0;
+    renderBoard();
+  });
+}
+
+function installViewportLayoutListeners() {
+  if (typeof window === 'undefined') return;
+  const onViewportChange = () => scheduleInvalidateLayoutAndRenderBoard();
+  window.addEventListener('resize', onViewportChange);
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener('resize', onViewportChange);
+  }
+}
 
 function installBoardScrollResizeObserver() {
   if (typeof ResizeObserver === 'undefined' || !ui.boardScroll) return;
   const ro = new ResizeObserver(() => {
     clearTimeout(_boardScrollRoTimer);
     _boardScrollRoTimer = setTimeout(() => {
+      invalidateLayoutReadCache();
       renderBoard();
     }, 60);
   });
@@ -3172,6 +3220,7 @@ function main() {
   audioSvc.applyStoredStateToElement();
   installDisplayModeUi();
   bindEvents();
+  installViewportLayoutListeners();
   installBoardScrollResizeObserver();
   installLevelSelectScrollUrlSync();
   loadProgression();
