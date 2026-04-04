@@ -32,6 +32,14 @@ const MOBILE_VIEWPORTS = [
   { name: 'wider short portrait', width: 412, height: 640 }
 ];
 
+/** Narrow widths where the tray rail should span the full main column (see style.css ≤767px). */
+const TRAY_FULL_WIDTH_PHONE_VIEWPORTS = [
+  { name: 'iPhone SE portrait', width: 375, height: 667 },
+  { name: 'mid narrow portrait', width: 526, height: 800 },
+  { name: '700px-wide portrait', width: 700, height: 900 },
+  { name: 'max narrow breakpoint', width: 767, height: 900 }
+];
+
 const LEVEL_INDICES = [0, 1, 2];
 
 async function assertNoHorizontalPageOverflow(page) {
@@ -176,6 +184,26 @@ async function assertElementContainedHorizontally(page, selector) {
   );
 }
 
+/**
+ * On narrow phone layout the tray mat should span the full `.main-layout` column (edge-to-edge
+ * with the flex column), not the capped `min(520px, 100vw)` width.
+ */
+async function assertTrayWrapperSpansMainLayoutWidth(page) {
+  const m = await page.evaluate(() => {
+    const main = document.querySelector('.main-layout');
+    const tray = document.querySelector('.tray-wrapper');
+    if (!main || !tray) return null;
+    const mainW = main.getBoundingClientRect().width;
+    const trayW = tray.getBoundingClientRect().width;
+    return { mainW, trayW, delta: Math.abs(mainW - trayW) };
+  });
+  expect(m, 'main/tray metrics').toBeTruthy();
+  expect(
+    m.delta,
+    `.tray-wrapper should span .main-layout width (main=${m.mainW}px, tray=${m.trayW}px)`
+  ).toBeLessThanOrEqual(BOARD_CLIP_TOLERANCE_PX);
+}
+
 async function loadLevel(page, levelIndex) {
   await page.goto('/');
   await page.waitForSelector('#board');
@@ -189,6 +217,23 @@ async function loadLevel(page, levelIndex) {
   );
   await page.waitForSelector('#board .tile');
 }
+
+test.describe('Tray full width on phone layout', () => {
+  for (const vp of TRAY_FULL_WIDTH_PHONE_VIEWPORTS) {
+    test.describe(`${vp.name} (${vp.width}×${vp.height})`, () => {
+      test.use({ viewport: { width: vp.width, height: vp.height } });
+
+      test('tray wrapper spans main layout width', async ({ page }) => {
+        expect(vp.width, 'viewport should use narrow phone layout').toBeLessThanOrEqual(
+          NARROW_LAYOUT_MAX_WIDTH_PX
+        );
+        await loadLevel(page, 0);
+        await assertNoHorizontalPageOverflow(page);
+        await assertTrayWrapperSpansMainLayoutWidth(page);
+      });
+    });
+  }
+});
 
 for (const vp of MOBILE_VIEWPORTS) {
   test.describe(`Mobile viewport — ${vp.name} (${vp.width}×${vp.height})`, () => {

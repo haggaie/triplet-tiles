@@ -746,6 +746,15 @@ body {
   --tile-corner-radius: calc(var(--tile-size) * 0.28125);
 }
 
+/* After base `width: min(520px, 100vw)` above — full-bleed tray on phones (601–767px, not only ≤600). */
+@media (max-width: 767px) {
+  .tray-wrapper {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+  }
+}
+
 .tray-label {
   font-size: 0.7rem;
   text-transform: uppercase;
