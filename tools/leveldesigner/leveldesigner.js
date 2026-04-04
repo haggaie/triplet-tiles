@@ -99,7 +99,7 @@ function renderFullLevelGameStyle(mount, layout, gridWidth, gridHeight) {
     board.style.width = `${widthPx}px`;
     board.style.height = `${heightPx}px`;
     board.style.setProperty('--tile-size', `${cellSize}px`);
-    board.style.setProperty('--tile-icon-size', `${Math.round(cellSize * 0.4)}px`);
+    board.style.setProperty('--tile-icon-size', `${Math.round(cellSize * 0.6)}px`);
 
     mountBoardTilesFill(board, {
       layout,

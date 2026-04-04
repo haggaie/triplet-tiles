@@ -2598,7 +2598,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
     margin-left: -${trayTargetPx / 2}px;
     margin-top: -${trayTargetPx / 2}px;
     border-radius: ${trayCornerPx}px;
-    font-size: ${trayTargetPx * 0.4}px;
+    font-size: ${trayTargetPx * 0.6}px;
     box-sizing: border-box;
     z-index: 100;
     pointer-events: none;

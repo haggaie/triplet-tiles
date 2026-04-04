@@ -27,7 +27,7 @@
   /* Rounded-square silhouette: 28.125% of side (18/64). `.board` sets --tile-size for playfield; `.tray-wrapper` sets it for the tray rail. */
   --tile-corner-radius: calc(var(--tile-size) * 0.28125);
   /* Icon size: same on board and tray when tile size matches */
-  --tile-icon-size: 1.6rem;
+  --tile-icon-size: 2.4rem;
 
   /* Phase B: wooden tile face (shared by .tile face, .tray-tile) */
   --tile-bg-plank: linear-gradient(
@@ -843,7 +843,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(var(--tile-size) * 0.4);
+  font-size: calc(var(--tile-size) * 0.6);
   color: var(--ink);
   user-select: none;
   -webkit-user-select: none;
