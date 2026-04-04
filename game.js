@@ -2460,6 +2460,8 @@ function getMatchingTypesInTray() {
 const FLY_DURATION_MS = 450;
 const TRAY_SHIFT_DURATION_MS = 320;
 const COMBINE_DURATION_MS = 600;
+/** Tray triple merge: subtle pulse on top of tray pixel size (not board cell size). */
+const COMBINE_PEAK_SCALE = 1.1;
 const TRAY_COMPACT_DURATION_MS = 320;
 
 function prefersReducedMotionUi() {
@@ -2676,31 +2678,52 @@ function animateMatchCombine(type, onComplete) {
   const targetX = centerRect.left + centerRect.width / 2;
   const targetY = centerRect.top + centerRect.height / 2;
 
-  const startPositions = toAnimate.map((el, i) => {
+  /*
+   * Measure while `el` still hangs off `.tray-wrapper` (scoped `--tile-size`). After
+   * `appendChild` onto `body` the cascade reverts to `:root` and tiles would jump to board scale.
+   */
+  const measured = toAnimate.map((el, i) => {
     const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
     return {
       el,
       startX: r.left + r.width / 2,
       startY: r.top + r.height / 2,
-      zIndex: i === 1 ? 103 : 102
+      zIndex: i === 1 ? 103 : 102,
+      w: r.width,
+      h: r.height,
+      fontSize: cs.fontSize,
+      borderRadius: cs.borderRadius
     };
   });
 
-  startPositions.forEach(({ el, zIndex }) => {
+  measured.forEach((m) => {
+    const { el, startX, startY, zIndex, w, h, fontSize, borderRadius } = m;
     el.classList.add('tile-combining');
-    el.style.zIndex = String(zIndex);
     // Detach from tray so a later renderTray() from another applyMove cannot strip these nodes mid-animation.
     document.body.appendChild(el);
+    el.style.cssText = [
+      'position:fixed',
+      `left:${startX}px`,
+      `top:${startY}px`,
+      `width:${w}px`,
+      `height:${h}px`,
+      `margin-left:-${w / 2}px`,
+      `margin-top:-${h / 2}px`,
+      `z-index:${zIndex}`,
+      'box-sizing:border-box',
+      `font-size:${fontSize}`,
+      `border-radius:${borderRadius}`,
+      'pointer-events:none'
+    ].join(';');
   });
 
-  const combinePromises = startPositions.map(({ el, startX, startY, zIndex }) => {
-    const half = el.getBoundingClientRect().width / 2;
-    el.style.cssText = `position:fixed;left:${startX}px;top:${startY}px;margin-left:-${half}px;margin-top:-${half}px;z-index:${zIndex}`;
-    return el.animate(
+  const combinePromises = measured.map(({ el, startX, startY }) =>
+    el.animate(
       [
         { transform: 'translate3d(0, 0, 0) scale(1)', opacity: 1 },
         {
-          transform: `translate3d(${targetX - startX}px, ${targetY - startY}px, 0) scale(1.2)`,
+          transform: `translate3d(${targetX - startX}px, ${targetY - startY}px, 0) scale(${COMBINE_PEAK_SCALE})`,
           opacity: 1
         },
         {
@@ -2709,11 +2732,11 @@ function animateMatchCombine(type, onComplete) {
         }
       ],
       { duration: motionMs(COMBINE_DURATION_MS), easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }
-    ).finished;
-  });
+    ).finished
+  );
 
   Promise.all(combinePromises).then(() => {
-    toAnimate.forEach(el => el.remove());
+    measured.forEach(({ el }) => el.remove());
     onComplete(removedSlotIndices);
   });
 }
