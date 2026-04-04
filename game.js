@@ -246,19 +246,18 @@ function measureBoardLayout(gridWidth, gridHeight) {
   });
 }
 
-/** Must match `.tray` in style.css (seven slots, ring, gap). */
+/** Must match `.tray` grid in style.css: seven columns, each one tile wide. */
 const TRAY_SLOT_COUNT = 7;
-const TRAY_SLOT_RING_PX = 6;
-const TRAY_GAP_REM = 0.3;
+/** Rounded-square corner ratio from style.css (`calc(var(--tile-size) * 0.28125)`). */
+const TILE_CORNER_FR = 0.28125;
 
 /**
- * Tray tiles may be smaller than board cells so the rail fits all seven slots without horizontal scroll.
+ * Tray uses the same --tile-size token as the board when it fits; otherwise caps so seven slots fit the rail.
  * @param {number} cellSize
  * @returns {number}
  */
 function computeTrayTileSizePx(cellSize) {
   const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  const gapPx = TRAY_GAP_REM * fs;
   const wrap = document.querySelector('.tray-wrapper');
   let inner;
   if (wrap && wrap.clientWidth > 0) {
@@ -275,9 +274,7 @@ function computeTrayTileSizePx(cellSize) {
         : 1 * 2;
     inner = Math.max(160, vw - padRem * fs);
   }
-  const ringPerColumn = 2 * TRAY_SLOT_RING_PX;
-  const fixed = TRAY_SLOT_COUNT * ringPerColumn + (TRAY_SLOT_COUNT - 1) * gapPx;
-  const maxTile = (inner - fixed) / TRAY_SLOT_COUNT;
+  const maxTile = inner / TRAY_SLOT_COUNT;
   const capped = Math.min(cellSize, maxTile);
   return Math.max(24, Math.floor(capped * 100) / 100);
 }
@@ -1036,6 +1033,7 @@ function initDomRefs() {
   ui.boardScrollAlign = document.querySelector('.board-scroll-align');
   ui.board = document.getElementById('board');
   ui.tray = document.getElementById('tray');
+  ui.trayWrapper = ui.tray ? ui.tray.closest('.tray-wrapper') : document.querySelector('.tray-wrapper');
   ui.levelLabel = document.getElementById('level-label');
   ui.scoreValue = document.getElementById('score-value');
   ui.restartButton = document.getElementById('restart-button');
@@ -2585,7 +2583,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   const boardVisualPx =
     tileRect && tileRect.width > 0 ? tileRect.width : cellSize;
   const trayTargetPx = computeTrayTileSizePx(cellSize);
-  // Fly end state matches committed .tray-tile (may be smaller than board cells on narrow viewports).
+  const trayCornerPx = trayTargetPx * TILE_CORNER_FR;
   const startScale = boardVisualPx / trayTargetPx;
 
   const fly = document.createElement('div');
@@ -2599,10 +2597,13 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
     height: ${trayTargetPx}px;
     margin-left: -${trayTargetPx / 2}px;
     margin-top: -${trayTargetPx / 2}px;
+    border-radius: ${trayCornerPx}px;
+    font-size: ${trayTargetPx * 0.4}px;
     box-sizing: border-box;
     z-index: 100;
     pointer-events: none;
   `;
+  fly.style.setProperty('--tile-noise-tile-size', `${trayTargetPx}px`);
   document.body.appendChild(fly);
 
   // Defer hiding the board tile to the next frame so we don't get two style writes in one frame
@@ -3333,7 +3334,7 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
     ui.board.style.height = `${heightPx}px`;
     const trayTileSize = computeTrayTileSizePx(cellSize);
     ui.board.style.setProperty('--tile-size', `${cellSize}px`);
-    document.documentElement.style.setProperty('--tray-tile-size', `${trayTileSize}px`);
+    if (ui.trayWrapper) ui.trayWrapper.style.setProperty('--tile-size', `${trayTileSize}px`);
 
     const existingById = new Map();
     for (const child of ui.board.children) {
