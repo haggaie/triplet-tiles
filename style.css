@@ -22,9 +22,12 @@
   --text: #e5e7eb;
   --muted: #9ca3af;
   --tile-size: 64px;
-  /* Floor for board cell = board width / (gridWidth + 2); keeps tiles legible / tappable on wide grids (see GAME_SPEC §4.1). */
+  /* Tray can be smaller than board cells so seven slots fit without horizontal scroll (see computeTrayTileSizePx in game.js). */
+  --tray-tile-size: 64px;
+  --tray-tile-corner-radius: calc(var(--tray-tile-size) * 0.28125);
+  /* Floor for board cell: width uses gridWidth + horizontal margin cells (2 desktop, tighter on narrow — see game.js). */
   --board-cell-min: 40px;
-  /* Rounded-square silhouette: 28.125% of side (18/64). Absolute length tracks JS-updated --tile-size; tray pocket inner matches. */
+  /* Rounded-square silhouette: 28.125% of side (18/64). Board sets --tile-size; tray uses --tray-tile-size. */
   --tile-corner-radius: calc(var(--tile-size) * 0.28125);
   /* Icon size: same on board and tray when tile size matches */
   --tile-icon-size: 1.6rem;
@@ -516,6 +519,10 @@ body {
 }
 
 .board {
+  /* Board tile geometry; JS updates --tile-size from layout cellSize. */
+  --tile-size: 64px;
+  --tile-corner-radius: calc(var(--tile-size) * 0.28125);
+  --tile-noise-tile-size: var(--tile-size);
   position: relative;
   user-select: none;
   -webkit-user-select: none;
@@ -651,7 +658,7 @@ body {
   -webkit-user-drag: none;
 }
 
-.tile {
+.board .tile {
   position: absolute;
   width: var(--tile-size);
   height: var(--tile-size);
@@ -674,7 +681,7 @@ body {
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.1s ease, opacity 0.15s ease;
 }
 
-.tile.tappable:hover {
+.board .tile.tappable:hover {
   transform: translateY(-3px) scale(1.03);
   box-shadow:
     0 16px 30px rgb(22 14 10 / 0.85),
@@ -683,12 +690,12 @@ body {
     var(--tile-inset-dark);
 }
 
-.tile.blocked {
+.board .tile.blocked {
   filter: grayscale(0.4) brightness(0.9);
   cursor: default;
 }
 
-.tile.tile-queued {
+.board .tile.tile-queued {
   cursor: default;
   transform: translate(-50%, -50%) translateY(-10px);
   box-shadow:
@@ -712,7 +719,7 @@ body {
  * Board settle: animate transform + opacity only. Animating box-shadow on hundreds of tiles
  * tanks mobile GPUs (was a major source of jank on large levels).
  */
-.board-settle .tile {
+.board-settle .board .tile {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
 }
 
@@ -734,8 +741,8 @@ body {
   flex-shrink: 0;
   width: min(520px, 100vw);
   max-width: 100%;
-  /* Tray grid min track width can exceed the rail on small phones; scroll inside the rail, not the page. */
-  overflow-x: auto;
+  /* Tray width is capped via --tray-tile-size so seven slots fit; no horizontal rail scroll. */
+  overflow-x: hidden;
   overflow-y: visible;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
@@ -768,14 +775,14 @@ body {
   /* Inner well = slot minus 2× ring; keep slot ≥ tile + 2× ring so the well is never narrower than the tile. */
   grid-template-columns: repeat(
     7,
-    minmax(calc(var(--tile-size) + 2 * var(--tray-slot-ring)), 1fr)
+    minmax(calc(var(--tray-tile-size) + 2 * var(--tray-slot-ring)), 1fr)
   );
   gap: var(--tray-gap);
-  min-width: calc(7 * (var(--tile-size) + 2 * var(--tray-slot-ring)) + 6 * var(--tray-gap));
+  min-width: calc(7 * (var(--tray-tile-size) + 2 * var(--tray-slot-ring)) + 6 * var(--tray-gap));
   --tray-slot-ring-color: rgb(45 38 32 / 0.96);
   --tray-slot-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
-  /* Pocket shell slightly rounder than tile (inner opening uses --tile-corner-radius). */
-  --tray-slot-outer-radius: min(999px, calc(var(--tile-corner-radius) + var(--tray-slot-ring)));
+  /* Pocket shell slightly rounder than tile (inner opening uses --tray-tile-corner-radius). */
+  --tray-slot-outer-radius: min(999px, calc(var(--tray-tile-corner-radius) + var(--tray-slot-ring)));
 }
 
 .tray-making-room .tray-slot-shift-right .tray-slot-inner {
@@ -805,7 +812,7 @@ body {
   position: relative;
   z-index: 0;
   border-radius: var(--tray-slot-outer-radius);
-  height: calc(var(--tile-size) + 12px);
+  height: calc(var(--tray-tile-size) + 12px);
   background: var(--tray-pocket-face);
   box-shadow:
     var(--tray-slot-highlight),
@@ -817,7 +824,7 @@ body {
 .tray-slot-inner {
   position: absolute;
   inset: var(--tray-slot-ring);
-  border-radius: var(--tile-corner-radius);
+  border-radius: var(--tray-tile-corner-radius);
   background: var(--tray-slot-inner-bg);
   display: flex;
   align-items: center;
@@ -828,15 +835,16 @@ body {
 }
 
 .tray-tile {
+  --tile-noise-tile-size: var(--tray-tile-size);
   position: relative;
   z-index: 1;
-  width: var(--tile-size);
-  height: var(--tile-size);
-  border-radius: var(--tile-corner-radius);
+  width: var(--tray-tile-size);
+  height: var(--tray-tile-size);
+  border-radius: var(--tray-tile-corner-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--tile-icon-size);
+  font-size: calc(var(--tray-tile-size) * 0.4);
   color: var(--ink);
   user-select: none;
   -webkit-user-select: none;

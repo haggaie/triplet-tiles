@@ -207,7 +207,7 @@ for (const vp of MOBILE_VIEWPORTS) {
         await assertBoardScrollportVisibleInViewport(page);
         await assertBoardTilesFullyInsidePlayfield(page);
         await assertElementContainedHorizontally(page, '#board-scroll');
-        /* #tray may be wider than the viewport (min cell × 7); it scrolls inside .tray-wrapper. */
+        /* Tray tile size is capped so seven slots fit inside .tray-wrapper without horizontal scroll. */
         await assertElementContainedHorizontally(page, '.tray-wrapper');
       });
     }

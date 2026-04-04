@@ -222,8 +222,13 @@ function readBoardCellMinPx() {
   return readLayoutInputs().cellMin;
 }
 
+/** Extra horizontal “margin cells” in layout width (`gridWidth + this`); 2 = one cell padding per side. */
+const BOARD_MARGIN_CELLS_H_WIDE = 2;
+/** Narrow layouts: slightly smaller divisor → larger cells, tiles sit closer to the wood edge. */
+const BOARD_MARGIN_CELLS_H_NARROW = 1;
+
 /**
- * Playfield size and cell size from grid dimensions (+2 margin cells).
+ * Playfield size and cell size from grid dimensions (+ margin cells per axis).
  * Single cellSize so tiles stay square; board may be rectangular if gridWidth !== gridHeight.
  */
 function measureBoardLayout(gridWidth, gridHeight) {
@@ -235,8 +240,46 @@ function measureBoardLayout(gridWidth, gridHeight) {
     maxW,
     maxH,
     cellMinPx: cellMin,
-    preferWidthFill: !wideLayout
+    preferWidthFill: !wideLayout,
+    horizontalMarginCells: wideLayout ? BOARD_MARGIN_CELLS_H_WIDE : BOARD_MARGIN_CELLS_H_NARROW,
+    verticalMarginCells: 2
   });
+}
+
+/** Must match `.tray` in style.css (seven slots, ring, gap). */
+const TRAY_SLOT_COUNT = 7;
+const TRAY_SLOT_RING_PX = 6;
+const TRAY_GAP_REM = 0.3;
+
+/**
+ * Tray tiles may be smaller than board cells so the rail fits all seven slots without horizontal scroll.
+ * @param {number} cellSize
+ * @returns {number}
+ */
+function computeTrayTileSizePx(cellSize) {
+  const fs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const gapPx = TRAY_GAP_REM * fs;
+  const wrap = document.querySelector('.tray-wrapper');
+  let inner;
+  if (wrap && wrap.clientWidth > 0) {
+    const cs = getComputedStyle(wrap);
+    inner =
+      wrap.clientWidth -
+      (parseFloat(cs.paddingLeft) || 0) -
+      (parseFloat(cs.paddingRight) || 0);
+  } else {
+    const vw = document.documentElement.clientWidth;
+    const padRem =
+      typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 600px)').matches
+        ? 0.75 * 2
+        : 1 * 2;
+    inner = Math.max(160, vw - padRem * fs);
+  }
+  const ringPerColumn = 2 * TRAY_SLOT_RING_PX;
+  const fixed = TRAY_SLOT_COUNT * ringPerColumn + (TRAY_SLOT_COUNT - 1) * gapPx;
+  const maxTile = (inner - fixed) / TRAY_SLOT_COUNT;
+  const capped = Math.min(cellSize, maxTile);
+  return Math.max(24, Math.floor(capped * 100) / 100);
 }
 
 /** @param {{ gridWidth?: number, gridHeight?: number, gridSize?: number }} level */
@@ -2541,9 +2584,8 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   const tileRect = tileEl ? tileEl.getBoundingClientRect() : null;
   const boardVisualPx =
     tileRect && tileRect.width > 0 ? tileRect.width : cellSize;
-  // Fly element uses the same layout box as tray tiles (cellSize) so the last keyframe matches
-  // the committed .tray-tile exactly — no subpixel mix of "scaled arbitrary rect" vs CSS px tile.
-  const trayTargetPx = cellSize;
+  const trayTargetPx = computeTrayTileSizePx(cellSize);
+  // Fly end state matches committed .tray-tile (may be smaller than board cells on narrow viewports).
   const startScale = boardVisualPx / trayTargetPx;
 
   const fly = document.createElement('div');
@@ -3289,7 +3331,9 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
 
     ui.board.style.width = `${widthPx}px`;
     ui.board.style.height = `${heightPx}px`;
-    document.documentElement.style.setProperty('--tile-size', `${cellSize}px`);
+    const trayTileSize = computeTrayTileSizePx(cellSize);
+    ui.board.style.setProperty('--tile-size', `${cellSize}px`);
+    document.documentElement.style.setProperty('--tray-tile-size', `${trayTileSize}px`);
 
     const existingById = new Map();
     for (const child of ui.board.children) {
