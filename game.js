@@ -450,6 +450,7 @@ function resetMoveEngine() {
   _currentFly = null;
   _applyQueue = [];
   _applyRunning = false;
+  _holdApplyQueueForTest = false;
   _combiningTypes = [];
   _waitingForRoom = [];
   resetGameplayDebugLogState();
@@ -903,6 +904,8 @@ let _currentFly = null;
 /** Queue of apply thunks; processed one at a time so fly completions don't race. */
 let _applyQueue = [];
 let _applyRunning = false;
+/** Playwright: if true, enqueueApply only pushes thunks; use releaseApplyQueueHoldForTest() to drain. */
+let _holdApplyQueueForTest = false;
 /** Types currently being combined (in-flight combine animations). Blocks checkAllIdle until visuals finish. */
 let _combiningTypes = [];
 /** Pending tile IDs to start flying when tray has room (after a combine frees space). */
@@ -2315,6 +2318,7 @@ function checkAllIdle() {
 
 function enqueueApply(thunk) {
   _applyQueue.push(thunk);
+  if (_holdApplyQueueForTest) return;
   if (!_applyRunning) {
     _applyRunning = true;
     applyQueueNext();
@@ -2395,12 +2399,13 @@ function handleBoardTileClick(tileId) {
   const tileEl = ui.board.querySelector(`[data-tile-id="${tileId}"]`);
   const insertIndex = getTrayInsertIndexForType(state.trayTiles, tile.type);
 
-  function applyMove(onMatchingDone) {
+  function applyMove(onMatchingDone, flyElToRemove = null) {
     tile.removed = true;
     applyCoverDecrementsForRemoved(tile.id);
     state.trayTiles = insertTrayTileByShape(state.trayTiles, { id: tile.id, type: tile.type });
     renderBoard(true, { incrementalPickRemovedId: tile.id });
     renderTray();
+    if (flyElToRemove) flyElToRemove.remove();
     handleMatchingInTrayAnimated(() => {
       renderHud();
       checkWinCondition();
@@ -2421,16 +2426,16 @@ function handleBoardTileClick(tileId) {
   const flyTargetY = slotRect ? slotRect.top + slotRect.height / 2 : null;
   startTrayMakeRoomAnimation(insertIndex);
 
-  const handle = animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, (isSnap) => {
+  const handle = animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, (isSnap, flyEl) => {
     clearTrayMakeRoomAnimation();
     _currentFly = null;
     if (isSnap) {
       // Must chain applyQueueNext like the non-snap path; otherwise onMatchingDone is empty,
       // checkAllIdle never runs, and _isMoveAnimating stays true after snap + tray animations.
-      applyMove(applyQueueNext);
+      applyMove(applyQueueNext, flyEl);
     } else {
       enqueueApply(() => {
-        applyMove(applyQueueNext);
+        applyMove(applyQueueNext, flyEl);
       });
     }
   });
@@ -2557,7 +2562,8 @@ function clearTrayMakeRoomAnimation() {
 
 /**
  * Animates a tile flying to the tray. Returns a handle with cancelSnap() to snap to end and run onComplete.
- * onComplete(isSnap) is called when the fly ends: isSnap true when snapped, false when finished naturally.
+ * onComplete(isSnap, flyEl) is called when the fly ends: isSnap true when snapped, false when finished naturally.
+ * Pass flyEl into applyMove so the clone is removed only after renderTray (avoids tray flicker when the apply queue defers).
  * flyTargetX, flyTargetY: optional precomputed target (e.g. slot center before make-room shift); if omitted, read from slot.
  */
 function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete) {
@@ -2600,7 +2606,7 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
     margin-left: -${trayTargetPx / 2}px;
     margin-top: -${trayTargetPx / 2}px;
     border-radius: ${trayCornerPx}px;
-    font-size: ${trayTargetPx * 0.6}px;
+    font-size: ${Math.round(trayTargetPx * 0.6)}px;
     box-sizing: border-box;
     z-index: 100;
     pointer-events: none;
@@ -2634,10 +2640,9 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
   );
 
   function finishFly(isSnap) {
-    fly.remove();
-    // Do not restore tile visibility: applyMove -> renderBoard will remove the tile from the DOM.
-    // Restoring it here would make it flash briefly in its original spot before removal.
-    onComplete(isSnap);
+    // Do not remove fly here: applyMove removes it after renderTray so a queued apply cannot leave a
+    // frame (or many) with no flying clone and no tray tile yet. Do not restore board tile visibility.
+    onComplete(isSnap, fly);
   }
 
   animation.finished.then(() => {
@@ -3556,10 +3561,22 @@ if (typeof window !== 'undefined') {
         hasCurrentFly: _currentFly != null,
         applyRunning: _applyRunning,
         applyQueueLen: _applyQueue.length,
+        holdApplyQueueForTest: _holdApplyQueueForTest,
         combiningTypesLen: _combiningTypes.length,
         combiningTypes: [..._combiningTypes],
         isMoveAnimating: _isMoveAnimating
       };
+    },
+    /** E2E: enqueueApply stacks thunks without draining until releaseApplyQueueHoldForTest(). */
+    holdApplyQueueForTest(hold = true) {
+      _holdApplyQueueForTest = !!hold;
+    },
+    releaseApplyQueueHoldForTest() {
+      _holdApplyQueueForTest = false;
+      if (!_applyRunning && _applyQueue.length > 0) {
+        _applyRunning = true;
+        applyQueueNext();
+      }
     },
     /** QA: full board/tray/cover/tappable snapshot (no flag required). */
     getGameplayDebugSnapshot,
