@@ -664,7 +664,12 @@ body {
     var(--tile-inset-light),
     var(--tile-inset-dark);
   transform-origin: center center;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.1s ease, opacity 0.15s ease;
+  /*
+   * box-shadow is intentionally excluded from the transition: animating box-shadow forces a
+   * main-thread repaint every frame and tanks frame rates when the mouse crosses multiple tiles
+   * (same reason the board-settle animation excludes it). Shadow changes are instant.
+   */
+  transition: transform 0.12s ease, filter 0.1s ease, opacity 0.15s ease;
 }
 
 /*
@@ -673,6 +678,11 @@ body {
  */
 @media (hover: hover) and (pointer: fine) {
   .board .tile.tappable:hover {
+    /*
+     * will-change promotes only this one tile to its own compositor layer so the transform
+     * runs entirely on the GPU without touching the main thread.
+     */
+    will-change: transform;
     transform: translateY(-3px) scale(1.03);
     box-shadow:
       0 16px 30px rgb(22 14 10 / 0.85),
