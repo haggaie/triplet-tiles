@@ -707,6 +707,20 @@ function buildPositionStacks(activeTiles) {
 }
 
 /**
+ * Returns the tile ID that would become newly visible if `removedId` were removed from its
+ * position stack (i.e. the next tile down in the same x,y,parity group). Read-only — does
+ * not modify any state; used to pre-reveal that tile during the fly animation.
+ * @returns {string | null}
+ */
+function _getPendingRevealId(removedId) {
+  const key = _tilePositionKey.get(removedId);
+  if (!key) return null;
+  const stack = _positionStacks.get(key);
+  if (!stack || stack.length < 2 || stack[0] !== removedId) return null;
+  return stack[1];
+}
+
+/**
  * Removes a tile from its position stack (called when tile is picked/removed).
  * If the tile was the topmost, the next tile in the stack becomes newly visible.
  * @returns {string | null} ID of the tile that became newly visible, or null.
@@ -2504,6 +2518,36 @@ function handleBoardTileClick(tileId) {
   const flyTargetY = slotRect ? slotRect.top + slotRect.height / 2 : null;
   startTrayMakeRoomAnimation(insertIndex);
 
+  // Pre-reveal: find the tile occluded directly below this one in the position stack.
+  // We'll create its DOM element in the same rAF that hides the flying tile so the board
+  // position never looks empty during the fly animation.
+  const pendingRevealId = _getPendingRevealId(tile.id);
+
+  function onPickedTileHidden() {
+    if (!pendingRevealId || !ui.board) return;
+    if (ui.board.querySelector(`[data-tile-id="${pendingRevealId}"]`)) return;
+    const revealTile = state.boardTiles.find(t => t.id === pendingRevealId && !t.removed);
+    if (!revealTile) return;
+    const level = LEVELS[state.currentLevelIndex];
+    const { gridWidth, gridHeight } = normalizeGridDims(level);
+    const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
+    const layoutFootprint = level.layout.map(t => ({ x: t.x, y: t.y, z: t.z }));
+    const layoutOffset = computeBoardContentOffsetPx(widthPx, heightPx, cellSize, layoutFootprint);
+    const el = document.createElement('div');
+    el.dataset.tileId = revealTile.id;
+    el.id = boardTileActiveDescendantId(revealTile.id);
+    // Compute tappable state with the flying tile treated as already absent.
+    const tappable = effectiveCoverCount(revealTile, tile.id) === 0;
+    syncTileBoardInteractionVisual(el, revealTile, { tappable, withSettleIn: true });
+    mountTileFace(el, revealTile.type);
+    el.dataset.tileType = String(revealTile.type);
+    setTileBoardPosition(el, revealTile, cellSize, layoutOffset);
+    ui.board.appendChild(el);
+    // Mark as no longer occluded so tilesToRender includes it in any subsequent renderBoard.
+    _occludedTileIds.delete(pendingRevealId);
+    _lastRenderedTileState.set(pendingRevealId, { tappable });
+  }
+
   const handle = animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, (isSnap, flyEl) => {
     clearTrayMakeRoomAnimation();
     _currentFly = null;
@@ -2516,7 +2560,7 @@ function handleBoardTileClick(tileId) {
         applyMove(applyQueueNext, flyEl);
       });
     }
-  });
+  }, pendingRevealId ? onPickedTileHidden : undefined);
   _currentFly = handle;
 }
 
@@ -2643,8 +2687,9 @@ function clearTrayMakeRoomAnimation() {
  * onComplete(isSnap, flyEl) is called when the fly ends: isSnap true when snapped, false when finished naturally.
  * Pass flyEl into applyMove so the clone is removed only after renderTray (avoids tray flicker when the apply queue defers).
  * flyTargetX, flyTargetY: optional precomputed target (e.g. slot center before make-room shift); if omitted, read from slot.
+ * onTileHidden: optional callback invoked in the same rAF that sets tileEl visibility:hidden; use to reveal the tile below.
  */
-function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete) {
+function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, onComplete, onTileHidden) {
   const level = LEVELS[state.currentLevelIndex];
   const { gridWidth, gridHeight } = normalizeGridDims(level);
   const { cellSize, widthPx, heightPx } = measureBoardLayout(gridWidth, gridHeight);
@@ -2694,9 +2739,11 @@ function animateTileToTray(tile, tileEl, insertIndex, flyTargetX, flyTargetY, on
 
   // Defer hiding the board tile to the next frame so we don't get two style writes in one frame
   // (renderBoard may have just run in the same frame, e.g. after previous fly completed).
+  // onTileHidden is called in the same rAF so the tile-below can appear in the same frame.
   if (tileEl) {
     requestAnimationFrame(() => {
       if (tileEl.isConnected) tileEl.style.visibility = 'hidden';
+      if (typeof onTileHidden === 'function') onTileHidden();
     });
   }
 
@@ -3401,26 +3448,39 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
         _lastRenderStats.removed += 1;
 
         // If the removed tile was the topmost in its position stack, the next tile became
-        // visible (un-occluded). Create and mount its DOM element now.
+        // visible (un-occluded). If it was already pre-revealed during the fly animation
+        // (onPickedTileHidden), just update its tappable state; otherwise create it now.
         const newlyVisibleId = _lastPickNewlyVisibleId;
         if (newlyVisibleId) {
-          const newlyVisibleTile = state.boardTiles.find(t => t.id === newlyVisibleId && !t.removed);
-          if (newlyVisibleTile) {
-            const el = document.createElement('div');
-            el.dataset.tileId = newlyVisibleTile.id;
-            el.id = boardTileActiveDescendantId(newlyVisibleTile.id);
-            const tappable = tappableIds.has(newlyVisibleTile.id);
-            syncTileBoardInteractionVisual(el, newlyVisibleTile, {
-              tappable,
-              withSettleIn: !!withSettleAnimation
-            });
-            const typeStr = String(newlyVisibleTile.type);
-            mountTileFace(el, newlyVisibleTile.type);
-            el.dataset.tileType = typeStr;
-            setTileBoardPosition(el, newlyVisibleTile, cellSize, layoutOffset);
-            ui.board.appendChild(el);
-            _lastRenderedTileState.set(newlyVisibleId, { tappable });
-            _lastRenderStats.created += 1;
+          const earlyEl = ui.board.querySelector(`[data-tile-id="${newlyVisibleId}"]`);
+          if (!earlyEl) {
+            const newlyVisibleTile = state.boardTiles.find(t => t.id === newlyVisibleId && !t.removed);
+            if (newlyVisibleTile) {
+              const el = document.createElement('div');
+              el.dataset.tileId = newlyVisibleTile.id;
+              el.id = boardTileActiveDescendantId(newlyVisibleTile.id);
+              const tappable = tappableIds.has(newlyVisibleTile.id);
+              syncTileBoardInteractionVisual(el, newlyVisibleTile, {
+                tappable,
+                withSettleIn: !!withSettleAnimation
+              });
+              const typeStr = String(newlyVisibleTile.type);
+              mountTileFace(el, newlyVisibleTile.type);
+              el.dataset.tileType = typeStr;
+              setTileBoardPosition(el, newlyVisibleTile, cellSize, layoutOffset);
+              ui.board.appendChild(el);
+              _lastRenderedTileState.set(newlyVisibleId, { tappable });
+              _lastRenderStats.created += 1;
+            }
+          } else {
+            // Pre-revealed during the fly: update tappable state to the committed value.
+            const newlyVisibleTile = state.boardTiles.find(t => t.id === newlyVisibleId && !t.removed);
+            if (newlyVisibleTile) {
+              const tappable = tappableIds.has(newlyVisibleId);
+              syncTileBoardInteractionVisual(earlyEl, newlyVisibleTile, { tappable, withSettleIn: false });
+              _lastRenderedTileState.set(newlyVisibleId, { tappable });
+              _lastRenderStats.synced += 1;
+            }
           }
         }
 
@@ -3779,6 +3839,14 @@ if (typeof window !== 'undefined') {
      */
     triggerFullRenderForTest() {
       renderBoard(false, {});
+    },
+    /**
+     * E2E: returns the tile ID that will be revealed (un-occluded) when the given tile is
+     * removed from its position stack, or null if no such tile exists. Used to test the
+     * early-reveal (pre-reveal during fly animation) behaviour.
+     */
+    getPendingRevealId(tileId) {
+      return _getPendingRevealId(tileId);
     },
     /** Playwright: switch UI language without depending on #locale-select. */
     setLocaleForTest(code) {

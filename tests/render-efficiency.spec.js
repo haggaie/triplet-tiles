@@ -8,9 +8,11 @@
  *  3. A single tile pick produces O(1) DOM mutations (not O(total tiles)).
  *  4. The incremental pick path is used and reports small synced/skipped counts.
  *  5. A second full render pass skips unchanged tiles.
+ *  6. The tile below a picked tile appears in the DOM within one rAF (during the fly),
+ *     not only after the fly animation completes.
  *
  * Uses the __tripletTestHooks API: getRenderStats(), getOccludedTileCount(),
- * getOccludedTileIds(), triggerFullRenderForTest().
+ * getOccludedTileIds(), triggerFullRenderForTest(), getPendingRevealId().
  */
 const { test, expect } = require('@playwright/test');
 
@@ -309,7 +311,59 @@ test.describe('render efficiency', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Test 6: Heavy level DOM reduction — occlusion culling has significant impact
+  // Test 6: Pre-reveal — tile below appears during fly, not only after fly lands
+  // ---------------------------------------------------------------------------
+  test('tile below appears in DOM within one rAF after tap, not only after fly completes', async ({
+    page
+  }) => {
+    // Use real animations so we can distinguish the pre-reveal timing from end-of-fly timing.
+    await page.goto('/');
+    await page.locator('#app').waitFor();
+    await page.evaluate(
+      ({ idx }) => {
+        const h = window.__tripletTestHooks;
+        h.resetAllProgress();
+        h.setShuffleRandomForTest(() => 0.5);
+        h.setSkipAnimations(false); // real fly animation (~450 ms)
+        h.startLevel(idx);
+      },
+      { idx: SMALL_OCCLUDED_LEVEL_INDEX }
+    );
+    await page.waitForSelector('#board [data-tile-id]');
+
+    // Find a tappable tile that has a pending-reveal tile directly below it.
+    const setup = await page.evaluate(() => {
+      const h = window.__tripletTestHooks;
+      const tappable = h.getTappableTiles();
+      for (const t of tappable) {
+        const pendingId = h.getPendingRevealId(t.id);
+        if (pendingId) return { coveringId: t.id, pendingId };
+      }
+      return null;
+    });
+
+    if (!setup) {
+      // No stacked tappable tile on this level — skip gracefully.
+      test.skip();
+      return;
+    }
+
+    const { coveringId, pendingId } = setup;
+
+    // Confirm pending tile is NOT in DOM before the tap.
+    await expect(page.locator(`#board [data-tile-id="${pendingId}"]`)).toHaveCount(0);
+
+    // Click the covering tile using a real DOM event (animated fly begins).
+    await page.locator(`#board [data-tile-id="${coveringId}"]`).click();
+
+    // Within 200 ms (well under the 450 ms fly duration) the tile below should already
+    // be in the DOM — revealed in the same rAF that hid the flying tile.
+    await expect(page.locator(`#board [data-tile-id="${pendingId}"]`))
+      .toHaveCount(1, { timeout: 200 });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 7: Heavy level DOM reduction — occlusion culling has significant impact
   // ---------------------------------------------------------------------------
   test('heavy level DOM count is substantially reduced by occlusion culling', async ({ page }) => {
     // Only run if the heavy level is available (requires levels.generated.js with 30+ levels)
