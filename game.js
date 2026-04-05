@@ -668,10 +668,72 @@ let _coverCountById = new Map();
 /** Per tile id: ids of tiles below that this tile covers (for updates when this tile is removed). */
 let _coversListById = new Map();
 
+/**
+ * Map from position stack key ("x,y,parity") → tile IDs sorted by z descending (topmost first).
+ * Tiles at the same (x, y) with the same z-parity share identical visual centers and tile sizes,
+ * so only the topmost tile needs a DOM node — the rest are fully occluded.
+ */
+let _positionStacks = new Map();
+/** Map from tile ID → its position stack key, for O(1) lookup when a tile is removed. */
+let _tilePositionKey = new Map();
+/**
+ * Set of tile IDs excluded from the DOM because a higher-z same-parity tile at the same (x,y)
+ * fully covers them. Updated by buildPositionStacks and _removeFromPositionStack.
+ */
+let _occludedTileIds = new Set();
+/**
+ * Set once per applyCoverDecrementsForRemoved: the tile ID that became newly visible because
+ * the removed tile was the topmost in its position stack. Read by the incremental render path.
+ */
+let _lastPickNewlyVisibleId = null;
+
+function buildPositionStacks(activeTiles) {
+  _positionStacks = new Map();
+  _tilePositionKey = new Map();
+  _occludedTileIds = new Set();
+  const zById = new Map(activeTiles.map(t => [t.id, t.z]));
+  for (const tile of activeTiles) {
+    const key = `${tile.x},${tile.y},${tile.z % 2}`;
+    _tilePositionKey.set(tile.id, key);
+    if (!_positionStacks.has(key)) _positionStacks.set(key, []);
+    _positionStacks.get(key).push(tile.id);
+  }
+  for (const [, stack] of _positionStacks) {
+    stack.sort((a, b) => (zById.get(b) || 0) - (zById.get(a) || 0));
+    for (let i = 1; i < stack.length; i++) {
+      _occludedTileIds.add(stack[i]);
+    }
+  }
+}
+
+/**
+ * Removes a tile from its position stack (called when tile is picked/removed).
+ * If the tile was the topmost, the next tile in the stack becomes newly visible.
+ * @returns {string | null} ID of the tile that became newly visible, or null.
+ */
+function _removeFromPositionStack(removedId) {
+  const key = _tilePositionKey.get(removedId);
+  if (!key) return null;
+  const stack = _positionStacks.get(key);
+  if (!stack) return null;
+  const wasTopmost = stack.length > 0 && stack[0] === removedId;
+  const idx = stack.indexOf(removedId);
+  if (idx !== -1) stack.splice(idx, 1);
+  _tilePositionKey.delete(removedId);
+  _occludedTileIds.delete(removedId);
+  if (wasTopmost && stack.length > 0) {
+    const newTopId = stack[0];
+    _occludedTileIds.delete(newTopId);
+    return newTopId;
+  }
+  return null;
+}
+
 function buildCoverStructures(boardTiles) {
   _coverCountById = new Map();
   _coversListById = new Map();
   const active = boardTiles.filter(t => !t.removed);
+  buildPositionStacks(active);
   for (const t of active) {
     _coverCountById.set(t.id, 0);
     _coversListById.set(t.id, []);
@@ -691,9 +753,12 @@ function buildCoverStructures(boardTiles) {
 
 /**
  * Decrements cover counts for tiles that were covered by `removedId`.
+ * Also updates position stack occlusion tracking via _removeFromPositionStack,
+ * storing the newly-visible tile ID in _lastPickNewlyVisibleId.
  * @returns {string[]} Tile ids that became uncovered (cover count went from 1 → 0).
  */
 function applyCoverDecrementsForRemoved(removedId) {
+  _lastPickNewlyVisibleId = _removeFromPositionStack(removedId);
   const coveredIds = _coversListById.get(removedId);
   if (!coveredIds) return [];
   const newlyExposed = [];
@@ -713,6 +778,15 @@ let _lastRenderedTappableIds = null;
 
 /** Last applied layout so picks can skip repositioning when the viewport grid is unchanged. */
 let _lastBoardLayoutSig = null;
+
+/**
+ * Per tile ID: tappable state from the last full render pass. Used to skip redundant
+ * syncTileBoardInteractionVisual / setTileBoardPosition calls when nothing changed.
+ */
+let _lastRenderedTileState = new Map();
+
+/** Statistics from the most recent renderBoard call. Reset at the start of each call. */
+let _lastRenderStats = { synced: 0, skipped: 0, created: 0, removed: 0, isIncremental: false };
 
 function boardLayoutSignaturesEqual(a, b) {
   return (
@@ -1547,6 +1621,7 @@ function restoreSnapshot() {
   state.lastSnapshot = null;
   _boardKeyboardPickAnchor = null;
   buildCoverStructures(state.boardTiles);
+  _lastRenderedTileState = new Map();
   renderBoard();
   renderTray();
   renderHud();
@@ -1653,6 +1728,9 @@ function startLevel(index) {
   state.lastSnapshot = null;
 
   buildCoverStructures(state.boardTiles);
+  _lastRenderedTileState = new Map();
+  _lastRenderedTappableIds = null;
+  _lastBoardLayoutSig = null;
 
   state.powerups = { ...defaultPowerups };
   savePowerups();
@@ -3279,6 +3357,8 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
   const incrementalPickRemovedId =
     opts && typeof opts.incrementalPickRemovedId === 'string' ? opts.incrementalPickRemovedId : null;
 
+  _lastRenderStats = { synced: 0, skipped: 0, created: 0, removed: 0, isIncremental: false };
+
   perfMeasureSync('renderBoard', () => {
     if (withSettleAnimation) {
       ui.board.classList.add('board-settle');
@@ -3303,8 +3383,11 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
       !state.isLevelOver && tappableIds.size > 0 && !state.isRemoveTypeMode;
     ui.board.tabIndex = boardCanFocus ? 0 : -1;
 
+    // Only render tiles that are not removed AND not fully occluded by a higher-z same-parity
+    // tile at the same (x, y). Occluded tiles have no DOM node; they become visible when their
+    // covering tile is removed (handled incrementally below or via full reconciliation).
     const tilesToRender = state.boardTiles
-      .filter(tile => !tile.removed)
+      .filter(tile => !tile.removed && !_occludedTileIds.has(tile.id))
       .slice()
       .sort((a, b) => a.z - b.z);
 
@@ -3314,6 +3397,32 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
       const removedEl = ui.board.querySelector(`[data-tile-id="${incrementalPickRemovedId}"]`);
       if (removedEl) {
         removedEl.remove();
+        _lastRenderedTileState.delete(incrementalPickRemovedId);
+        _lastRenderStats.removed += 1;
+
+        // If the removed tile was the topmost in its position stack, the next tile became
+        // visible (un-occluded). Create and mount its DOM element now.
+        const newlyVisibleId = _lastPickNewlyVisibleId;
+        if (newlyVisibleId) {
+          const newlyVisibleTile = state.boardTiles.find(t => t.id === newlyVisibleId && !t.removed);
+          if (newlyVisibleTile) {
+            const el = document.createElement('div');
+            el.dataset.tileId = newlyVisibleTile.id;
+            el.id = boardTileActiveDescendantId(newlyVisibleTile.id);
+            const tappable = tappableIds.has(newlyVisibleTile.id);
+            syncTileBoardInteractionVisual(el, newlyVisibleTile, {
+              tappable,
+              withSettleIn: !!withSettleAnimation
+            });
+            const typeStr = String(newlyVisibleTile.type);
+            mountTileFace(el, newlyVisibleTile.type);
+            el.dataset.tileType = typeStr;
+            setTileBoardPosition(el, newlyVisibleTile, cellSize, layoutOffset);
+            ui.board.appendChild(el);
+            _lastRenderedTileState.set(newlyVisibleId, { tappable });
+            _lastRenderStats.created += 1;
+          }
+        }
 
         const dirty = new Set();
         for (const id of tappableIds) {
@@ -3323,6 +3432,8 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
           if (!tappableIds.has(id)) dirty.add(id);
         }
         dirty.delete(incrementalPickRemovedId);
+        // Newly-visible tile was already fully synced above; exclude from dirty processing.
+        if (newlyVisibleId) dirty.delete(newlyVisibleId);
 
         let ok = true;
         for (const id of dirty) {
@@ -3341,6 +3452,8 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
               tappable: tappableIds.has(id),
               withSettleIn: false
             });
+            _lastRenderedTileState.set(id, { tappable: tappableIds.has(id) });
+            _lastRenderStats.synced += 1;
           }
           if (withSettleAnimation) {
             for (const tile of tilesToRender) {
@@ -3352,6 +3465,7 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
           }
           _lastRenderedTappableIds = tappableIds;
           _lastBoardLayoutSig = sig;
+          _lastRenderStats.isIncremental = true;
           finalizeBoardKeyboardFocusAfterRender(cellSize, layoutOffset);
           return;
         }
@@ -3377,6 +3491,7 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
       if (!el) {
         el = document.createElement('div');
         el.dataset.tileId = tile.id;
+        _lastRenderStats.created += 1;
       } else {
         existingById.delete(tile.id);
       }
@@ -3385,20 +3500,43 @@ function renderBoard(withSettleAnimation = false, opts = {}) {
       const tappable = tappableIds.has(tile.id);
       const tappableChanged = !!(prevTap && prevTap.has(tile.id) !== tappable);
       const wantSettleIn = !!withSettleAnimation && (isNewEl || tappableChanged);
-      syncTileBoardInteractionVisual(el, tile, {
-        tappable,
-        withSettleIn: wantSettleIn
-      });
+
+      // Skip sync and position for existing tiles whose tappable state and layout are unchanged.
+      // setTileBoardPosition already guards individual style writes, but the arithmetic and
+      // syncTileBoardInteractionVisual ARIA/class work still fires for every tile unconditionally.
+      const prevState = _lastRenderedTileState.get(tile.id);
+      const canSkipSync = !isNewEl && layoutUnchanged && prevState !== undefined && prevState.tappable === tappable;
+
+      if (canSkipSync) {
+        if (withSettleAnimation) el.classList.remove('tile-settle-in');
+        _lastRenderStats.skipped += 1;
+      } else {
+        syncTileBoardInteractionVisual(el, tile, {
+          tappable,
+          withSettleIn: wantSettleIn
+        });
+        setTileBoardPosition(el, tile, cellSize, layoutOffset);
+        _lastRenderStats.synced += 1;
+      }
+
       const typeStr = String(tile.type);
       if (el.dataset.tileType !== typeStr) {
         mountTileFace(el, tile.type);
         el.dataset.tileType = typeStr;
       }
-      setTileBoardPosition(el, tile, cellSize, layoutOffset);
+
+      _lastRenderedTileState.set(tile.id, { tappable });
       orderedElements.push(el);
     }
 
-    for (const el of existingById.values()) el.remove();
+    for (const el of existingById.values()) {
+      el.remove();
+      _lastRenderStats.removed += 1;
+    }
+    // Stale state entries for tiles no longer in DOM (removed or became occluded).
+    for (const id of existingById.keys()) {
+      _lastRenderedTileState.delete(id);
+    }
     for (const el of orderedElements) {
       if (el.parentNode !== ui.board) ui.board.appendChild(el);
     }
@@ -3516,6 +3654,31 @@ if (typeof window !== 'undefined') {
       performance.clearMeasures();
     },
     invalidateLayoutReadCache,
+    /**
+     * Returns statistics from the most recent renderBoard call.
+     * synced: tiles that had syncTileBoardInteractionVisual / setTileBoardPosition called.
+     * skipped: existing tiles whose tappable state and layout were unchanged (work was elided).
+     * created: new DOM elements created.
+     * removed: DOM elements removed (picked tiles, newly-occluded, or no longer on board).
+     * isIncremental: true if the fast incremental pick path was used.
+     * boardDomTileCount: current number of [data-tile-id] elements in #board.
+     */
+    getRenderStats() {
+      return {
+        ..._lastRenderStats,
+        boardDomTileCount: ui.board
+          ? ui.board.querySelectorAll('[data-tile-id]').length
+          : 0
+      };
+    },
+    /** Number of non-removed board tiles excluded from the DOM due to occlusion. */
+    getOccludedTileCount() {
+      return _occludedTileIds.size;
+    },
+    /** Array of tile IDs currently excluded from the DOM due to occlusion. */
+    getOccludedTileIds() {
+      return [..._occludedTileIds];
+    },
     resetAllProgress() {
       try {
         Object.values(STORAGE_KEYS).forEach(key => {
@@ -3609,6 +3772,13 @@ if (typeof window !== 'undefined') {
       const pattern = [40, 60, 40];
       const vibrateOk = navigator.vibrate(pattern);
       return { ok: vibrateOk, pattern, vibrateOk };
+    },
+    /**
+     * E2E: trigger a full (non-incremental) renderBoard without modifying game state.
+     * Useful for verifying that the skip-unchanged optimisation works on a second pass.
+     */
+    triggerFullRenderForTest() {
+      renderBoard(false, {});
     },
     /** Playwright: switch UI language without depending on #locale-select. */
     setLocaleForTest(code) {
